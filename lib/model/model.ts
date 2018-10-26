@@ -1,91 +1,57 @@
 import {filenameLogger} from '../util/debug'
-import produce from 'immer'
-import {head, last} from 'ramda'
-import {DocumentClient} from 'aws-sdk/clients/dynamodb'
 import {Operator, DDBKeyType} from '../operator/operator'
+import {Document} from './document'
+import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 
-export class Model<S, H extends DDBKeyType, R extends DDBKeyType> {
-  /**
-   * @todo: create History class
-   */
-  private history: S[] = [Object.assign({}, this.original)]
-
+export class Model<S, H extends DDBKeyType, R extends DDBKeyType = never> {
   constructor(
     protected readonly tableName: string,
     protected readonly hashKeyName: H,
-    protected readonly rangeKeyName: R,
-    protected readonly original: S,
+    protected readonly rangeKeyName: R
   ) {
-    log('new Model()', tableName, hashKeyName, rangeKeyName, original)
-  }
-
-  private operator = new Operator<H, R>(this.tableName, this.hashKeyName, this.rangeKeyName)
-
-  /**
-   * @todo make it lazy
-   */
-  set(setter: (this: S, draft: S) => void) {
-    const next = produce(this.original, setter.bind(this))
-    this.history.unshift(next)
-    log('set', next)
-    return next
-  }
-
-  /*
-   * @todo: for lazy, debug
-   */
-  private head() {
-    return head(this.history)
-  }
-
-  private base() {
-    return last(this.history)
-  }
-
-  private getHashKey() {
-    return this.base()[this.hashKeyName as string]
-  }
-
-  private getSortKey() {
-    return this.base()[this.rangeKeyName as string]
-  }
-
-  /**
-   * @todo check, is created from DB
-   */
-  async delete(params?: DocumentClient.DeleteItemInput) {
-    log('delete', params)
-    return this.operator.delete(this.getHashKey(), this.getSortKey(), params)
-  }
-
-  /**
-   * @todo is it need?
-   */
-  async undelete() {
 
   }
 
-  async put(params?) {
-    params = {
-      ...params,
-      Item: this.head()
+  private operator = new Operator(this.tableName, this.hashKeyName, this.rangeKeyName)
+
+  of(data: S) {
+    return new Document<S, H, R>(this.tableName, this.hashKeyName, this.rangeKeyName, data)
+  }
+
+  async batchGet(params?) {
+  }
+
+  async batchWrite(params?) {
+  }
+
+  async createSet(list, options) {
+  }
+
+  async delete(hash, range?, params?: DocumentClient.DeleteItemInput | null) {
+    try {
+      const response = await this.operator.delete(hash, range, params)
+      log('delete response', response)
+      return new Document(this.tableName, this.hashKeyName, this.rangeKeyName, null)
+    } catch (e) {
+      log(e)
     }
-    log('put', params)
-    return this.operator.put(this.getHashKey(), this.getSortKey(), params)
   }
 
-  /**
-   * @todo send diff only
-   */
-  async update(params?) {
-    params = {
-      ...params,
-      Item: this.head()
+  async get(hashKey, rangeKey?, params?): Promise<Document<S, H, R>> {
+    try {
+      const response = await this.operator.get(hashKey, rangeKey, params)
+      if (!response.Item) {
+        throw new Error(`Item not found, hash(${hashKey}, range(${rangeKey})`)
+      }
+      log('response', response)
+      const model = new Document(this.tableName, this.hashKeyName, this.rangeKeyName, response.Item as S)
+      return model
+    } catch (e) {
+      log(e)
     }
-    log('update', params)
-    return this.operator.update(this.getHashKey(), this.getSortKey(), params)
   }
 }
+
 
 const log = filenameLogger(__filename)
 

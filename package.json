@@ -1,23 +1,33 @@
 {
   "name": "dynalee",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Typescript DynamoDB ORM",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "repository": "https://github.com/deptno/dynalee.git",
   "author": "Bonggyun Lee <deptno@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "build": "tsc -p tsconfig.cjs.json"
+    "build": "npm run compile; npm run rollup",
+    "compile": "tsc -p .;tsc -p tsconfig.cjs.json",
+    "rollup": "rollup -c",
+    "prepare": "npm run build"
   },
   "engines": {
     "node": ">=8.10"
   },
   "engineStrict": true,
   "devDependencies": {
+    "@babel/core": "^7.1.2",
+    "@babel/preset-env": "^7.1.0",
+    "@babel/preset-typescript": "^7.1.0",
     "@types/aws-sdk": "^2.7.0",
     "@types/jest": "^23.3.7",
     "@types/node": "^10.12.0",
     "jest": "^23.6.0",
+    "rollup": "^0.66.6",
+    "rollup-plugin-babel": "^4.0.3",
+    "rollup-plugin-commonjs": "^9.2.0",
     "source-map-support": "^0.5.9",
     "ts-jest": "^23.10.4",
     "typescript": "^3.1.3"
