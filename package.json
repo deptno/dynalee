@@ -2,10 +2,17 @@
   "name": "dynalee",
   "version": "0.1.0",
   "description": "Typescript DynamoDB ORM",
-  "main": "lib/index.js",
+  "main": "dist/index.js",
   "repository": "https://github.com/deptno/dynalee.git",
   "author": "Bonggyun Lee <deptno@gmail.com>",
   "license": "MIT",
+  "scripts": {
+    "build": "tsc -p tsconfig.cjs.json"
+  },
+  "engines": {
+    "node": ">=8.10"
+  },
+  "engineStrict": true,
   "devDependencies": {
     "@types/aws-sdk": "^2.7.0",
     "@types/jest": "^23.3.7",

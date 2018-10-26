@@ -22,17 +22,12 @@ interface SchemaEx {
 
 Create Model
 ```typescript
-import {createModel} from 'dynalee'
-const Ex = createModel<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail')
+import define from 'dynalee'
+const User = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail')
 ```
 
-Type `.` !
-
-![Typing dot]()
-
-
 ```typescript
-const user = await Ex.get('hashKey', 'rangeKey')
+const user = await User.get('hashKey', 'rangeKey')
 user.set(user => {
   user.someKey = '⛵️'
 })

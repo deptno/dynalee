@@ -1,5 +1,5 @@
 import {filenameLogger} from '../util/debug'
-import {createModel} from './index'
+import {define} from './index'
 
 const log = filenameLogger(__filename)
 
@@ -16,8 +16,7 @@ interface SchemaEx {
   someKey?: string
 }
 
-
-const Ex = createModel<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail')
+const Ex = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail')
 
 async function put() {
   log('> put')
@@ -35,11 +34,10 @@ async function put() {
 async function get() {
   log('> get')
   const user = await Ex.get('hello', 'world')
-  //fixme: 2 history
   user.set(user => {
     delete user.someKey
   })
-  const result = await user.put()
+  const next = await user.put()
   log('< get')
 }
 

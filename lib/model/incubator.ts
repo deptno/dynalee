@@ -31,7 +31,6 @@ export class Incubator<S, H extends DDBKeyType, R extends DDBKeyType = never> {
   async delete(hash, range?, params?: DocumentClient.DeleteItemInput | null) {
     try {
       const response = await this.operator.delete(hash, range, params)
-      //fixme
       log('delete response', response)
       return new Model(this.tableName, this.hashKeyName, this.rangeKeyName, null)
     } catch (e) {
