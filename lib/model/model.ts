@@ -27,31 +27,42 @@ export class Model<S, H extends DDBKeyType, R extends DDBKeyType> {
   set(setter: (this: S, draft: S) => void) {
     const next = produce(this.original, setter.bind(this))
     this.history.unshift(next)
+    log('set', next)
     return next
   }
 
   /*
    * @todo: for lazy, debug
    */
-  revision() {
-    return this.history
-  }
-
-  head() {
+  private head() {
     return head(this.history)
   }
 
-  base() {
+  private base() {
     return last(this.history)
+  }
+
+  private getHashKey() {
+    return this.base()[this.hashKeyName as string]
+  }
+
+  private getSortKey() {
+    return this.base()[this.rangeKeyName as string]
   }
 
   /**
    * @todo check, is created from DB
    */
   async delete(params?: DocumentClient.DeleteItemInput) {
-    const data = this.base()
-    log('delete', this.hashKeyName, this.rangeKeyName, data)
-    return this.operator.delete(data[this.hashKeyName as string], data[this.rangeKeyName as string], params)
+    log('delete', params)
+    return this.operator.delete(this.getHashKey(), this.getSortKey(), params)
+  }
+
+  /**
+   * @todo is it need?
+   */
+  async undelete() {
+
   }
 
   async put(params?) {
@@ -59,15 +70,20 @@ export class Model<S, H extends DDBKeyType, R extends DDBKeyType> {
       ...params,
       Item: this.head()
     }
-    return this.operator.put(this.hashKeyName, this.rangeKeyName, params)
+    log('put', params)
+    return this.operator.put(this.getHashKey(), this.getSortKey(), params)
   }
 
+  /**
+   * @todo send diff only
+   */
   async update(params?) {
     params = {
       ...params,
       Item: this.head()
     }
-    return this.operator.update(this.hashKeyName, this.rangeKeyName, params)
+    log('update', params)
+    return this.operator.update(this.getHashKey(), this.getSortKey(), params)
   }
 }
 

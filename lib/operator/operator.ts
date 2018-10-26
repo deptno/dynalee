@@ -42,6 +42,7 @@ export class Operator<H extends DDBKeyType, R extends DDBKeyType> {
       ...params,
       ...this.createGetParam(hashKey, rangeKey),
     }
+    log('delete', params)
     return ddbClient.delete(params).promise()
   }
 
@@ -50,7 +51,7 @@ export class Operator<H extends DDBKeyType, R extends DDBKeyType> {
       ...params,
       ...this.createGetParam(hash, range),
     }
-
+    log('get', params)
     return ddbClient.get(param).promise()
   }
 
@@ -59,16 +60,20 @@ export class Operator<H extends DDBKeyType, R extends DDBKeyType> {
       ...params,
       ...this.createGetParam(hash, range),
     }
+    log('put params', params)
     return ddbClient.put(params).promise()
   }
 
   async query(params?) {
+    log('@todo query')
   }
 
   async scan(params?) {
+    log('@todo scan')
   }
 
   async update(hash, range?, params?) {
+    log('@todo update')
   }
 
   /**

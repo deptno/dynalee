@@ -45,13 +45,8 @@ export class Incubator<S, H extends DDBKeyType, R extends DDBKeyType = never> {
       if (!response.Item) {
         throw new Error(`Item not found, hash(${hashKey}, range(${rangeKey})`)
       }
+      log('response', response)
       const model = new Model(this.tableName, this.hashKeyName, this.rangeKeyName, response.Item as S)
-      model.set(model => {
-        model[this.hashKeyName as string] = hashKey
-        if (this.rangeKeyName) {
-          model[this.rangeKeyName as string] = rangeKey
-        }
-      })
       return model
     } catch (e) {
       log(e)

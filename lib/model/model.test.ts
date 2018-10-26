@@ -1,7 +1,7 @@
 import {filenameLogger} from '../util/debug'
-const log = filenameLogger(__filename)
-log(1)
 import {createModel} from './index'
+
+const log = filenameLogger(__filename)
 
 interface SchemaEx {
   readonly detail: string
@@ -19,28 +19,8 @@ interface SchemaEx {
 
 const Ex = createModel<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail')
 
-async function get() {
-  const user = await Ex.get('hello', 'world')
-  log('user', user)
-  user.set(user => {
-    delete user.someKey
-  })
-  log(user.head())
-  log(user.base())
-  log(user.revision())
-  const result = await user.put()
-  console.log('result', result)
-}
-
-async function update() {
-  const user = Ex.of({
-    id    : 'hello2',
-    detail: 'world',
-  })
-  const updatedUser = await user.update()
-}
-
 async function put() {
+  log('> put')
   const user = Ex.of({
     id    : 'hello',
     detail: 'world',
@@ -48,16 +28,44 @@ async function put() {
   user.set(user => {
     user.someKey = 'hello'
   })
-  const updatedUser = await user.put()
-  log('put', updatedUser)
+  const next = await user.put()
+  log('< put')
+}
+
+async function get() {
+  log('> get')
+  const user = await Ex.get('hello', 'world')
+  //fixme: 2 history
+  user.set(user => {
+    delete user.someKey
+  })
+  const result = await user.put()
+  log('< get')
+}
+
+async function update() {
+  log('> update')
+  const user = Ex.of({
+    id    : 'hello2',
+    detail: 'world',
+  })
+  const next = await user.update()
+  log('< update')
 }
 
 async function del() {
+  log('> del')
   const user = await Ex.get('hello', 'world')
-  const nextUser = await user.delete()
-  log('del', nextUser)
+  const next = await user.delete()
+  log('< del')
 }
 
-async function en() {
+
+async function chain() {
+  for (const job of [put, get, update, del]) {
+    job()
+    await new Promise(r => setTimeout(r, 2000))
+  }
 }
-del()
+
+chain()
