@@ -1,6 +1,18 @@
 # dynalee
 
-> [WIP]
+`dynalee` is built on top of `aws-sdk`'s `DynamoDB.DocumentClient`.
+`dynalee` is bridge between `DynamoDB.DocumentClient` and **Typescript**'s `Interface`.
+`dynalee` provide same methods ~~(name?)~~ that `DynamoDB.DocumentClient` provide
+
+### [WIP], UNSTABLE,
+### [WIP], UNSTABLE,
+### [WIP], UNSTABLE,
+### [WIP], UNSTABLE,
+
+## Install
+```bash
+npm i dynalee
+```
 
 ## Usage
 
@@ -23,7 +35,8 @@ interface SchemaEx {
 Create Model
 ```typescript
 import define from 'dynalee'
-const User = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail')
+
+const User = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('TableName', 'id', 'detail')
 ```
 
 ```typescript
@@ -34,3 +47,22 @@ user.set(user => {
 await user.put()
 ```
 
+## API
+`define<Schema, HashKeyType, RangeKey>(TableName, HashKeyPropertyName, RangeKeyPropertyName): Model`
+
+`Model`
+- [ ] `.of(data: Schema)` // create document
+- [ ] `.batchGet(...)`
+- [ ] `.batchWrite(...)`
+- [ ] `.createSet(...)`
+- [x] `.delete(...)`
+- [x] `.get(...): Document`
+
+`Document`
+- [x] `.set(...)`
+- [x] `.delete(...)` - DB delete
+- [x] `.put(...)` - DB put
+- [x] `.update(...)` - DB update
+
+## License
+MIT
