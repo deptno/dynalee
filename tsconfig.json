@@ -4,5 +4,8 @@
     "module": "commonjs",
     "sourceMap": true
   },
-  "include": ["rollup.config.ts"]
+  "include": [
+    "rollup.config.ts",
+    "__tests__/**/*.ts"
+  ]
 }

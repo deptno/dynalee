@@ -52,6 +52,5 @@ export class Model<S, H extends DDBKeyType, R extends DDBKeyType = never> {
   }
 }
 
-
 const log = filenameLogger(__filename)
 

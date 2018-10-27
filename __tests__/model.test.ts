@@ -1,7 +1,4 @@
-import {filenameLogger} from '../util/debug'
-import {define} from './index'
-
-const log = filenameLogger(__filename)
+import define from '..'
 
 interface SchemaEx {
   readonly detail: string
@@ -19,7 +16,7 @@ interface SchemaEx {
 const Ex = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail')
 
 async function put() {
-  log('> put')
+  console.log('> put')
   const user = Ex.of({
     id    : 'hello',
     detail: 'world',
@@ -28,36 +25,35 @@ async function put() {
     user.someKey = 'hello'
   })
   const next = await user.put()
-  log('< put')
+  console.log('< put')
 }
 
 async function get() {
-  log('> get')
+  console.log('> get')
   const user = await Ex.get('hello', 'world')
   user.set(user => {
     delete user.someKey
   })
   const next = await user.put()
-  log('< get')
+  console.log('< get')
 }
 
 async function update() {
-  log('> update')
+  console.log('> update')
   const user = Ex.of({
     id    : 'hello2',
     detail: 'world',
   })
   const next = await user.update()
-  log('< update')
+  console.log('< update')
 }
 
 async function del() {
-  log('> del')
+  console.log('> del')
   const user = await Ex.get('hello', 'world')
   const next = await user.delete()
-  log('< del')
+  console.log('< del')
 }
-
 
 async function chain() {
   for (const job of [put, get, update, del]) {
@@ -66,4 +62,4 @@ async function chain() {
   }
 }
 
-chain()
+update()
