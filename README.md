@@ -1,13 +1,10 @@
 # dynalee
 
-`dynalee` is built on top of `aws-sdk`'s `DynamoDB.DocumentClient`.
-`dynalee` is bridge between `DynamoDB.DocumentClient` and **Typescript**'s `Interface`.
-`dynalee` provide same methods ~~(name?)~~ that `DynamoDB.DocumentClient` provide
+> [WIP], UNSTABLE
 
-### [WIP], UNSTABLE,
-### [WIP], UNSTABLE,
-### [WIP], UNSTABLE,
-### [WIP], UNSTABLE,
+`dynalee` is built on top of `DynamoDB.DocumentClient`.  
+`dynalee` is bridge between `DynamoDB.DocumentClient` and **Typescript**'s `Interface`.  
+`dynalee` provide same methods ~~(name?)~~ that `DynamoDB.DocumentClient` provide
 
 ## Install
 ```bash
@@ -16,7 +13,7 @@ npm i dynalee
 
 ## Usage
 
-Define schema type
+Define schema
 ```typescript
 interface SchemaEx {
   readonly id: string // hashKey
@@ -32,37 +29,75 @@ interface SchemaEx {
 }
 ```
 
-Create Model
+Create [`Model`](#classmodel)
 ```typescript
 import define from 'dynalee'
 
 const User = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('TableName', 'id', 'detail')
 ```
 
+Create [`Document`](#document)
+
 ```typescript
-const user = await User.get('hashKey', 'rangeKey')
-user.set(user => {
-  user.someKey = '⛵️'
+const user = User.of({
+  id: 'hash',
+  detail: 'range'
 })
+```
+
+Save [`Document`](#document)
+
+```typescript
 await user.put()
 ```
 
-## API
-`define<Schema, HashKeyType, RangeKey>(TableName, HashKeyPropertyName, RangeKeyPropertyName): Model`
+Get [`Document`](#document)
 
-`Model`
-- [ ] `.of(data: Schema)` // create document
+```typescript
+const user = await User.get('hash', 'range')
+```
+
+Overwrite [`Document`](#document)
+
+```typescript
+const user = await User.get('HASH_KEY', 'RANGE_KEY')
+user.set(user => {
+  user.someKey = '⛵️'
+})
+await user.put() // or await user.update() [@todo]
+```
+
+Delete `Document`
+
+```typescript
+await user.delete()
+```
+
+## API
+
+```typescript
+define<Schema, HashKeyType, RangeKey>(TableName, HashKeyPropertyName, RangeKeyPropertyName): Model`
+```
+
+### class `Model`
+
+- [x] `.of(data: Schema)`
 - [ ] `.batchGet(...)`
 - [ ] `.batchWrite(...)`
-- [ ] `.createSet(...)`
+- [ ] ~~`.createSet(...)`~~
 - [x] `.delete(...)`
 - [x] `.get(...): Document`
 
-`Document`
+### class `Document`
+
 - [x] `.set(...)`
-- [x] `.delete(...)` - DB delete
-- [x] `.put(...)` - DB put
-- [x] `.update(...)` - DB update
+- [x] `.delete(...)` - DB write
+- [x] `.put(...)` - DB write
+- [ ] `.update(...)` - DB write
+
+## Roadmap
+
+- [ ] support timestamp
 
 ## License
 MIT
