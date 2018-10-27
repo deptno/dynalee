@@ -27,9 +27,9 @@ export class Model<S, H extends DDBKeyType, R extends DDBKeyType = never> {
   async createSet(list, options) {
   }
 
-  async delete(hash, range?, params?: DocumentClient.DeleteItemInput | null) {
+  async delete(hashKey: H, rangeKey?: R, params?: DocumentClient.DeleteItemInput | null) {
     try {
-      const response = await this.operator.delete(hash, range, params)
+      const response = await this.operator.delete(hashKey, rangeKey, params)
       log('delete response', response)
       return new Document(this.tableName, this.hashKeyName, this.rangeKeyName, null)
     } catch (e) {
@@ -37,7 +37,7 @@ export class Model<S, H extends DDBKeyType, R extends DDBKeyType = never> {
     }
   }
 
-  async get(hashKey, rangeKey?, params?): Promise<Document<S, H, R>> {
+  async get(hashKey: H, rangeKey?: R, params?): Promise<Document<S, H, R>> {
     try {
       const response = await this.operator.get(hashKey, rangeKey, params)
       if (!response.Item) {
@@ -47,7 +47,9 @@ export class Model<S, H extends DDBKeyType, R extends DDBKeyType = never> {
       const model = new Document(this.tableName, this.hashKeyName, this.rangeKeyName, response.Item as S)
       return model
     } catch (e) {
+      log({[this.hashKeyName]: hashKey, [this.rangeKeyName]: rangeKey})
       log(e)
+      throw new Error(e.message)
     }
   }
 }

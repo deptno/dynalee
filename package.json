@@ -9,8 +9,8 @@
   "license": "MIT",
   "scripts": {
     "build": "npm run compile; npm run rollup",
-    "compile": "tsc -p .;tsc -p tsconfig.cjs.json",
-    "rollup": "rollup -c; node -e \"console.log(require('.'))\"",
+    "compile": "tsc -p .; tsc -p tsconfig.cjs.json",
+    "rollup": "tsc -p tsconfig.config.json; rollup -c; node -e \"console.log(require('.'))\"",
     "prepare": "npm run build"
   },
   "engines": {
@@ -20,7 +20,9 @@
   "dependencies": {
     "debug": "^4.1.0",
     "immer": "^1.7.3",
-    "ramda": "^0.25.0"
+    "ramda": "^0.25.0",
+    "rollup-plugin-json": "^3.1.0",
+    "rollup-plugin-node-resolve": "^3.4.0"
   },
   "peerDependencies": {
     "aws-sdk": "^2.342.0"

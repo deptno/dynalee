@@ -3,28 +3,26 @@ import * as commonjs from 'rollup-plugin-commonjs'
 
 export = async (argv) => {
   return {
-    plugins,
-    entry  : 'build/index.js',
-    output : {
+    input   : 'build/index.js',
+    output  : {
       exports: 'named',
       format : 'cjs',
       file   : 'dist/index.js',
     },
-    exports: 'default'
+    plugins : [
+      babel({
+        presets   : [
+          ['@babel/preset-env', {
+            targets: {
+              node: '8.10'
+            }
+          }],
+        ],
+        extensions: ['.js']
+      }),
+      commonjs({
+        ignore: ['immer']
+      })
+    ],
   }
 }
-
-const plugins = [
-  babel({
-    presets   : [
-      ['@babel/preset-env', {
-        targets: {
-          node: '8.10'
-        }
-      }],
-    ],
-    extensions: ['.js']
-  }),
-  commonjs()
-]
-

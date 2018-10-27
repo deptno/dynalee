@@ -95,9 +95,10 @@ define<Schema, HashKeyType, RangeKey>(TableName, HashKeyPropertyName, RangeKeyPr
 - [x] `.put(...)` - DB write
 - [ ] `.update(...)` - DB write
 
-## Roadmap
+## @ToDo
 
 - [ ] support timestamp
+- [ ] set default error handler
 
 ## License
 MIT

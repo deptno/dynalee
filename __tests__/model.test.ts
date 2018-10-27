@@ -1,4 +1,4 @@
-import define from '..'
+import define from '../lib'
 
 interface SchemaEx {
   readonly detail: string
@@ -11,13 +11,14 @@ interface SchemaEx {
     }
   }
   someKey?: string
+  someKey2?: string
 }
 
-const Ex = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail')
+const User = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail')
 
 async function put() {
   console.log('> put')
-  const user = Ex.of({
+  const user = User.of({
     id    : 'hello',
     detail: 'world',
   })
@@ -30,7 +31,7 @@ async function put() {
 
 async function get() {
   console.log('> get')
-  const user = await Ex.get('hello', 'world')
+  const user = await User.get('hello', 'world')
   user.set(user => {
     delete user.someKey
   })
@@ -40,17 +41,30 @@ async function get() {
 
 async function update() {
   console.log('> update')
-  const user = Ex.of({
+  const user = User.of({
     id    : 'hello2',
     detail: 'world',
+  })
+  user.set(user => {
+    user.someKey2 = 'abc'
   })
   const next = await user.update()
   console.log('< update')
 }
 
+async function updateFromGet() {
+  console.log('> updateFromGet')
+  const user = await User.get('hello2', 'world')
+  user.set(user => {
+    delete user.someKey
+  })
+  const next = await user.update()
+  console.log('< updateFromGet')
+}
+
 async function del() {
   console.log('> del')
-  const user = await Ex.get('hello', 'world')
+  const user = await User.get('hello', 'world')
   const next = await user.delete()
   console.log('< del')
 }
@@ -62,4 +76,4 @@ async function chain() {
   }
 }
 
-update()
+updateFromGet()

@@ -1,6 +1,5 @@
 import {filenameLogger} from '../util/debug'
-import produce from 'immer'
-import {head, last} from 'ramda'
+import {produce, Draft, applyPatches} from 'immer'
 import {DocumentClient} from 'aws-sdk/clients/dynamodb'
 import {Operator, DDBKeyType} from '../operator/operator'
 
@@ -8,45 +7,58 @@ export class Document<S, H extends DDBKeyType, R extends DDBKeyType> {
   /**
    * @todo: create History class
    */
-  private history: S[] = [Object.assign({}, this.original)]
+  private undo = []
+  private redo = []
+  private current: S
 
   constructor(
     protected readonly tableName: string,
     protected readonly hashKeyName: H,
     protected readonly rangeKeyName: R,
-    protected readonly original: S,
+    data: S,
   ) {
-    log('new Model()', tableName, hashKeyName, rangeKeyName, original)
+    log('new Model()', tableName, hashKeyName, rangeKeyName, data)
+    this.current = Object.freeze(data)
   }
 
   private operator = new Operator<H, R>(this.tableName, this.hashKeyName, this.rangeKeyName)
 
   /**
    * @todo make it lazy
+   * @todo immer already support record
    */
-  set(setter: (this: S, draft: S) => void) {
-    const next = produce(this.original, setter.bind(this))
-    this.history.unshift(next)
-    log('set', next)
-    return next
+  set(setter: (draft: Draft<S>) => void) {
+    log('set', this.current)
+    this.current = produce(this.current, setter, (redos, undos) => {
+      this.redo.push(...redos)
+      this.undo.push(...undos)
+    })
+    return this.current
   }
 
   /*
    * @todo: for lazy, debug
    */
   private head() {
-    return head(this.history)
+    return this.current
   }
 
   private base() {
-    return last(this.history)
+    return applyPatches(this.head(), this.undo)
+  }
+
+  private keys() {
+    return {
+      [this.hashKeyName] : this.getHashKey(),
+      [this.rangeKeyName]: this.getRangeKey(),
+    }
   }
 
   private getHashKey() {
     return this.base()[this.hashKeyName as string]
   }
 
-  private getSortKey() {
+  private getRangeKey() {
     return this.base()[this.rangeKeyName as string]
   }
 
@@ -55,7 +67,7 @@ export class Document<S, H extends DDBKeyType, R extends DDBKeyType> {
    */
   async delete(params?: DocumentClient.DeleteItemInput) {
     log('delete', params)
-    return this.operator.delete(this.getHashKey(), this.getSortKey(), params)
+    return this.operator.delete(this.getHashKey(), this.getRangeKey(), params)
   }
 
   /**
@@ -71,19 +83,24 @@ export class Document<S, H extends DDBKeyType, R extends DDBKeyType> {
       Item: this.head()
     }
     log('put', params)
-    return this.operator.put(this.getHashKey(), this.getSortKey(), params)
+    return this.operator.put(this.getHashKey(), this.getRangeKey(), params)
   }
 
   /**
-   * @todo send diff only
+   * @todo send diff only, use immer@>1.7.3 `isDraft`
+   * @todo check [immer limiation](https://github.com/mweststrate/immer#limitations)
    */
   async update(params?) {
     params = {
       ...params,
       Item: this.head()
     }
+
     log('update', params)
-    return this.operator.update(this.getHashKey(), this.getSortKey(), params)
+    log('update', applyPatches(
+      this.keys(), this.redo,
+    ))
+    return this.operator.update(this.getHashKey(), this.getRangeKey(), params)
   }
 }
 
