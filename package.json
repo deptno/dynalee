@@ -9,8 +9,10 @@
   "license": "MIT",
   "scripts": {
     "build": "npm run compile; npm run rollup",
+    "build:config": "tsc -p tsconfig.config.json",
+    "test": "jest",
     "compile": "tsc -p .; tsc -p tsconfig.cjs.json",
-    "rollup": "tsc -p tsconfig.config.json; rollup -c; node -e \"console.log(require('.'))\"",
+    "rollup": "npm run build:config; rollup -c; node -e \"console.log(require('.'))\"",
     "prepare": "rm -rf dist; npm run build"
   },
   "engines": {
@@ -43,26 +45,5 @@
     "source-map-support": "^0.5.9",
     "ts-jest": "^23.10.4",
     "typescript": "^3.1.3"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "ts",
-      "js"
-    ],
-    "transform": {
-      "^.+\\.tsx?$": "ts-jest"
-    },
-    "testMatch": [
-      "**/*.(test|spec).ts"
-    ],
-    "coveragePathIgnorePatterns": [
-      "/node_modules/"
-    ],
-    "coverageReporters": [
-      "json",
-      "lcov",
-      "text",
-      "text-summary"
-    ]
   }
 }

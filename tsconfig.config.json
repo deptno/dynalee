@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "target": "es2017",
-    "module": "commonjs",
-    "sourceMap": true
+    "module": "commonjs"
   },
   "include": [
-    "rollup.config.ts"
+    "rollup.config.ts",
+    "jest.config.ts"
   ]
 }
