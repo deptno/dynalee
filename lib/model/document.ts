@@ -1,21 +1,24 @@
-import {filenameLogger} from '../util/debug'
-import {produce, Draft, applyPatches} from 'immer'
 import {DocumentClient} from 'aws-sdk/clients/dynamodb'
-import {Operator, DDBKeyType} from '../operator/operator'
+import {applyPatches, Draft, Patch, produce} from 'immer'
+import {TScalar, Operator} from '../operator/operator'
+import {getLogger} from '../util/debug'
+import {applyItemOptions} from '../options/apply-item-options'
+import {ModelOptions} from './model'
 
-export class Document<S, H extends DDBKeyType, R extends DDBKeyType> {
+export class Document<S, H extends TScalar, R extends TScalar> {
   /**
    * @todo: create History class
    */
-  private undo = []
-  private redo = []
+  private undo: Patch[] = []
+  private redo: Patch[] = []
   private current: S
 
   constructor(
     protected readonly tableName: string,
     protected readonly hashKeyName: H,
-    protected readonly rangeKeyName: R,
+    protected readonly rangeKeyName: R|undefined,
     data: S,
+    private readonly options?: ModelOptions,
   ) {
     log('new Model()', tableName, hashKeyName, rangeKeyName, data)
     this.current = Object.freeze(data)
@@ -36,10 +39,10 @@ export class Document<S, H extends DDBKeyType, R extends DDBKeyType> {
     return this.current
   }
 
-  /*
-   * @todo: for lazy, debug
+  /**
+   * @todo for lazy, debug
    */
-  private head() {
+  head() {
     return this.current
   }
 
@@ -48,9 +51,14 @@ export class Document<S, H extends DDBKeyType, R extends DDBKeyType> {
   }
 
   private keys() {
+    if (this.rangeKeyName) {
+      return {
+        [this.hashKeyName] : this.getHashKey(),
+        [this.rangeKeyName]: this.getRangeKey(),
+      }
+    }
     return {
       [this.hashKeyName] : this.getHashKey(),
-      [this.rangeKeyName]: this.getRangeKey(),
     }
   }
 
@@ -77,10 +85,15 @@ export class Document<S, H extends DDBKeyType, R extends DDBKeyType> {
 
   }
 
-  async put(params?) {
+  /**
+   * @todo apply options
+   * @param params
+   * @returns {Request<DocumentClient.PutItemOutput, AWSError>}
+   */
+  put(params?) {
     params = {
       ...params,
-      Item: this.head()
+      Item: applyItemOptions(this.head(), this.options)
     }
     log('put', params)
     return this.operator.put(this.getHashKey(), this.getRangeKey(), params)
@@ -104,5 +117,5 @@ export class Document<S, H extends DDBKeyType, R extends DDBKeyType> {
   }
 }
 
-const log = filenameLogger(__filename)
+const log = getLogger(__filename)
 

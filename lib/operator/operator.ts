@@ -1,15 +1,15 @@
 import * as AWS from 'aws-sdk'
 import {compose} from 'ramda'
 import {DocumentClient} from 'aws-sdk/clients/dynamodb'
-import {filenameLogger} from '../util/debug'
+import {getLogger} from '../util/debug'
 
-export type DDBKeyType = string|number|BinaryType
+export type TScalar = string | number | BinaryType
 
-export class Operator<H extends DDBKeyType, R extends DDBKeyType> {
+export class Operator<H extends TScalar, R extends TScalar = never> {
   constructor(
     protected readonly tableName: string,
     protected readonly hashKey: H,
-    protected readonly rangeKey: R,
+    protected readonly rangeKey?: R,
   ) {
   }
 
@@ -37,25 +37,36 @@ export class Operator<H extends DDBKeyType, R extends DDBKeyType> {
   async createSet(list, options) {
   }
 
-  async delete(hashKey, rangeKey?, params?: DocumentClient.DeleteItemInput | null) {
+  async delete(hashKey, rangeKey?, params?: DocumentClient.DeleteItemInput | undefined) {
     params = {
       ...params,
       ...this.createGetParam(hashKey, rangeKey),
     }
     log('delete', params)
-    return ddbClient.delete(params).promise()
+    return ddbClient.delete(params!).promise()
   }
 
+  /**
+   * @todo throw Error, if (this.rangeKeyName && !rangeKey)
+   */
   async get(hash, range?, params?) {
+    log('get args', hash, range, params)
     const param = {
       ...params,
       ...this.createGetParam(hash, range),
     }
-    log('get', params)
+    log('get param', param)
     return ddbClient.get(param).promise()
   }
 
-  async put(hash, range?, params?) {
+  /**
+   *
+   * @param hash
+   * @param range
+   * @param params
+   * @returns {Promise<PromiseResult<DocumentClient.PutItemOutput, AWSError>>}
+   */
+  put(hash, range?, params?) {
     params = {
       ...params,
       ...this.createGetParam(hash, range),
@@ -64,8 +75,13 @@ export class Operator<H extends DDBKeyType, R extends DDBKeyType> {
     return ddbClient.put(params).promise()
   }
 
-  async query(params?) {
-    log('@todo query')
+  async query(hashKey, params) {
+    params = {
+      ...params,
+      ...this.getTableParam(),
+    }
+    log('query params', JSON.stringify(params, null, 2))
+    return ddbClient.query(params).promise()
   }
 
   async scan(params?) {
@@ -77,27 +93,44 @@ export class Operator<H extends DDBKeyType, R extends DDBKeyType> {
   }
 
   /**
-   * @todo: memoize?
+   * @priority low
+   * @todo memoize?
    */
-  private getTableParam = (params) => {
+  private getTableParam = (params?) => {
     return {
       ...params,
       TableName: this.tableName
     }
   }
 
+  /**
+   * @todo clean up
+   * @param hash
+   * @param range
+   * @returns {{Key: {}}}
+   */
   private getKeyParam = (hash, range?) => {
     if (!this.rangeKey) {
+      if (range) {
+        log(`ignore. range key(${range}), rangeKey is not defined`)
+      }
       return {
-        Key      : {
+        Key: {
           [this.hashKey]: hash
         }
       }
     }
+    if (range) {
+      return {
+        Key: {
+          [this.hashKey] : hash,
+          [this.rangeKey]: range
+        }
+      }
+    }
     return {
-      Key      : {
-        [this.hashKey] : hash,
-        [this.rangeKey]: range
+      Key: {
+        [this.hashKey]: hash,
       }
     }
   }
@@ -109,5 +142,5 @@ export class Operator<H extends DDBKeyType, R extends DDBKeyType> {
 }
 
 const ddbClient = new AWS.DynamoDB.DocumentClient()
-const log = filenameLogger(__filename)
+const log = getLogger(__filename)
 

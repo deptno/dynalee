@@ -97,6 +97,8 @@ define<Schema, HashKeyType, RangeKey>(TableName, HashKeyPropertyName, RangeKeyPr
 
 ## @ToDo
 
+- [ ] add local development environment
+- [ ] add test environment
 - [ ] support timestamp
 - [ ] set default error handler
 

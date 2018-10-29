@@ -1,6 +1,3 @@
-import * as debug from 'debug'
+import createLogger from 'filename-logger'
 
-export const filenameLogger = (__filename: string) => {
-  const suffix = __filename.split('/').slice(-2).join('/')
-  return debug(`dynalee:${suffix}`)
-}
+export const getLogger = createLogger(`dynalee:`)

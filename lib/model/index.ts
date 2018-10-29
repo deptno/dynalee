@@ -1,9 +1,26 @@
-import {filenameLogger} from '../util/debug'
-import {Model} from './model'
-import {DDBKeyType} from '../operator/operator'
+import {getLogger} from '../util/debug'
+import {Model, ModelOptions} from './model'
+import {TScalar} from '../operator/operator'
 
-const log = filenameLogger(__filename)
+const log = getLogger(__filename)
 
-export const define = <S, H extends DDBKeyType, R extends DDBKeyType = never>(tableName: string, hashKey: H, rangeKey?: R) => {
-  return new Model<S, H, R>(tableName, hashKey, rangeKey)
+/**
+ * @todo need to index
+ */
+export const define: Define = (tableName, hashKeyName, rangeKeyName?, options?) => {
+  return new Model(tableName, hashKeyName, rangeKeyName, options)
+}
+
+interface Define {
+  <S, H extends TScalar, R extends TScalar = never>(
+    tableName: string,
+    hashKeyName: H,
+    rangeKeyName: R,
+    options?: ModelOptions
+  ): Model<S, H, R>
+  <S, H extends TScalar>(
+    tableName: string,
+    hashKeyName: H,
+    options?: ModelOptions
+  ): Model<S, H, any>
 }
