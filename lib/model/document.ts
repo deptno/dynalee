@@ -15,8 +15,8 @@ export class Document<S, H extends TScalar, R extends TScalar> {
 
   constructor(
     protected readonly tableName: string,
-    protected readonly hashKeyName: H,
-    protected readonly rangeKeyName: R|undefined,
+    protected readonly hashKeyName: string,
+    protected readonly rangeKeyName: string|undefined,
     data: S,
     private readonly options?: ModelOptions,
   ) {
@@ -62,12 +62,14 @@ export class Document<S, H extends TScalar, R extends TScalar> {
     }
   }
 
-  private getHashKey() {
-    return this.base()[this.hashKeyName as string]
+  private getHashKey(): H {
+    return this.base()[this.hashKeyName]
   }
 
-  private getRangeKey() {
-    return this.base()[this.rangeKeyName as string]
+  private getRangeKey(): R|undefined {
+    if (this.rangeKeyName) {
+      return this.base()[this.rangeKeyName]
+    }
   }
 
   /**

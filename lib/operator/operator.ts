@@ -1,31 +1,31 @@
 import * as AWS from 'aws-sdk'
-import {compose} from 'ramda'
-import {DocumentClient} from 'aws-sdk/clients/dynamodb'
+import {compose, Omit} from 'ramda'
 import {getLogger} from '../util/debug'
+import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 
 export type TScalar = string | number | BinaryType
 
 export class Operator<H extends TScalar, R extends TScalar = never> {
   constructor(
     protected readonly tableName: string,
-    protected readonly hashKey: H,
-    protected readonly rangeKey?: R,
+    protected readonly hashKeyName: string,
+    protected readonly rangeKeyName?: string,
   ) {
   }
 
-  async batchGet(hash, range?, params?) {
+  async batchGet(hashKey: H, rangeKey?: R, params?) {
     params = {
       RequestItems: {
-        [this.tableName]: this.getKeyParam(hash, range),
+        [this.tableName]: this.getKeyParam(hashKey, rangeKey),
       }
     }
     return ddbClient.batchGet(params).promise()
   }
 
-  async batchWrite(hash, range?, params?) {
+  async batchWrite(hashKey: H, rangeKey?: R, params?) {
     params = {
       RequestItems: {
-        [this.tableName]: this.getKeyParam(hash, range),
+        [this.tableName]: this.getKeyParam(hashKey, rangeKey),
       }
     }
     return ddbClient.batchGet(params).promise()
@@ -37,23 +37,20 @@ export class Operator<H extends TScalar, R extends TScalar = never> {
   async createSet(list, options) {
   }
 
-  async delete(hashKey, rangeKey?, params?: DocumentClient.DeleteItemInput | undefined) {
-    params = {
-      ...params,
-      ...this.createGetParam(hashKey, rangeKey),
-    }
+  async delete(hashKey: H, rangeKey: R | undefined, params?: OperatorParam<DocumentClient.DeleteItemInput>) {
+    Object.assign(params, this.createGetParam(hashKey, rangeKey))
     log('delete', params)
-    return ddbClient.delete(params!).promise()
+    return ddbClient.delete(params as unknown as DocumentClient.DeleteItemInput).promise()
   }
 
   /**
    * @todo throw Error, if (this.rangeKeyName && !rangeKey)
    */
-  async get(hash, range?, params?) {
-    log('get args', hash, range, params)
+  async get(hashKey: H, rangeKey?: R, params?) {
+    log('get args', hashKey, rangeKey, params)
     const param = {
       ...params,
-      ...this.createGetParam(hash, range),
+      ...this.createGetParam(hashKey, rangeKey),
     }
     log('get param', param)
     return ddbClient.get(param).promise()
@@ -61,21 +58,21 @@ export class Operator<H extends TScalar, R extends TScalar = never> {
 
   /**
    *
-   * @param hash
-   * @param range
+   * @param hashKey
+   * @param rangeKey
    * @param params
    * @returns {Promise<PromiseResult<DocumentClient.PutItemOutput, AWSError>>}
    */
-  put(hash, range?, params?) {
+  put(hashKey: H, rangeKey?: R, params?) {
     params = {
       ...params,
-      ...this.createGetParam(hash, range),
+      ...this.createGetParam(hashKey, rangeKey),
     }
     log('put params', params)
     return ddbClient.put(params).promise()
   }
 
-  async query(hashKey, params) {
+  async query(params) {
     params = {
       ...params,
       ...this.getTableParam(),
@@ -88,7 +85,7 @@ export class Operator<H extends TScalar, R extends TScalar = never> {
     log('@todo scan')
   }
 
-  async update(hash, range?, params?) {
+  async update(hashKey: H, rangeKey?: R, params?) {
     log('@todo update')
   }
 
@@ -105,37 +102,37 @@ export class Operator<H extends TScalar, R extends TScalar = never> {
 
   /**
    * @todo clean up
-   * @param hash
-   * @param range
+   * @param hashKey
+   * @param rangeKey
    * @returns {{Key: {}}}
    */
-  private getKeyParam = (hash, range?) => {
-    if (!this.rangeKey) {
-      if (range) {
-        log(`ignore. range key(${range}), rangeKey is not defined`)
+  private getKeyParam = (hashKey: H, rangeKey?: R) => {
+    if (!this.rangeKeyName) {
+      if (rangeKey) {
+        log(`ignore. range key(${rangeKey}), rangeKey is not defined`)
       }
       return {
         Key: {
-          [this.hashKey]: hash
+          [this.hashKeyName]: hashKey
         }
       }
     }
-    if (range) {
+    if (rangeKey) {
       return {
         Key: {
-          [this.hashKey] : hash,
-          [this.rangeKey]: range
+          [this.hashKeyName] : hashKey,
+          [this.rangeKeyName]: rangeKey
         }
       }
     }
     return {
       Key: {
-        [this.hashKey]: hash,
+        [this.hashKeyName]: hashKey,
       }
     }
   }
 
-  private createGetParam: (hash, range?) => any = compose(
+  private createGetParam: (hashKey: H, rangeKey?: R) => NonNullable<any> = compose(
     this.getTableParam,
     this.getKeyParam,
   )
@@ -144,3 +141,5 @@ export class Operator<H extends TScalar, R extends TScalar = never> {
 const ddbClient = new AWS.DynamoDB.DocumentClient()
 const log = getLogger(__filename)
 
+// @fixme duplicated, model.ts
+type OperatorParam<T> = Partial<Omit<T, 'Key' | 'TableName'>>

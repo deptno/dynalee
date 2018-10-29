@@ -11,7 +11,7 @@ const createOperatorGenerator = (operator: ComparisonOperator) =>
     (generator: Generator) => {
       const replacement = generator()
       return {
-        KeyConditionExpression   : `#key ${operator} ${replacement}`,
+        KeyConditionExpression   : `#rgk ${operator} ${replacement}`,
         ExpressionAttributeValues: {[replacement]: a}
       }
     }
@@ -24,7 +24,7 @@ export const $gt = createOperatorGenerator('<')
 export const $ge = createOperatorGenerator('<=')
 export const $between = <T extends TScalar>(a: T, b: T): Operated => {
   return {
-    KeyConditionExpression   : '#key BETWEEN :a AND :b',
+    KeyConditionExpression   : '#rgk BETWEEN :a AND :b',
     ExpressionAttributeValues: {':beta': a, ':betb': b}
   }
 }
@@ -45,7 +45,7 @@ export const $in = (...a: TScalar[]): OperatorGenerator =>
       [r]: a[i]
     }), {})
     return {
-      KeyConditionExpression   : `#key IN (${replacements.join(',')})`,
+      KeyConditionExpression   : `#rgk IN (${replacements.join(',')})`,
       ExpressionAttributeValues: attributeValues
     }
   }
