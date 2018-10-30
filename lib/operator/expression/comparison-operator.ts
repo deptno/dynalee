@@ -7,8 +7,8 @@ const log = getLogger(__filename)
  * https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html
  */
 const createOperatorGenerator = (operator: ComparisonOperator) =>
-  (a: TScalar) =>
-    (generator: Generator) => {
+  (generator: Generator) =>
+    (a: TScalar) => {
       const replacement = generator()
       return {
         KeyConditionExpression   : `#RGK ${operator} ${replacement}`,
@@ -22,18 +22,17 @@ export const $lt = createOperatorGenerator('<')
 export const $le = createOperatorGenerator('<=')
 export const $gt = createOperatorGenerator('>')
 export const $ge = createOperatorGenerator('>=')
-export const $between = <T extends TScalar>(a: T, b: T) =>
-  (generator: Generator) => {
-    const replacementA = generator()
-    const replacementB = generator()
-    return {
-      KeyConditionExpression   : `#RGK BETWEEN (${replacementA}, ${replacementB})`,
-      ExpressionAttributeValues: {
-        [`${replacementA}`]: a,
-        [`${replacementB}`]: b
-      }
+export const $between = <T extends TScalar>(generator: Generator, a: T, b: T) => {
+  const replacementA = generator()
+  const replacementB = generator()
+  return {
+    KeyConditionExpression   : `#RGK BETWEEN (${replacementA}, ${replacementB})`,
+    ExpressionAttributeValues: {
+      [`${replacementA}`]: a,
+      [`${replacementB}`]: b
     }
   }
+}
 
 /**
  * https://stackoverflow.com/questions/40283653/how-to-use-in-statement-in-filterexpression-using-array-dynamodb
