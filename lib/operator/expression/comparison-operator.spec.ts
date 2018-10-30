@@ -1,6 +1,5 @@
 import {Model} from '../../model/model'
-import {$between, $eq} from '../key-condition-operator'
-import {$ne} from './comparison-operator'
+import {$eq, $ne} from './comparison-operator'
 import {$$or, mergeOp, replacementIdGenerator} from './helper'
 
 interface Schema {
@@ -20,15 +19,8 @@ describe('ComparisonOperator', () => {
   })
   it('query', async done => {
     const ret = await Fake
-      .query('hello', 'world')
-      .pipe(
-        $eq('a'),
-        $$or(
-          $ne('b'),
-          $ne('c'),
-        ),
-//        $between(1, 3)
-      )
+      .query('hello')
+      .range('rangeN')
     console.log(ret)
     done()
   })

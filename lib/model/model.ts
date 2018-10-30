@@ -1,12 +1,11 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
+import {concat, cond, head, is, mergeWith, Omit, T, tap} from 'ramda'
 import {ETimestampType} from '../constant'
 import {mergeOp, replacementIdGenerator} from '../operator/expression/helper'
 import {Operator, TScalar} from '../operator/operator'
 import {getLogger} from '../util/debug'
 import {Document} from './document'
-import {Omit, join, head, tap, mergeWith, cond, is, T, concat} from 'ramda'
-import {CompositeQuery, HashQuery} from './query'
-import QueryInput = DocumentClient.QueryInput
+import {CompositeQuery} from './query'
 
 const logger = getLogger(__filename)
 const withLog = tap(logger)
@@ -127,34 +126,15 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
         throw new Error(`Item not found`)
       }
       return response.Items!.map(item =>
-        new Document<S, H, R>(this.tableName, this.hashKeyName, this.rangeKeyName, item as S)
+        new Document<S, H, R>(this.tableName, this.hashKeyName, this.rangeKeyName, item)
       )
     } catch (e) {
       throw new Error(e.message)
     }
   }
 
-  query(hashKey: H)
-  query(hashKey: H, rangeKey: R)
-  query(hashKey: H, params: Partial<QueryInput>)
-  query(hashKey: H, rangeKey: R, params: Partial<QueryInput>)
-  query(hashKey, rangeKey?, params?) {
-//    if (!params) {
-//      params = {} as QueryInput
-//    }
-//    if (typeof rangeKey === 'object') {
-//      Object.assign(params, rangeKey)
-//    }
-//    Object.assign(params, this.createHashQueryParams(hashKey, params))
-//    if (typeof rangeKey === 'string') {
-//      logger('query() rangeKey', rangeKey)
-//      return this.createRangeQuery(rangeKey, params)
-//    }
-//    return this.runQuery(params)
-    if (typeof rangeKey === 'string') {
-      return new CompositeQuery(logger, this.operator, this.hashKeyName, hashKey)
-    }
-    return new HashQuery(logger, this.operator, this.hashKeyName, hashKey)
+  query(hashKey: H) {
+    return new CompositeQuery<S, H, R>(logger, this.operator, this.hashKeyName, hashKey)
   }
 
   async queryOne(hashKey: string, params?: OperatorParam<DocumentClient.QueryInput>) {

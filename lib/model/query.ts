@@ -86,7 +86,7 @@ export class HashQuery<S, H extends TScalar> implements Query<S> {
   }
 }
 export class CompositeQuery<S, H extends TScalar, R extends TScalar> extends HashQuery<S, H> implements Query<S> {
-  range(rangeKeyName: keyof S) {
+  range(rangeKeyName: R extends TScalar ? keyof S: never) {
     const withRangeKey = (rangeKey: R | null, params) => {
       this.merge(params)
       this.merge({ExpressionAttributeNames: {'#RGK': rangeKeyName as string}})
