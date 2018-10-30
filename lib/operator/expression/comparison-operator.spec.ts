@@ -14,13 +14,13 @@ const generator = replacementIdGenerator()
 describe('ComparisonOperator', () => {
 //  const Fake = new Model<Schema, Schema['key']>('dynalee', 'key')
 //  const Fake = new Model<Schema, Schema['key']>('dynalee', 'key', {})
-//  const Fake = new Model<Schema, Schema['key'], Schema['key']>('dynalee', 'key', 'string')
-  const Fake = new Model<Schema, Schema['key'], Schema['key']>('dynalee', 'key', 'rangeN', {})
+  const Fake = new Model<Schema, Schema['key'], Schema['key']>('dynalee', 'key', 'string')
+//  const Fake = new Model<Schema, Schema['key'], Schema['key']>('dynalee', 'key', 'rangeN', {})
   beforeEach(() => {
   })
   it('query', async done => {
     const ret = await Fake
-      .query('hello', 'hhh')
+      .query('hello', 'world')
       .pipe(
         $eq('a'),
         $$or(

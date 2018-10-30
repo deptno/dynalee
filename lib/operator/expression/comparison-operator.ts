@@ -11,23 +11,29 @@ const createOperatorGenerator = (operator: ComparisonOperator) =>
     (generator: Generator) => {
       const replacement = generator()
       return {
-        KeyConditionExpression   : `#rgk ${operator} ${replacement}`,
-        ExpressionAttributeValues: {[`:${replacement}`]: a}
+        KeyConditionExpression   : `#RGK ${operator} ${replacement}`,
+        ExpressionAttributeValues: {[`${replacement}`]: a}
       }
     }
 
 export const $eq = createOperatorGenerator('=')
 export const $ne = createOperatorGenerator('<>')
-export const $lt = createOperatorGenerator('>')
-export const $le = createOperatorGenerator('>=')
-export const $gt = createOperatorGenerator('<')
-export const $ge = createOperatorGenerator('<=')
-export const $between = <T extends TScalar>(a: T, b: T): Operated => {
-  return {
-    KeyConditionExpression   : '#rgk BETWEEN :a AND :b',
-    ExpressionAttributeValues: {':beta': a, ':betb': b}
+export const $lt = createOperatorGenerator('<')
+export const $le = createOperatorGenerator('<=')
+export const $gt = createOperatorGenerator('>')
+export const $ge = createOperatorGenerator('>=')
+export const $between = <T extends TScalar>(a: T, b: T) =>
+  (generator: Generator) => {
+    const replacementA = generator()
+    const replacementB = generator()
+    return {
+      KeyConditionExpression   : `#RGK BETWEEN (${replacementA}, ${replacementB})`,
+      ExpressionAttributeValues: {
+        [`${replacementA}`]: a,
+        [`${replacementB}`]: b
+      }
+    }
   }
-}
 
 /**
  * https://stackoverflow.com/questions/40283653/how-to-use-in-statement-in-filterexpression-using-array-dynamodb
@@ -45,7 +51,7 @@ export const $in = (...a: TScalar[]): OperatorGenerator =>
       [r]: a[i]
     }), {})
     return {
-      KeyConditionExpression   : `#rgk IN (${replacements.join(',')})`,
+      KeyConditionExpression   : `#RGK IN (${replacements.join(',')})`,
       ExpressionAttributeValues: attributeValues
     }
   }
