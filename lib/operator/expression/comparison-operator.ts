@@ -12,7 +12,7 @@ const createOperatorGenerator = (operator: ComparisonOperator) =>
       const replacement = generator()
       return {
         KeyConditionExpression   : `#rgk ${operator} ${replacement}`,
-        ExpressionAttributeValues: {[replacement]: a}
+        ExpressionAttributeValues: {[`:${replacement}`]: a}
       }
     }
 

@@ -1,54 +1,40 @@
+import {Model} from '../../model/model'
 import {$between, $eq} from '../key-condition-operator'
 import {$ne} from './comparison-operator'
 import {$$or, mergeOp, replacementIdGenerator} from './helper'
 
 interface Schema {
   key: string
+  rangeN: number
 }
 const HASH_KEY = 'hashKey'
 const RANGE_KEY = 'rangeKey'
 
 const generator = replacementIdGenerator()
-class MockUser {
-  static query<S, K = keyof S>(hashKey: S, rangeKey?: S) {
-    return {
-      pipe(...operators: any[]) {
-        const ret = mergeOp(generator, operators)
-        return {
-          ...ret,
-          ExpressionAttributeNames: rangeKey
-            ? {
-              [HASH_KEY] : hashKey,
-              [RANGE_KEY]: rangeKey,
-            }
-            : {
-              [HASH_KEY]: hashKey,
-            }
-        }
-      }
-    }
-  }
-}
 describe('ComparisonOperator', () => {
+//  const Fake = new Model<Schema, Schema['key']>('dynalee', 'key')
+//  const Fake = new Model<Schema, Schema['key']>('dynalee', 'key', {})
+//  const Fake = new Model<Schema, Schema['key'], Schema['key']>('dynalee', 'key', 'string')
+  const Fake = new Model<Schema, Schema['key'], Schema['key']>('dynalee', 'key', 'rangeN', {})
   beforeEach(() => {
   })
-  it('query', () => {
-    const ret = MockUser
-      .query('hash', 'range')
+  it('query', async done => {
+    const ret = await Fake
+      .query('hello', 'hhh')
       .pipe(
         $eq('a'),
         $$or(
           $ne('b'),
           $ne('c'),
         ),
-        $between(1, 3)
+//        $between(1, 3)
       )
     console.log(ret)
+    done()
   })
   it('eq', () => {
     const ret = $eq('a')
-//    console.log(ret)
-    const merged = mergeOp(generator, [ret])
+    console.log(ret(generator))
 //    console.log(merged)
 
   })

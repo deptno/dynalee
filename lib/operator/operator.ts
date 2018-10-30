@@ -78,7 +78,8 @@ export class Operator<H extends TScalar, R extends TScalar = never> {
       ...this.getTableParam(),
     }
     log('query params', JSON.stringify(params, null, 2))
-    return ddbClient.query(params).promise()
+    return Promise.resolve({Items: []}) as any
+//    return ddbClient.query(params).promise()
   }
 
   async scan(params?) {

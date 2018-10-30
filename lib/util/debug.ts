@@ -1,3 +1,3 @@
 import createLogger from 'filename-logger'
 
-export const getLogger = createLogger(`dynalee:`)
+export const getLogger = createLogger('dynalee:')
