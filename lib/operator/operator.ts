@@ -39,7 +39,7 @@ export class Operator<H extends TScalar, R extends TScalar = never> {
 
   async delete(hashKey: H, rangeKey: R | undefined, params?: OperatorParam<DocumentClient.DeleteItemInput>) {
     Object.assign(params, this.createGetParam(hashKey, rangeKey))
-    log('delete', params)
+    logger('delete', params)
     return ddbClient.delete(params as unknown as DocumentClient.DeleteItemInput).promise()
   }
 
@@ -47,12 +47,12 @@ export class Operator<H extends TScalar, R extends TScalar = never> {
    * @todo throw Error, if (this.rangeKeyName && !rangeKey)
    */
   async get(hashKey: H, rangeKey?: R, params?) {
-    log('get args', hashKey, rangeKey, params)
+    logger('get args', hashKey, rangeKey, params)
     const param = {
       ...params,
       ...this.createGetParam(hashKey, rangeKey),
     }
-    log('get param', param)
+    logger('get param', param)
     return ddbClient.get(param).promise()
   }
 
@@ -68,7 +68,7 @@ export class Operator<H extends TScalar, R extends TScalar = never> {
       ...params,
       ...this.createGetParam(hashKey, rangeKey),
     }
-    log('put params', params)
+    logger('put params', params)
     return ddbClient.put(params).promise()
   }
 
@@ -77,17 +77,17 @@ export class Operator<H extends TScalar, R extends TScalar = never> {
       ...params,
       ...this.getTableParam(),
     }
-    log('query params', JSON.stringify(params, null, 2))
+    logger('query params', JSON.stringify(params, null, 2))
     return Promise.resolve({Items: []}) as any
 //    return ddbClient.query(params).promise()
   }
 
   async scan(params?) {
-    log('@todo scan')
+    logger('@todo scan')
   }
 
   async update(hashKey: H, rangeKey?: R, params?) {
-    log('@todo update')
+    logger('@todo update')
   }
 
   /**
@@ -110,7 +110,7 @@ export class Operator<H extends TScalar, R extends TScalar = never> {
   private getKeyParam = (hashKey: H, rangeKey?: R) => {
     if (!this.rangeKeyName) {
       if (rangeKey) {
-        log(`ignore. range key(${rangeKey}), rangeKey is not defined`)
+        logger(`ignore. range key(${rangeKey}), rangeKey is not defined`)
       }
       return {
         Key: {
@@ -140,7 +140,7 @@ export class Operator<H extends TScalar, R extends TScalar = never> {
 }
 
 const ddbClient = new AWS.DynamoDB.DocumentClient()
-const log = getLogger(__filename)
+const logger = getLogger(__filename)
 
 // @fixme duplicated, model.ts
 type OperatorParam<T> = Partial<Omit<T, 'Key' | 'TableName'>>

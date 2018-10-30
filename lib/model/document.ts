@@ -20,7 +20,7 @@ export class Document<S, H extends TScalar, R extends TScalar> {
     data: S,
     private readonly options?: ModelOptions,
   ) {
-    log('new Model()', tableName, hashKeyName, rangeKeyName, data)
+    logger('new Model()', tableName, hashKeyName, rangeKeyName, data)
     this.current = Object.freeze(data)
   }
 
@@ -31,7 +31,7 @@ export class Document<S, H extends TScalar, R extends TScalar> {
    * @todo immer already support record
    */
   set(setter: (draft: Draft<S>) => void) {
-    log('set', this.current)
+    logger('set', this.current)
     this.current = produce(this.current, setter, (redos, undos) => {
       this.redo.push(...redos)
       this.undo.push(...undos)
@@ -76,7 +76,7 @@ export class Document<S, H extends TScalar, R extends TScalar> {
    * @todo check, is created from DB
    */
   async delete(params?: DocumentClient.DeleteItemInput) {
-    log('delete', params)
+    logger('delete', params)
     return this.operator.delete(this.getHashKey(), this.getRangeKey(), params)
   }
 
@@ -97,7 +97,7 @@ export class Document<S, H extends TScalar, R extends TScalar> {
       ...params,
       Item: applyItemOptions(this.head(), this.options)
     }
-    log('put', params)
+    logger('put', params)
     return this.operator.put(this.getHashKey(), this.getRangeKey(), params)
   }
 
@@ -111,13 +111,13 @@ export class Document<S, H extends TScalar, R extends TScalar> {
       Item: this.head()
     }
 
-    log('update', params)
-    log('update', applyPatches(
+    logger('update', params)
+    logger('update', applyPatches(
       this.keys(), this.redo,
     ))
     return this.operator.update(this.getHashKey(), this.getRangeKey(), params)
   }
 }
 
-const log = getLogger(__filename)
+const logger = getLogger(__filename)
 

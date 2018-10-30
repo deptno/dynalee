@@ -2,7 +2,7 @@ import {getLogger} from '../../util/debug'
 import {TScalar} from '../operator'
 import {ComparisonOperator, Generator, Operated, OperatorGenerator} from './type'
 
-const log = getLogger(__filename)
+const logger = getLogger(__filename)
 /**
  * https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html
  */

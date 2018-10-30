@@ -2,7 +2,7 @@ import {getLogger} from '../util/debug'
 import {Model, ModelOptions} from './model'
 import {TScalar} from '../operator/operator'
 
-const log = getLogger(__filename)
+const logger = getLogger(__filename)
 
 /**
  * @todo need to index

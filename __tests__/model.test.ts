@@ -16,14 +16,14 @@ interface SchemaEx {
   someKey2?: string
 }
 
-const log = getLogger(__filename)
+const logger = getLogger(__filename)
 const User = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail', {})
 const aUser = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail')
 const bUser = define<SchemaEx, SchemaEx['id']>('dynalee', 'id', {})
 const cser = define<SchemaEx, SchemaEx['id']>('dynalee', 'id')
 
 async function put() {
-  log('> put')
+  logger('> put')
   const user = User.of({
     id    : 'hello',
     detail: 'world',
@@ -32,21 +32,21 @@ async function put() {
     user.someKey = 'hello'
   })
   const next = await user.put()
-  log('< put')
+  logger('< put')
 }
 
 async function get() {
-  log('> get')
+  logger('> get')
   const user = await User.get('hello', 'world')
   user.set(user => {
     delete user.someKey
   })
   const next = await user.put()
-  log('< get')
+  logger('< get')
 }
 
 async function update() {
-  log('> update')
+  logger('> update')
   const user = User.of({
     id    : 'hello2',
     detail: 'world',
@@ -55,35 +55,35 @@ async function update() {
     user.someKey2 = 'abc'
   })
   const next = await user.update()
-  log('< update')
+  logger('< update')
 }
 
 async function updateFromGet() {
-  log('> updateFromGet')
+  logger('> updateFromGet')
   const user = await User.get('hello2', 'world')
   user.set(user => {
     delete user.someKey
   })
   const next = await user.update()
-  log('< updateFromGet')
+  logger('< updateFromGet')
 }
 
 async function del() {
-  log('> del')
+  logger('> del')
   const user = await User.get('hello', 'world')
   const next = await user.delete()
-  log('< del')
+  logger('< del')
 }
 
 async function query() {
-  log('> query')
+  logger('> query')
   const users = await User
     .query('hello')
     .pipe(
       $eq('hello'),
     )
-  log(users)
-  log('< query')
+  logger(users)
+  logger('< query')
 }
 
 async function chain() {
