@@ -1,6 +1,7 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import {always, cond, is, mergeWith, Omit, T, converge, identity} from 'ramda'
 import {$between, $eq, $ge, $gt, $le, $lt, $ne} from '../operator/expression/comparison-operator'
+import {beginsWith} from '../operator/expression/comparrison-function'
 import {replacementIdGenerator} from '../operator/expression/helper'
 import {TScalar} from '../operator/operator'
 import {getLogger} from '../util/debug'
@@ -103,7 +104,8 @@ export class CompositeQuery<S, H extends TScalar, R extends TScalar> extends Has
       le     : converge(withRangeKey, [identity, _$le]) as (value: R) => Query<S>,
       gt     : converge(withRangeKey, [identity, _$gt]) as (value: R) => Query<S>,
       ge     : converge(withRangeKey, [identity, _$ge]) as (value: R) => Query<S>,
-      between: (a: R, b: R): Query<S> => withRangeKey(null, $between(replacementIdGenerator(), a, b))
+      between: (a: R, b: R): Query<S> => withRangeKey(null, $between(replacementIdGenerator(), a, b)),
+      beginsWith: (value: string): Query<S> => withRangeKey(null, beginsWith(rangeKeyReplacer)(value))
     }
   }
 }
@@ -115,6 +117,7 @@ const _$lt = $lt(rangeKeyReplacer)
 const _$le = $le(rangeKeyReplacer)
 const _$gt = $gt(rangeKeyReplacer)
 const _$ge = $ge(rangeKeyReplacer)
+const _beginsWith = beginsWith(rangeKeyReplacer)
 const logger = getLogger(__filename)
 
 interface Query<S> {

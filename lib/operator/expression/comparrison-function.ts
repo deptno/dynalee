@@ -1,5 +1,5 @@
 import {getLogger} from '../../util/debug'
-import {TScalar} from '../operator'
+import {Generator} from './type.d'
 
 const logger = getLogger(__filename)
 
@@ -7,14 +7,14 @@ const logger = getLogger(__filename)
  * @todo
  * @fixme
  */
-export const beginsWith = (a: TScalar, path: string) => {
-  logger('beginsWith() @todo')
-  return () => {
+export const beginsWith = (generator: Generator) =>
+  (path: string) => {
+    const replacement = generator()
     return {
-      KeyConditionExpression: `begins_with(${a}, ${path})`
+      KeyConditionExpression   : `begins_with(#RGK, ${replacement})`,
+      ExpressionAttributeValues: {[`${replacement}`]: path}
     }
   }
-}
 export const attributeExists = (path: string) => {
   logger('attributeExists() @todo')
 }

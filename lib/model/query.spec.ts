@@ -159,7 +159,7 @@ describe('query', function () {
           expect(actual).toEqual(expected)
           done()
         })
-        it('.beetween() should includes RangeKey condition in KeyConditionExpression', async done => {
+        it('.between() should includes RangeKey condition in KeyConditionExpression', async done => {
           const expected = {
             KeyConditionExpression   : '#HSK = :HSK AND #RGK BETWEEN (:a, :b)',
             ExpressionAttributeNames : {'#HSK': 'hsk', '#RGK': 'rgk'},
@@ -168,6 +168,19 @@ describe('query', function () {
           const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
           const actual = await query
             .range('rgk').between(5944, 5946)
+            .compile()
+          expect(actual).toEqual(expected)
+          done()
+        })
+        it('.beginsWith() should includes RangeKey condition in KeyConditionExpression', async done => {
+          const expected = {
+            KeyConditionExpression   : '#HSK = :HSK AND begins_with(#RGK, :RGK)',
+            ExpressionAttributeNames : {'#HSK': 'hsk', '#RGK': 'rgk'},
+            ExpressionAttributeValues: {':HSK': 'hello', ':RGK': '123'},
+          }
+          const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
+          const actual = await query
+            .range('rgk').beginsWith('123')
             .compile()
           expect(actual).toEqual(expected)
           done()

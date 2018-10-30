@@ -5,7 +5,7 @@ import {Operator, TScalar} from '../operator/operator'
 import {getLogger} from '../util/debug'
 import {Document} from './document'
 import {Omit, join, head, tap, mergeWith, cond, is, T, concat} from 'ramda'
-import {createQuery} from './query'
+import {CompositeQuery, HashQuery} from './query'
 import QueryInput = DocumentClient.QueryInput
 
 const logger = getLogger(__filename)
@@ -25,20 +25,25 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
    * HashKey & Options
    * @param {string} tableName
    * @param {string} hashKeyName
+   * @param {ModelOptions} options
    */
   constructor(tableName: string, hashKeyName: string, options: ModelOptions)
-   /**
+
+  /**
    * HashKey & RangeKey
    * @param {string} tableName
    * @param {string} hashKeyName
+   * @param {string} rangeKeyName
    */
-  constructor(tableName: string, hashKeyName: string, rangeKeyNameOrOptions: R extends never ? ModelOptions : string)
+  constructor(tableName: string, hashKeyName: string, rangeKeyName: string)
   /**
    * HashKey & RangeKey & Options
    * @param {string} tableName
    * @param {string} hashKeyName
+   * @param {string} rangeKeyName
+   * @param {ModelOptions} options
    */
-  constructor(tableName: string, hashKeyName: string, rangeKeyNameOrOptions: R extends never ? ModelOptions : string, options: ModelOptions)
+  constructor(tableName: string, hashKeyName: string, rangeKeyName: string, options: ModelOptions)
   constructor(protected readonly tableName, protected readonly hashKeyName, protected readonly rangeKeyName?, options?) {
     this.options = typeof rangeKeyName === 'object'
       ? rangeKeyName
@@ -147,9 +152,9 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
 //    }
 //    return this.runQuery(params)
     if (typeof rangeKey === 'string') {
-      return createQuery(logger, this.operator, this.hashKeyName, hashKey, this.rangeKeyName)
+      return new CompositeQuery(logger, this.operator, this.hashKeyName, hashKey)
     }
-    return createQuery(logger, this.operator, this.hashKeyName, hashKey)
+    return new HashQuery(logger, this.operator, this.hashKeyName, hashKey)
   }
 
   async queryOne(hashKey: string, params?: OperatorParam<DocumentClient.QueryInput>) {
