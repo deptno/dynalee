@@ -6,7 +6,8 @@
     "strictNullChecks": true,
 //    "strictFunctionTypes": true,
     "strictPropertyInitialization": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "keyofStringsOnly": true
   },
   "include": [
     "__tests__/*"

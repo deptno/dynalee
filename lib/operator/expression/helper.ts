@@ -15,9 +15,9 @@ export const $$and = createOperatorConnector('AND')
 export const $$not: OperatorConnector = (...operators) =>
   generator =>
     mergeOp(generator, operators, 'NOT')
-
-export const replacementIdGenerator: (start?: number) => Generator = (index = 0) =>
-  () => `:${nca(index++, ALPHABET_ASCII)}`
+export const replacementGenerator = (prefix) => (index = 0) => () => `${prefix}${nca(index++, ALPHABET_ASCII)}`
+export const replacementKeyGenerator = replacementGenerator('#')
+export const replacementValueGenerator = replacementGenerator(':')
 export const mergeOp = (generator: Generator, operations: (OperatorGenerator)[], connector: TConnector = 'AND'): Operated => {
   const [firstOp, ...ops] = operations
   return ops.reduce((ret, operation) => {

@@ -8,7 +8,8 @@
     "strictNullChecks": true,
 //    "strictFunctionTypes": true,
     "strictPropertyInitialization": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "keyofStringsOnly": true
   },
   "exclude": [
     "**/*.test.ts",

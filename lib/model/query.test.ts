@@ -11,15 +11,16 @@ import {CompositeQuery} from './query'
 
   query
     .range('rgk')
-    .beginsWith('123')
+    .eq(1)
     .desc()
     .consistent()
-    .limit(0)
-    .filter(operator => {
-      operator.eq('1')
-      operator.eq('1')
-      operator.eq('1')
-      operator.eq('1')
+    .limit(1)
+    .filter((and, or) => {
+      // @todo: throw type error
+      and.eq('name', 1)
+      or.eq('userId', 1)
+      or.eq('userId', 1)
+      and.eq('name', 1)
     })
     .run()
 }()
@@ -31,4 +32,6 @@ function print(query) {
 interface T {
   readonly hsk: string
   readonly rgk: number
+  name: string,
+  userId: string
 }

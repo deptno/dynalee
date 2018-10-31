@@ -1,3 +1,4 @@
+import {__listOfPreset} from 'aws-sdk/clients/mediaconvert'
 import {Operator} from '../operator/operator'
 import {getLogger} from '../util/debug'
 import {CompositeQuery, HashQuery} from './query'
@@ -12,16 +13,30 @@ describe('query', function () {
   const op = new Operator<Schema['hsk'], Schema['rgk']>(tableName, hashKeyName, rangeKeyName)
 
   describe('HashQuery', () => {
-    it('should new CompositeQuery', async done => {
+    it('should new CompositeQuery', () => {
       const expected = {
         KeyConditionExpression   : '#HSK = :HSK',
         ExpressionAttributeNames : {'#HSK': 'hsk'},
         ExpressionAttributeValues: {':HSK': 'hello'}
       }
       const query = new HashQuery<Schema, Schema['hsk']>(logger, op, 'hsk', 'hello')
-      const actual = await query.compile()
+      const actual = query.compile()
       expect(actual).toEqual(expected)
-      done()
+    })
+    it('should includes FilterExpression', () => {
+      const expected = {
+        KeyConditionExpression   : '#HSK = :HSK',
+        ExpressionAttributeNames : {'#HSK': 'hsk'},
+        ExpressionAttributeValues: {':HSK': 'hello'}
+      }
+      const query = new HashQuery<Schema, Schema['hsk']>(logger, op, 'hsk', 'hello')
+      const actual = query
+        .filter(operator => {
+          operator.eq('hsk', 'a2')
+          operator.eq('hsk', 1)
+        })
+        .compile()
+      expect(actual).toEqual(expected)
     })
   })
   describe('CompositeQuery', () => {
@@ -30,7 +45,7 @@ describe('query', function () {
         KeyConditionExpression   : '#HSK = :HSK',
         ExpressionAttributeNames : {'#HSK': 'hsk'},
         ExpressionAttributeValues: {':HSK': 'hello'},
-        ScanIndexForward         : true
+        ScanIndexForward         : false
       }
       const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
       const actual = await query

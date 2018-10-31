@@ -1,35 +1,43 @@
 import {getLogger} from '../../util/debug'
 import {TScalar} from '../operator'
 import {ComparisonOperator, Generator, Operated, OperatorGenerator} from './type'
+import {curry} from 'ramda'
 
 const logger = getLogger(__filename)
 /**
  * https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html
  */
-const createOperatorGenerator = (operator: ComparisonOperator) =>
-  (generator: Generator) =>
-    (a: TScalar) => {
-      const replacement = generator()
-      return {
-        KeyConditionExpression   : `#RGK ${operator} ${replacement}`,
-        ExpressionAttributeValues: {[`${replacement}`]: a}
-      }
-    }
-
+const createOperatorGenerator = curry((
+  operator: ComparisonOperator,
+  expressionName: TExpression,
+  genKey: Generator,
+  genValue: Generator,
+  keyName: string,
+  a: TScalar) => {
+        const key = genKey()
+        const value = genValue()
+        return {
+          [expressionName]         : `${key} ${operator} ${value}`,
+          ExpressionAttributeNames : {[`${key}`]: keyName},
+          ExpressionAttributeValues: {[`${value}`]: a}
+        }
+      })
+type TExpression = 'KeyConditionExpression' | 'FilterExpression'
 export const $eq = createOperatorGenerator('=')
 export const $ne = createOperatorGenerator('<>')
 export const $lt = createOperatorGenerator('<')
 export const $le = createOperatorGenerator('<=')
 export const $gt = createOperatorGenerator('>')
 export const $ge = createOperatorGenerator('>=')
-export const $between = <T extends TScalar>(generator: Generator, a: T, b: T) => {
-  const replacementA = generator()
-  const replacementB = generator()
+export const $between = <T extends TScalar>(genKey: Generator, genValue: Generator, a: T, b: T) => {
+  const key = genKey()
+  const valueA = genValue()
+  const valueB = genValue()
   return {
-    KeyConditionExpression   : `#RGK BETWEEN (${replacementA}, ${replacementB})`,
+    KeyConditionExpression   : `${key} BETWEEN (${valueA}, ${valueB})`,
     ExpressionAttributeValues: {
-      [`${replacementA}`]: a,
-      [`${replacementB}`]: b
+      [`${valueA}`]: a,
+      [`${valueB}`]: b
     }
   }
 }

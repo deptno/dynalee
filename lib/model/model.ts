@@ -1,7 +1,7 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import {concat, cond, head, is, mergeWith, Omit, T, tap} from 'ramda'
 import {ETimestampType} from '../constant'
-import {mergeOp, replacementIdGenerator} from '../operator/expression/helper'
+import {mergeOp, replacementValueGenerator} from '../operator/expression/helper'
 import {Operator, TScalar} from '../operator/operator'
 import {getLogger} from '../util/debug'
 import {Document} from './document'
@@ -96,7 +96,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
             [is(String), concat(' AND ')],
             [T, Object.assign],
           ]),
-          mergeOp(replacementIdGenerator(), operators),
+          mergeOp(replacementValueGenerator(), operators),
           params
         ))
         logger('createRangeQuery() params', params)

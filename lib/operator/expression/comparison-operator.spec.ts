@@ -1,5 +1,4 @@
 import {Model} from '../../model/model'
-import {replacementIdGenerator} from './helper'
 
 interface Schema {
   key: string
@@ -8,7 +7,6 @@ interface Schema {
 const HASH_KEY = 'hashKey'
 const RANGE_KEY = 'rangeKey'
 
-const generator = replacementIdGenerator()
 describe('ComparisonOperator', () => {
 //  const Fake = new Model<Schema, Schema['key']>('dynalee', 'key')
 //  const Fake = new Model<Schema, Schema['key']>('dynalee', 'key', {})

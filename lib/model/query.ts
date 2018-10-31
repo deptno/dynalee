@@ -1,8 +1,8 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
-import {Omit, always, cond, is, mergeWith, T, converge, identity, omit} from 'ramda'
+import {Omit, compose, always, cond, is, mergeWith, T, converge, identity, omit, flip, bind} from 'ramda'
 import {$between, $eq, $ge, $gt, $le, $lt, $ne} from '../operator/expression/comparison-operator'
 import {beginsWith} from '../operator/expression/comparison-function'
-import {replacementIdGenerator} from '../operator/expression/helper'
+import {replacementKeyGenerator, replacementValueGenerator} from '../operator/expression/helper'
 import {TScalar} from '../operator/operator'
 import {getLogger} from '../util/debug'
 
@@ -20,24 +20,40 @@ export class HashQuery<S, H extends TScalar> implements Query<S> {
   constructor(private runner, private operator, private hashKeyName, private hashKey: H) {
   }
 
-  protected generator = replacementIdGenerator()
+  protected genKey = replacementKeyGenerator()
+  protected genValue = replacementValueGenerator()
 
   project(...operators) {
     console.warn('@todo implement project')
     return this
   }
 
-  filter(setter: (operator) => {}) {
+  filter(setter) {
     /**
      * @todo remove RGK only
      */
+    const mergeAnd = (params) => {
+      this.merge(params)
+      return this
+    }
+    const mergeOr = (params) => {
+      this.merge(params, 'OR')
+      return this
+    }
     setter({
-      eq: $eq(this.generator),
-      ne: $ne(this.generator),
-      lt: $lt(this.generator),
-      le: $le(this.generator),
-      gt: $gt(this.generator),
-      ge: $ge(this.generator)
+      eq: compose(mergeAnd, $eq('FilterExpression', this.genKey, this.genValue)),
+      ne: compose(mergeAnd, $ne('FilterExpression', this.genKey, this.genValue)),
+      lt: compose(mergeAnd, $lt('FilterExpression', this.genKey, this.genValue)),
+      le: compose(mergeAnd, $le('FilterExpression', this.genKey, this.genValue)),
+      gt: compose(mergeAnd, $gt('FilterExpression', this.genKey, this.genValue)),
+      ge: compose(mergeAnd, $ge('FilterExpression', this.genKey, this.genValue))
+    }, {
+      eq: compose(mergeOr, $eq('FilterExpression', this.genKey, this.genValue)),
+      ne: compose(mergeOr, $ne('FilterExpression', this.genKey, this.genValue)),
+      lt: compose(mergeOr, $lt('FilterExpression', this.genKey, this.genValue)),
+      le: compose(mergeOr, $le('FilterExpression', this.genKey, this.genValue)),
+      gt: compose(mergeOr, $gt('FilterExpression', this.genKey, this.genValue)),
+      ge: compose(mergeOr, $ge('FilterExpression', this.genKey, this.genValue))
     })
     console.warn('@todo implement filter')
     return this
@@ -97,10 +113,10 @@ export class HashQuery<S, H extends TScalar> implements Query<S> {
       .run()
   }
 
-  protected merge(target: DxQueryInput): void {
+  protected merge(target: DxQueryInput, connector: 'AND'|'OR' = 'AND'): void {
     this.params = mergeWith(
       cond([
-        [is(String), (l, r) => `${r} AND ${l}`],
+        [is(String), (l, r) => `${r} ${connector} ${l}`],
         [T, Object.assign],
       ]),
       target,
@@ -110,44 +126,42 @@ export class HashQuery<S, H extends TScalar> implements Query<S> {
 }
 export class CompositeQuery<S, H extends TScalar, R extends TScalar> extends HashQuery<S, H> implements Query<S> {
   range(rangeKeyName: R extends TScalar ? keyof S : never) {
+    const genKey = always('#RGK')
+    const genValue = always(':RGK')
+    const _$eq = $eq('KeyConditionExpression', genKey, genValue, rangeKeyName)
+    const _$ne = $ne('KeyConditionExpression', genKey, genValue, rangeKeyName)
+    const _$lt = $lt('KeyConditionExpression', genKey, genValue, rangeKeyName)
+    const _$le = $le('KeyConditionExpression', genKey, genValue, rangeKeyName)
+    const _$gt = $gt('KeyConditionExpression', genKey, genValue, rangeKeyName)
+    const _$ge = $ge('KeyConditionExpression', genKey, genValue, rangeKeyName)
+    const _beginsWith = beginsWith(genValue)
     const withRangeKey = (rangeKey: R | null, params) => {
       this.merge(params)
       this.merge({ExpressionAttributeNames: {'#RGK': rangeKeyName as string}})
       if (rangeKey !== null) {
         this.merge({ExpressionAttributeValues: {':RGK': rangeKey}})
       }
-
       return this
     }
-
     return {
       eq        : converge(withRangeKey, [identity, _$eq]) as (value: R) => Query<S>,
       ne        : converge(withRangeKey, [identity, _$ne]) as (value: R) => Query<S>,
       lt        : converge(withRangeKey, [identity, _$lt]) as (value: R) => Query<S>,
       le        : converge(withRangeKey, [identity, _$le]) as (value: R) => Query<S>,
       gt        : converge(withRangeKey, [identity, _$gt]) as (value: R) => Query<S>,
-      ge        : converge(withRangeKey, [identity, _$ge]) as (value: R) => Query<S>,
-      between   : (a: R, b: R): Query<S> => withRangeKey(null, $between(this.generator, a, b)),
+      ge        : converge(withRangeKey, [identity, _$ge]),
+      between   : (a: R, b: R): Query<S> => withRangeKey(null, $between(genKey, this.genValue, a, b)),
       beginsWith: (value: string): Query<S> => withRangeKey(null, _beginsWith(value))
     }
   }
 }
 
-const rangeKeyReplacer = always(':RGK')
-const _$eq = $eq(rangeKeyReplacer)
-const _$ne = $ne(rangeKeyReplacer)
-const _$lt = $lt(rangeKeyReplacer)
-const _$le = $le(rangeKeyReplacer)
-const _$gt = $gt(rangeKeyReplacer)
-const _$ge = $ge(rangeKeyReplacer)
-const _beginsWith = beginsWith(rangeKeyReplacer)
-
 const logger = getLogger(__filename)
 
 interface Query<S> {
   //  range?(...operators: Operator[]): this
-  project(...operators: Operator[]): this
-  filter(operators: (operator: Operator) => any): this
+  //  project(...operators: Operator[]): this
+  filter(func: (and: Operator<S>, or: Operator<S>) => void): this
   limit(limit: number): this
   desc(): this
   consistent(): this
@@ -171,11 +185,22 @@ type DynaleeInput = {
 }
 type DxQueryInput = Omit<DocumentClient.QueryInput, 'TableName'> & DynaleeInput
 type Precompiled = DxQueryInput // subset
-type Operator = {
-  eq(value): any
-  ne(value): any
-  lt(value): any
-  le(value): any
-  gt(value): any
-  ge(value): any
+/**
+ * @todo T = S[K] and path
+ */
+type Operator<S, K = keyof S, T = TScalar> = {
+  eq(property: K, value: T): any
+  ne(property: K, value: T): any
+  lt(property: K, value: T): any
+  le(property: K, value: T): any
+  gt(property: K, value: T): any
+  ge(property: K, value: T): any
+  between
+  in
+  attribute_exists
+  attribute_not_exists
+  attribute_type
+  begins_with
+  contains
+  size
 }
