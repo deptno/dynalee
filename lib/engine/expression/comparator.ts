@@ -1,7 +1,7 @@
 import {curry} from 'ramda'
 import {getLogger} from '../../util/debug'
 import {TScalar} from '../engine'
-import {ComparisonOperator, Generator, TExpression} from './type'
+import {ComparisonOperator, TExpression, Generator} from './type'
 
 const logger = getLogger(__filename)
 /**
