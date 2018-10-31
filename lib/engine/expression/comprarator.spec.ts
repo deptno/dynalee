@@ -18,7 +18,6 @@ describe('ComparisonOperator', () => {
     const ret = await Fake
       .query('hello')
       .range('rangeN')
-    console.log(ret)
     done()
   })
   it('eq', () => {

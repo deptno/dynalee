@@ -1,5 +1,4 @@
-import {__listOfPreset} from 'aws-sdk/clients/mediaconvert'
-import {Engine} from '../engine'
+import {Engine} from './index'
 import {getLogger} from '../util/debug'
 import {CompositeQuery, HashQuery} from './query'
 
@@ -26,8 +25,17 @@ describe('query', function () {
     it('should includes FilterExpression', () => {
       const expected = {
         KeyConditionExpression   : '#HSK = :HSK',
-        ExpressionAttributeNames : {'#HSK': 'hsk'},
-        ExpressionAttributeValues: {':HSK': 'hello'}
+        FilterExpression         : '#a = :a AND #b = :b',
+        ExpressionAttributeNames : {
+          '#HSK': 'hsk',
+          '#a'  : 'hsk',
+          '#b'  : 'hsk'
+        },
+        ExpressionAttributeValues: {
+          ':HSK': 'hello',
+          ':a'  : 'a2',
+          ':b'  : 1,
+        }
       }
       const query = new HashQuery<Schema, Schema['hsk']>(logger, op, 'hsk', 'hello')
       const actual = query
@@ -168,8 +176,7 @@ describe('query', function () {
           }
           const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
           const actual = await query
-            .range('rgk')
-            .between(5944, 5946)
+            .range('rgk').between(5944, 5946)
             .compile()
           expect(actual).toEqual(expected)
           done()
