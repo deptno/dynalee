@@ -13,7 +13,7 @@ export = {
     '^.+\\.tsx?$': 'ts-jest'
   },
   testMatch                 : [
-    '**/*.(test|spec).ts'
+    '**/*.spec.ts'
   ],
   testPathIgnorePatterns    : [
     '__tests__',
