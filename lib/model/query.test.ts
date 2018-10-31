@@ -22,6 +22,7 @@ import {CompositeQuery} from './query'
       or.eq('userId', 1)
       and.eq('name', 1)
     })
+    .project('name, userId')
     .run()
 }()
 function print(query) {

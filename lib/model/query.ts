@@ -23,8 +23,12 @@ export class HashQuery<S, H extends TScalar> implements Query<S> {
   protected genKey = replacementKeyGenerator()
   protected genValue = replacementValueGenerator()
 
-  project(...operators) {
+  project(expression) {
     console.warn('@todo implement project')
+    console.warn('@todo any idea?')
+    this.merge({
+      ProjectionExpression: expression
+    })
     return this
   }
 
@@ -160,7 +164,7 @@ const logger = getLogger(__filename)
 
 interface Query<S> {
   //  range?(...operators: Operator[]): this
-  //  project(...operators: Operator[]): this
+  project(expression: string): this
   filter(func: (and: Operator<S>, or: Operator<S>) => void): this
   limit(limit: number): this
   desc(): this
