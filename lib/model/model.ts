@@ -2,7 +2,7 @@ import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import {concat, cond, head, is, mergeWith, Omit, T, tap} from 'ramda'
 import {ETimestampType} from '../constant'
 import {mergeOp, replacementValueGenerator} from '../operator/expression/helper'
-import {Operator, TScalar} from '../operator/operator'
+import {Engine, TScalar} from '../engine'
 import {getLogger} from '../util/debug'
 import {Document} from './document'
 import {CompositeQuery} from './query'
@@ -50,7 +50,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
   }
 
   private readonly options: ModelOptions
-  private readonly operator = new Operator(this.tableName, this.hashKeyName, this.rangeKeyName)
+  private readonly operator = new Engine(this.tableName, this.hashKeyName, this.rangeKeyName)
 
   of(data: S) {
     return new Document<S, H, R>(this.tableName, this.hashKeyName, this.rangeKeyName, data, this.options)

@@ -5,7 +5,7 @@ import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 
 export type TScalar = string | number | BinaryType
 
-export class Operator<H extends TScalar, R extends TScalar = never> {
+export class Engine<H extends TScalar, R extends TScalar = never> {
   constructor(
     protected readonly tableName: string,
     protected readonly hashKeyName: string,

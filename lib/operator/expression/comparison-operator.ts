@@ -1,5 +1,5 @@
 import {getLogger} from '../../util/debug'
-import {TScalar} from '../operator'
+import {TScalar} from '../../engine/engine'
 import {ComparisonOperator, Generator, Operated, OperatorGenerator} from './type'
 import {curry} from 'ramda'
 

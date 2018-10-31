@@ -1,5 +1,5 @@
 import {__listOfPreset} from 'aws-sdk/clients/mediaconvert'
-import {Operator} from '../operator/operator'
+import {Engine} from '../engine'
 import {getLogger} from '../util/debug'
 import {CompositeQuery, HashQuery} from './query'
 
@@ -10,7 +10,7 @@ describe('query', function () {
   const hashKeyName = 'hello'
   const rangeKeyName = 'world'
   //operator 가 키 이름들을 가지고 있음
-  const op = new Operator<Schema['hsk'], Schema['rgk']>(tableName, hashKeyName, rangeKeyName)
+  const op = new Engine<Schema['hsk'], Schema['rgk']>(tableName, hashKeyName, rangeKeyName)
 
   describe('HashQuery', () => {
     it('should new CompositeQuery', () => {

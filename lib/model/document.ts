@@ -1,6 +1,6 @@
 import {DocumentClient} from 'aws-sdk/clients/dynamodb'
 import {applyPatches, Draft, Patch, produce} from 'immer'
-import {TScalar, Operator} from '../operator/operator'
+import {TScalar, Engine} from '../engine'
 import {getLogger} from '../util/debug'
 import {applyItemOptions} from '../options/apply-item-options'
 import {ModelOptions} from './model'
@@ -24,7 +24,7 @@ export class Document<S, H extends TScalar, R extends TScalar> {
     this.current = Object.freeze(data)
   }
 
-  private operator = new Operator<H, R>(this.tableName, this.hashKeyName, this.rangeKeyName)
+  private operator = new Engine<H, R>(this.tableName, this.hashKeyName, this.rangeKeyName)
 
   /**
    * @todo make it lazy

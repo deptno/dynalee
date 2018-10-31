@@ -3,7 +3,7 @@ import {Omit, compose, always, cond, is, mergeWith, T, converge, identity, omit,
 import {$between, $eq, $ge, $gt, $le, $lt, $ne} from '../operator/expression/comparison-operator'
 import {beginsWith} from '../operator/expression/comparison-function'
 import {replacementKeyGenerator, replacementValueGenerator} from '../operator/expression/helper'
-import {TScalar} from '../operator/operator'
+import {TScalar} from '../engine'
 import {getLogger} from '../util/debug'
 
 export class HashQuery<S, H extends TScalar> implements Query<S> {

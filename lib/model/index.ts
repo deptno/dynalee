@@ -1,6 +1,6 @@
 import {getLogger} from '../util/debug'
 import {Model, ModelOptions} from './model'
-import {TScalar} from '../operator/operator'
+import {TScalar} from '../engine'
 
 const logger = getLogger(__filename)
 
