@@ -8,11 +8,21 @@ interface SchemaEx {
   readonly id: string
 }
 
-describe('Model', function () {
-  it('queryOne', async done => {
-    const User = new Model<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail', {})
-    const data = await User.queryOne('hello')
-    logger(data)
-    done()
-  })
-})
++async function () {
+  const User = new Model<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dev-readish-user', 'id', 'detail')
+  const data = await User
+    .query('offlineContext_cognitoIdentityId')
+    .range('detail')
+    .beginsWith('google|')
+    .project(`id, detail, loginCount`)
+    .filter((and, or) => {
+      and
+        .between('loginCount', 2, 3)
+        .ne('loginCount', 177)
+        .attributeNotExists('loginCount')
+//      or
+//        .attributeExists('loginCount')
+    })
+    .run()
+  await User.scan()
+}()

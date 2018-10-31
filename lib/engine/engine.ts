@@ -78,12 +78,16 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       ...this.getTableParam(),
     }
     logger('query params', JSON.stringify(params, null, 2))
-    return Promise.resolve({Items: []}) as any
-//    return ddbClient.query(params).promise()
+    return ddbClient.query(params).promise()
   }
 
   async scan(params?) {
-    logger('@todo scan')
+    logger('@todo return Scan instead')
+    params = {
+      ...params,
+      ...this.getTableParam(),
+    }
+    return ddbClient.scan(params).promise()
   }
 
   async update(hashKey: H, rangeKey?: R, params?) {

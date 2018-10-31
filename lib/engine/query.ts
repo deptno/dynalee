@@ -2,7 +2,7 @@ import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import {always, cond, converge, identity, is, mergeWith, Omit, T} from 'ramda'
 import {mergeByTypes} from '../util'
 import {getLogger} from '../util/debug'
-import {$between, $eq, $ge, $gt, $le, $lt, $ne} from './expression/comparator'
+import {$between, $eq, $ge, $gt, $le, $lt} from './expression/comparator'
 import {$beginsWith} from './expression/function'
 import {replacementKeyGenerator, replacementValueGenerator} from './expression/helper'
 import {TConnector} from './expression/type'
@@ -78,8 +78,7 @@ export class HashQuery<S, H extends TScalar> implements Query<S> {
   }
 
   run() {
-    this.runner(this.params)
-    return this
+    return this.runner(this.params)
   }
 
   return() {
@@ -105,7 +104,6 @@ export class CompositeQuery<S, H extends TScalar, R extends TScalar> extends Has
     const genKey = always('#RGK')
     const genValue = always(':RGK')
     const _$eq = $eq('KeyConditionExpression', genKey, genValue, rangeKeyName)
-    const _$ne = $ne('KeyConditionExpression', genKey, genValue, rangeKeyName)
     const _$lt = $lt('KeyConditionExpression', genKey, genValue, rangeKeyName)
     const _$le = $le('KeyConditionExpression', genKey, genValue, rangeKeyName)
     const _$gt = $gt('KeyConditionExpression', genKey, genValue, rangeKeyName)
@@ -122,7 +120,6 @@ export class CompositeQuery<S, H extends TScalar, R extends TScalar> extends Has
     }
     return {
       eq        : converge(withRangeKey, [identity, _$eq]) as (value: R) => Query<S>,
-      ne        : converge(withRangeKey, [identity, _$ne]),
       lt        : converge(withRangeKey, [identity, _$lt]),
       le        : converge(withRangeKey, [identity, _$le]),
       gt        : converge(withRangeKey, [identity, _$gt]),
@@ -135,7 +132,7 @@ export class CompositeQuery<S, H extends TScalar, R extends TScalar> extends Has
 
 const logger = getLogger(__filename)
 
-interface Query<S> {
+interface Query<S, R = DocumentClient.QueryOutput> {
   //  range?(...operators: Operator[]): this
   project(expression: string): this
   filter(func: (and: FilterOperator<S>, or: FilterOperator<S>) => void): this
@@ -151,7 +148,7 @@ interface Query<S> {
    */
   precompiled(precompiled: Precompiled): this
 
-  run(): any
+  run(): Promise<R>
   compile(): Precompiled
 }
 type DynaleeInput = {

@@ -122,10 +122,10 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
       const response = await this.operator.query(params)
       logger('response', response)
       if (response.Count === 0) {
-        throw new Error(`Item not found`)
+        return []
       }
       return response.Items!.map(item =>
-        new Document<S, H, R>(this.tableName, this.hashKeyName, this.rangeKeyName, item)
+        new Document<S, H, R>(this.tableName, this.hashKeyName, this.rangeKeyName, item as S)
       )
     } catch (e) {
       throw new Error(e.message)
@@ -133,9 +133,12 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
   }
 
   query(hashKey: H) {
-    return new CompositeQuery<S, H, R>(logger, this.operator, this.hashKeyName, hashKey)
+    return new CompositeQuery<S, H, R>(this.runQuery, this.operator, this.hashKeyName, hashKey)
   }
 
+  scan() {
+    return this.operator.scan()
+  }
   async queryOne(hashKey: string, params?: OperatorParam<DocumentClient.QueryInput>) {
     params = {
       ...this.createHashQueryParams(hashKey, params),

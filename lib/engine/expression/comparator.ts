@@ -39,7 +39,7 @@ export const $between = curry(<T extends TScalar>(
   const valueA = genValue()
   const valueB = genValue()
   return {
-    [expressionName]         : `${key} BETWEEN (${valueA}, ${valueB})`,
+    [expressionName]         : `${key} BETWEEN ${valueA} AND ${valueB}`,
     ExpressionAttributeNames : {[key]: keyName},
     ExpressionAttributeValues: {
       [valueA]: a,

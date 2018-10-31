@@ -9,6 +9,14 @@ export = async (argv) => {
       format : 'cjs',
       file   : 'dist/index.js',
     },
+    external: [
+      'filename-logger',
+      'immer',
+      'debug',
+      'aws-sdk',
+      'ramda',
+      'number-converter-alphabet'
+    ],
     plugins : [
       babel({
         presets   : [
