@@ -149,8 +149,10 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
   async createSet(list, options) {
   }
 
-  async delete(hashKey: H, rangeKey?: R, params?: DocumentClient.DeleteItemInput)
-  async delete(hashKey: H, params?: DocumentClient.DeleteItemInput)
+  async delete(hashKey: H, rangeKey: R, params: DocumentClient.DeleteItemInput)
+  async delete(hashKey: H, rangeKey: R)
+  async delete(hashKey: H, params: DocumentClient.DeleteItemInput)
+  async delete(hashKey: H)
   async delete(hashKey, rangeKey?, params?) {
     try {
       const response = await this.operator.delete(hashKey, rangeKey, params)

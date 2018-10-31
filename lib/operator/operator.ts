@@ -37,10 +37,10 @@ export class Operator<H extends TScalar, R extends TScalar = never> {
   async createSet(list, options) {
   }
 
-  async delete(hashKey: H, rangeKey: R | undefined, params?: OperatorParam<DocumentClient.DeleteItemInput>) {
+  async delete(hashKey: H, rangeKey?: R, params?: OperatorParam<DocumentClient.DeleteItemInput>) {
     Object.assign(params, this.createGetParam(hashKey, rangeKey))
     logger('delete', params)
-    return ddbClient.delete(params as unknown as DocumentClient.DeleteItemInput).promise()
+    return ddbClient.delete(params as DocumentClient.DeleteItemInput).promise()
   }
 
   /**

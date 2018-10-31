@@ -4,7 +4,11 @@
     "module": "commonjs",
     "outDir": "build",
     "declaration": true,
-    "declarationDir": "dist"
+    "declarationDir": "dist",
+    "strictNullChecks": true,
+//    "strictFunctionTypes": true,
+    "strictPropertyInitialization": true,
+    "esModuleInterop": true
   },
   "exclude": [
     "**/*.test.ts",

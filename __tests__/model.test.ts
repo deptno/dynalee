@@ -1,5 +1,4 @@
 import define from '../lib'
-import {$eq, $le, beginsWith} from '../lib/operator/key-condition-operator'
 import {getLogger} from '../lib/util/debug'
 
 interface SchemaEx {
@@ -79,9 +78,6 @@ async function query() {
   logger('> query')
   const users = await User
     .query('hello')
-    .pipe(
-      $eq('hello'),
-    )
   logger(users)
   logger('< query')
 }

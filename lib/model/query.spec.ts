@@ -25,20 +25,6 @@ describe('query', function () {
     })
   })
   describe('CompositeQuery', () => {
-    it('should includes pages', async done => {
-      const expected = {
-        KeyConditionExpression   : '#HSK = :HSK',
-        ExpressionAttributeNames : {'#HSK': 'hsk'},
-        ExpressionAttributeValues: {':HSK': 'hello'},
-        __pages                  : 1
-      }
-      const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
-      const actual = await query
-        .pages(1)
-        .compile()
-      expect(actual).toEqual(expected)
-      done()
-    })
     it('should sort descend', async done => {
       const expected = {
         KeyConditionExpression   : '#HSK = :HSK',
@@ -167,7 +153,8 @@ describe('query', function () {
           }
           const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
           const actual = await query
-            .range('rgk').between(5944, 5946)
+            .range('rgk')
+            .between(5944, 5946)
             .compile()
           expect(actual).toEqual(expected)
           done()
@@ -180,7 +167,8 @@ describe('query', function () {
           }
           const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
           const actual = await query
-            .range('rgk').beginsWith('123')
+            .range('rgk')
+            .beginsWith('123')
             .compile()
           expect(actual).toEqual(expected)
           done()

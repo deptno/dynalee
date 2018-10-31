@@ -11,7 +11,7 @@
     "build": "npm run compile; npm run rollup",
     "build:config": "tsc -p tsconfig.config.json",
     "test": "jest",
-    "compile": "tsc -p .; npm run build:config; tsc -p tsconfig.cjs.json",
+    "compile": "npm run build:config; tsc -p tsconfig.cjs.json",
     "rollup": "rollup -c; node -e \"console.log(require('.'))\"",
     "prepare": "rm -rf dist; npm run build"
   },

@@ -1,6 +1,5 @@
 import {Model} from '../../model/model'
-import {$eq, $ne} from './comparison-operator'
-import {$$or, mergeOp, replacementIdGenerator} from './helper'
+import {replacementIdGenerator} from './helper'
 
 interface Schema {
   key: string
@@ -25,10 +24,8 @@ describe('ComparisonOperator', () => {
     done()
   })
   it('eq', () => {
-    const ret = $eq('a')
-    console.log(ret(generator))
+//    console.log(ret(generator))
 //    console.log(merged)
-
   })
   it('ne', () => {
   })
