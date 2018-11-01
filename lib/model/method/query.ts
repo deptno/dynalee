@@ -1,13 +1,13 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
-import {always, cond, converge, identity, is, mergeWith, Omit, T} from 'ramda'
-import {mergeByTypes} from '../util'
-import {getLogger} from '../util/debug'
-import {$between, $eq, $ge, $gt, $le, $lt} from './expression/comparator'
-import {$beginsWith} from './expression/function'
-import {replacementKeyGenerator, replacementValueGenerator} from './expression/helper'
-import {TConnector} from './expression/type'
-import {TScalar} from './index'
-import {FilterOperator} from './operator/filter'
+import {always, converge, identity, Omit} from 'ramda'
+import {mergeByTypes} from '../../util/index'
+import {getLogger} from '../../util/debug'
+import {$between, $eq, $ge, $gt, $le, $lt} from '../../engine/expression/comparator'
+import {$beginsWith} from '../../engine/expression/function'
+import {replacementKeyGenerator, replacementValueGenerator} from '../../engine/expression/helper'
+import {TConnector} from '../../engine/expression/type'
+import {TScalar} from '../../engine/index'
+import {FilterOperator} from '../../engine/operator/filter'
 
 export class HashQuery<S, H extends TScalar> implements Query<S> {
   params = {

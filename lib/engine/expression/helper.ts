@@ -12,9 +12,7 @@ const createOperatorConnector: OperatorConnectorCreator = (connector: TConnector
 export const $$or = createOperatorConnector('OR')
 export const $$and = createOperatorConnector('AND')
 // @fixme $$not has different behavior
-export const $$not: OperatorConnector = (...operators) =>
-  generator =>
-    mergeOp(generator, operators, 'NOT')
+export const $$not: OperatorConnector = (...operators) => generator => mergeOp(generator, operators, 'NOT')
 export const replacementGenerator = (prefix) => (index = 0) => () => `${prefix}${nca(index++, ALPHABET_ASCII)}`
 export const replacementKeyGenerator = replacementGenerator('#')
 export const replacementValueGenerator = replacementGenerator(':')

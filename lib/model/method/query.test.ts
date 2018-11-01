@@ -1,4 +1,4 @@
-import {Engine} from './engine'
+import {Engine} from '../../engine/engine'
 import {CompositeQuery} from './query'
 
 +async function () {

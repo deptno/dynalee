@@ -1,5 +1,5 @@
-import {Engine} from './index'
-import {getLogger} from '../util/debug'
+import {Engine} from '../../engine/index'
+import {getLogger} from '../../util/debug'
 import {CompositeQuery, HashQuery} from './query'
 
 const logger = getLogger(__filename)
@@ -103,19 +103,6 @@ describe('query', function () {
           expect(actual).toEqual(expected)
           done()
         })
-        it('.ne() should includes RangeKey condition in KeyConditionExpression', async done => {
-          const expected = {
-            KeyConditionExpression   : '#HSK = :HSK AND #RGK <> :RGK',
-            ExpressionAttributeNames : {'#HSK': 'hsk', '#RGK': 'rgk'},
-            ExpressionAttributeValues: {':HSK': 'hello', ':RGK': 5945},
-          }
-          const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
-          const actual = await query
-            .range('rgk').ne(5945)
-            .compile()
-          expect(actual).toEqual(expected)
-          done()
-        })
         it('.lt() should includes RangeKey condition in KeyConditionExpression', async done => {
           const expected = {
             KeyConditionExpression   : '#HSK = :HSK AND #RGK < :RGK',
@@ -170,7 +157,7 @@ describe('query', function () {
         })
         it('.between() should includes RangeKey condition in KeyConditionExpression', async done => {
           const expected = {
-            KeyConditionExpression   : '#HSK = :HSK AND #RGK BETWEEN (:a, :b)',
+            KeyConditionExpression   : '#HSK = :HSK AND #RGK BETWEEN (:a AND :b)',
             ExpressionAttributeNames : {'#HSK': 'hsk', '#RGK': 'rgk'},
             ExpressionAttributeValues: {':HSK': 'hello', ':a': 5944, ':b': 5946},
           }

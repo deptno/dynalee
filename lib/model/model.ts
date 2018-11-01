@@ -1,10 +1,11 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import {concat, cond, head, is, mergeWith, Omit, T, tap} from 'ramda'
 import {ETimestampType} from '../constant'
-import {CompositeQuery, Engine, TScalar} from '../engine'
+import {Engine, TScalar} from '../engine'
 import {mergeOp, replacementValueGenerator} from '../engine/expression/helper'
 import {getLogger} from '../util/debug'
 import {Document} from './document'
+import {CompositeQuery} from './method/query'
 
 const logger = getLogger(__filename)
 const withLog = tap(logger)
