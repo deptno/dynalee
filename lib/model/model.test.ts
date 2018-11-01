@@ -11,18 +11,12 @@ interface SchemaEx {
 +async function () {
   const User = new Model<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dev-readish-user', 'id', 'detail')
   const data = await User
-    .query('offlineContext_cognitoIdentityId')
-    .range('detail')
-    .beginsWith('google|')
+    .scan()
     .project(`id, detail, loginCount`)
     .filter((and, or) => {
       and
-        .between('loginCount', 2, 3)
-        .ne('loginCount', 177)
-        .attributeNotExists('loginCount')
-//      or
-//        .attributeExists('loginCount')
+        .eq('id', '1223020')
     })
     .run()
-  await User.scan()
+  console.log('data', data)
 }()

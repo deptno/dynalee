@@ -6,6 +6,7 @@ import {mergeOp, replacementValueGenerator} from '../engine/expression/helper'
 import {getLogger} from '../util/debug'
 import {Document} from './document'
 import {CompositeQuery} from './method/query'
+import {Scan} from './method/scan'
 
 const logger = getLogger(__filename)
 const withLog = tap(logger)
@@ -100,7 +101,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
           params
         ))
         logger('createRangeQuery() params', params)
-        return this.runQuery(params)
+        return this.doQuery(params)
       }
     }
   }
@@ -118,7 +119,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
     }
   }
 
-  private async runQuery(params) {
+  private async doQuery(params) {
     try {
       const response = await this.operator.query(params)
       logger('response', response)
@@ -133,23 +134,37 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
     }
   }
 
+  private async doScan(params) {
+    try {
+      const response = await this.operator.scan(params)
+      logger('response', response)
+      if (response.Count === 0) {
+        return []
+      }
+      return response.Items!.map(item =>
+        new Document<S, H, R>(this.tableName, this.hashKeyName, this.rangeKeyName, item as S)
+      )
+    } catch (e) {
+      throw new Error(e.message)
+    }
+  }
+
   query(hashKey: H) {
-    return new CompositeQuery<S, H, R>(this.runQuery, this.operator, this.hashKeyName, hashKey)
+    return new CompositeQuery<S, H, R>(this.doQuery, this.operator, this.hashKeyName, hashKey)
   }
 
   scan() {
-    return this.operator.scan()
-  }
-  async queryOne(hashKey: string, params?: OperatorParam<DocumentClient.QueryInput>) {
-    params = {
-      ...this.createHashQueryParams(hashKey, params),
-      Limit: 1
-    }
-    const response = await this.runQuery(params)
-    return head(response)
+    return new Scan(logger.bind(null, 'doScan'), this.operator, this.hashKeyName)
   }
 
+  /**
+   * @deprecated not implement
+   * @param list
+   * @param options
+   * @returns {Promise<void>}
+   */
   async createSet(list, options) {
+    console.warn('@todo implment createSet()')
   }
 
   async delete(hashKey: H, rangeKey: R, params: DocumentClient.DeleteItemInput)
