@@ -1,13 +1,13 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
-import {always, converge, identity, Omit} from 'ramda'
-import {mergeByTypes} from '../../util/index'
-import {getLogger} from '../../util/debug'
+import R, {Omit} from 'ramda'
 import {$between, $eq, $ge, $gt, $le, $lt} from '../../engine/expression/comparator'
 import {$beginsWith} from '../../engine/expression/function'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../engine/expression/helper'
 import {TConnector} from '../../engine/expression/type'
-import {TScalar} from '../../engine/index'
+import {TScalar} from '../../engine'
 import {FilterOperator} from '../../engine/operator/filter'
+import {getLogger} from '../../util/debug'
+import {mergeByTypes} from '../../util'
 
 export class HashQuery<S, H extends TScalar> implements Query<S> {
   params = {
@@ -69,20 +69,17 @@ export class HashQuery<S, H extends TScalar> implements Query<S> {
    * @todo low priority. not implement yet.
    * @deprecated
    */
-  precompiled(precompiled: Precompiled) {
+  from(params) {
+    this.params = R.pick(['Key'], params)
     return this
   }
 
-  compile() {
-    return this.params
+  out() {
+    return R.pick(['Key'], this.params)
   }
 
   run() {
     return this.runner(this.params)
-  }
-
-  return() {
-
   }
 
   observer(observer: (observer) => void) {
@@ -99,10 +96,12 @@ export class HashQuery<S, H extends TScalar> implements Query<S> {
     this.params = mergeByTypes(connector, this.params, target)
   }
 }
-export class CompositeQuery<S, H extends TScalar, R extends TScalar> extends HashQuery<S, H> implements Query<S> {
-  range(rangeKeyName: R extends TScalar ? keyof S : never) {
-    const genKey = always('#RGK')
-    const genValue = always(':RGK')
+export class CompositeQuery<S, H extends TScalar, R> extends HashQuery<S, H> implements Query<S> {
+  range(rangeKeyName: keyof S): R extends number
+  ? RangeKeyNumberConditionOperator<S, R>
+  : RangeKeyConditionOperator<S, R> {
+    const genKey = R.always('#RGK')
+    const genValue = R.always(':RGK')
     const _$eq = $eq('KeyConditionExpression', genKey, genValue, rangeKeyName)
     const _$lt = $lt('KeyConditionExpression', genKey, genValue, rangeKeyName)
     const _$le = $le('KeyConditionExpression', genKey, genValue, rangeKeyName)
@@ -110,7 +109,7 @@ export class CompositeQuery<S, H extends TScalar, R extends TScalar> extends Has
     const _$ge = $ge('KeyConditionExpression', genKey, genValue, rangeKeyName)
     const _$between = $between('KeyConditionExpression', genKey, this.genValue, rangeKeyName)
     const _$beginsWith = $beginsWith('KeyConditionExpression', genKey, genValue, rangeKeyName)
-    const withRangeKey = (rangeKey: R | null, params) => {
+    const withRangeKey = (rangeKey: R | null, params): Query<S> => {
       this.merge(params)
       this.merge({ExpressionAttributeNames: {'#RGK': rangeKeyName as string}})
       if (rangeKey !== null) {
@@ -118,21 +117,21 @@ export class CompositeQuery<S, H extends TScalar, R extends TScalar> extends Has
       }
       return this
     }
+
     return {
-      eq        : converge(withRangeKey, [identity, _$eq]) as (value: R) => Query<S>,
-      lt        : converge(withRangeKey, [identity, _$lt]),
-      le        : converge(withRangeKey, [identity, _$le]),
-      gt        : converge(withRangeKey, [identity, _$gt]),
-      ge        : converge(withRangeKey, [identity, _$ge]),
-      between   : (a: R, b: R): Query<S> => withRangeKey(null, _$between(a, b)),
-      beginsWith: (value: string): Query<S> => withRangeKey(null, _$beginsWith(value))
-    }
+      eq        : R.converge(withRangeKey, [R.identity, _$eq]),
+      lt        : R.converge(withRangeKey, [R.identity, _$lt]),
+      le        : R.converge(withRangeKey, [R.identity, _$le]),
+      gt        : R.converge(withRangeKey, [R.identity, _$gt]),
+      ge        : R.converge(withRangeKey, [R.identity, _$ge]),
+      between   : (a: R, b: R) => withRangeKey(null, _$between(a, b)),
+      beginsWith: (value: string) => withRangeKey(null, _$beginsWith(value))
+    } as any
   }
 }
-
 const logger = getLogger(__filename)
 
-interface Query<S, R = DocumentClient.QueryOutput> {
+interface Query<S> {
   //  range?(...operators: Operator[]): this
   project(expression: string): this
   filter(func: (and: FilterOperator<S>, or: FilterOperator<S>) => void): this
@@ -140,26 +139,23 @@ interface Query<S, R = DocumentClient.QueryOutput> {
   desc(): this
   consistent(): this
   startAt(lastEvaluatedKey): this
-  /**
-   * iterate query
-   * @param {number} pages, greater than 0
-   * @param {number} delay ms
-   * @returns {this}
-   */
-  precompiled(precompiled: Precompiled): this
 
-  run(): Promise<R>
-  compile(): Precompiled
+  run(): Promise<DocumentClient.QueryOutput>
+  from(precompiled: DxQueryInput): this
+  out(): DxQueryInput
 }
-type DynaleeInput = {
-  __page?: {
-    pages: number
-    delay: number
-  }
+interface RangeKeyCondition<S, R = never> {
+  (a: R): Query<S>,
 }
-type DxQueryInput = Omit<DocumentClient.QueryInput, 'TableName'> & DynaleeInput
-type Precompiled = DxQueryInput // subset
-/**
- * @todo T = S[K] and path
- */
+interface RangeKeyConditionOperator<S, R> {
+  eq: RangeKeyCondition<S, R>
+  lt: RangeKeyCondition<S, R>
+  le: RangeKeyCondition<S, R>
+  gt: RangeKeyCondition<S, R>
+  ge: RangeKeyCondition<S, R>
+  between: (a: R, b: R) => Query<S>
+  beginsWith: RangeKeyCondition<S, R>
+}
+type RangeKeyNumberConditionOperator<S, R> = Omit<RangeKeyConditionOperator<S, R>, 'beginsWith'>
 
+type DxQueryInput = Omit<DocumentClient.QueryInput, 'TableName'>

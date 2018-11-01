@@ -5,13 +5,12 @@ import {CompositeQuery} from './query'
   const tableName = 'dynalee'
   const hashKeyName = 'hello'
   const rangeKeyName = 'world'
-  //operator 가 키 이름들을 가지고 있음
   const op = new Engine<T['hsk'], T['rgk']>(tableName, hashKeyName, rangeKeyName)
   const query = new CompositeQuery<T, T['hsk'], T['rgk']>(print, op, 'hsk', 'hello')
 
   query
     .range('rgk')
-    .eq(1)
+    .beginsWith('a')
     .desc()
     .consistent()
     .limit(1)
@@ -33,7 +32,7 @@ function print(query) {
 
 interface T {
   readonly hsk: string
-  readonly rgk: number
+  readonly rgk: string
   name: string,
   userId: string
 }

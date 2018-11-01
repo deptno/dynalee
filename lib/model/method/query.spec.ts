@@ -1,4 +1,4 @@
-import {Engine} from '../../engine/index'
+import {Engine} from '../../engine'
 import {getLogger} from '../../util/debug'
 import {CompositeQuery, HashQuery} from './query'
 
@@ -19,7 +19,7 @@ describe('query', function () {
         ExpressionAttributeValues: {':HSK': 'hello'}
       }
       const query = new HashQuery<Schema, Schema['hsk']>(logger, op, 'hsk', 'hello')
-      const actual = query.compile()
+      const actual = query.out()
       expect(actual).toEqual(expected)
     })
     it('should includes FilterExpression', () => {
@@ -43,7 +43,7 @@ describe('query', function () {
           operator.eq('hsk', 'a2')
           operator.eq('hsk', 1)
         })
-        .compile()
+        .out()
       expect(actual).toEqual(expected)
     })
   })
@@ -58,7 +58,7 @@ describe('query', function () {
       const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
       const actual = await query
         .desc()
-        .compile()
+        .out()
       expect(actual).toEqual(expected)
       done()
     })
@@ -72,7 +72,7 @@ describe('query', function () {
       const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
       const actual = await query
         .consistent()
-        .compile()
+        .out()
       expect(actual).toEqual(expected)
       done()
     })
@@ -84,7 +84,7 @@ describe('query', function () {
       }
       const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
       const actual = await query
-        .compile()
+        .out()
       expect(actual).toEqual(expected)
       done()
     })
@@ -99,7 +99,7 @@ describe('query', function () {
           const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
           const actual = await query
             .range('rgk').eq(5945)
-            .compile()
+            .out()
           expect(actual).toEqual(expected)
           done()
         })
@@ -112,7 +112,7 @@ describe('query', function () {
           const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
           const actual = await query
             .range('rgk').lt(5945)
-            .compile()
+            .out()
           expect(actual).toEqual(expected)
           done()
         })
@@ -125,7 +125,7 @@ describe('query', function () {
           const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
           const actual = await query
             .range('rgk').le(5945)
-            .compile()
+            .out()
           expect(actual).toEqual(expected)
           done()
         })
@@ -138,7 +138,7 @@ describe('query', function () {
           const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
           const actual = await query
             .range('rgk').gt(5945)
-            .compile()
+            .out()
           expect(actual).toEqual(expected)
           done()
         })
@@ -151,7 +151,7 @@ describe('query', function () {
           const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
           const actual = await query
             .range('rgk').ge(5945)
-            .compile()
+            .out()
           expect(actual).toEqual(expected)
           done()
         })
@@ -164,7 +164,7 @@ describe('query', function () {
           const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
           const actual = await query
             .range('rgk').between(5944, 5946)
-            .compile()
+            .out()
           expect(actual).toEqual(expected)
           done()
         })
@@ -174,11 +174,11 @@ describe('query', function () {
             ExpressionAttributeNames : {'#HSK': 'hsk', '#RGK': 'rgk'},
             ExpressionAttributeValues: {':HSK': 'hello', ':RGK': '123'},
           }
-          const query = new CompositeQuery<Schema, Schema['hsk'], Schema['rgk']>(logger, op, 'hsk', 'hello')
+          const query = new CompositeQuery<StringSchema, StringSchema['hsk'], StringSchema['rgk']>(logger, op, 'hsk', 'hello')
           const actual = await query
             .range('rgk')
             .beginsWith('123')
-            .compile()
+            .out()
           expect(actual).toEqual(expected)
           done()
         })
@@ -190,4 +190,8 @@ describe('query', function () {
 interface Schema {
   readonly hsk: string
   readonly rgk: number
+}
+interface StringSchema {
+  readonly hsk: string
+  readonly rgk: string
 }
