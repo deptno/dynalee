@@ -61,9 +61,11 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
    * @todo apply options, is it good to Use `Document`?
    */
   async batchGet(params?) {
+    console.warn('@todo implement batchGet')
   }
 
   async batchWrite(params?) {
+    console.warn('@todo implement batchWrite')
   }
 
   /**
@@ -149,6 +151,23 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
     }
   }
 
+  async get(hashKey: H, rangeKey?: R, params?): Promise<Document<S, H, R>>
+  async get(hashKey: H, params?): Promise<Document<S, H, R>>
+  async get(hashKey, rangeKey?, params?) {
+    try {
+      const response = await this.operator.get(hashKey, rangeKey, params)
+      if (!response.Item) {
+        throw new Error(`Item not found, hash(${hashKey}, range(${rangeKey})`)
+      }
+      logger('response', response)
+      const model = new Document(this.tableName, this.hashKeyName, this.rangeKeyName, response.Item as S)
+      return model
+    } catch (e) {
+      logger({[this.hashKeyName]: hashKey, [this.rangeKeyName!]: rangeKey})
+      throw new Error(e.message)
+    }
+  }
+
   query(hashKey: H) {
     return new CompositeQuery<S, H, R>(this.doQuery, this.operator, this.hashKeyName, hashKey)
   }
@@ -178,23 +197,6 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
       return this
     } catch (e) {
       logger(e)
-    }
-  }
-
-  async get(hashKey: H, rangeKey?: R, params?): Promise<Document<S, H, R>>
-  async get(hashKey: H, params?): Promise<Document<S, H, R>>
-  async get(hashKey, rangeKey?, params?) {
-    try {
-      const response = await this.operator.get(hashKey, rangeKey, params)
-      if (!response.Item) {
-        throw new Error(`Item not found, hash(${hashKey}, range(${rangeKey})`)
-      }
-      logger('response', response)
-      const model = new Document(this.tableName, this.hashKeyName, this.rangeKeyName, response.Item as S)
-      return model
-    } catch (e) {
-      logger({[this.hashKeyName]: hashKey, [this.rangeKeyName!]: rangeKey})
-      throw new Error(e.message)
     }
   }
 }

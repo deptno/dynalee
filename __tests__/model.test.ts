@@ -1,9 +1,12 @@
 import define from '../lib'
 import {getLogger} from '../lib/util/debug'
 
+const HASH_KEY = 'id'
+const RANGE_KEY = 'detail'
+
 interface SchemaEx {
-  readonly detail: string
-  readonly id: string
+  readonly [HASH_KEY]: string
+  readonly [RANGE_KEY]: string
   list?: [string, number, { string: string }],
   map?: {
     map: {
@@ -16,7 +19,7 @@ interface SchemaEx {
 }
 
 const logger = getLogger(__filename)
-const User = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail', {})
+const User = define<SchemaEx, SchemaEx[typeof HASH_KEY], typeof RANGE_KEY>('dynalee', 'id', 'detail', {})
 const aUser = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail')
 const bUser = define<SchemaEx, SchemaEx['id']>('dynalee', 'id', {})
 const cser = define<SchemaEx, SchemaEx['id']>('dynalee', 'id')
