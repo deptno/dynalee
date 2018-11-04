@@ -3,9 +3,10 @@ import {applyPatches, Draft, Patch, produce} from 'immer'
 import {TScalar, Engine} from '../engine'
 import {getLogger} from '../util/debug'
 import {applyItemOptions} from '../options/apply-item-options'
+import {cleanDoc} from '../util/dynamodb-document'
 import {ModelOptions} from './model'
 
-export class Document<S, H extends TScalar, R extends TScalar> {
+export class Document<S, H extends TScalar, R extends TScalar = never> {
   /**
    * @todo: create History class
    */
@@ -14,6 +15,7 @@ export class Document<S, H extends TScalar, R extends TScalar> {
   private current: S
 
   constructor(
+    protected readonly engine: Engine<H, R>,
     protected readonly tableName: string,
     protected readonly hashKeyName: string,
     protected readonly rangeKeyName: string|undefined,
@@ -21,10 +23,8 @@ export class Document<S, H extends TScalar, R extends TScalar> {
     private readonly options?: ModelOptions,
   ) {
     logger('new Model()', tableName, hashKeyName, rangeKeyName, data)
-    this.current = Object.freeze(data)
+    this.current = Object.freeze(cleanDoc(data))
   }
-
-  private operator = new Engine<H, R>(this.tableName, this.hashKeyName, this.rangeKeyName)
 
   /**
    * @todo make it lazy
@@ -77,7 +77,7 @@ export class Document<S, H extends TScalar, R extends TScalar> {
    */
   async delete(params?: DocumentClient.DeleteItemInput) {
     logger('delete', params)
-    return this.operator.delete(this.getHashKey(), this.getRangeKey(), params)
+    return this.engine.delete(this.getHashKey(), this.getRangeKey(), params)
   }
 
   /**
@@ -98,7 +98,7 @@ export class Document<S, H extends TScalar, R extends TScalar> {
       Item: applyItemOptions(this.head(), this.options)
     }
     logger('put', params)
-    return this.operator.put(this.getHashKey(), this.getRangeKey(), params)
+    return this.engine.put(this.getHashKey(), this.getRangeKey(), params)
   }
 
   /**
@@ -115,7 +115,7 @@ export class Document<S, H extends TScalar, R extends TScalar> {
     logger('update', applyPatches(
       this.keys(), this.redo,
     ))
-    return this.operator.update(this.getHashKey(), this.getRangeKey(), params)
+    return this.engine.update(this.getHashKey(), this.getRangeKey(), params)
   }
 }
 

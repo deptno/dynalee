@@ -8,8 +8,9 @@ import {TScalar} from '../../engine'
 import {FilterOperator} from '../../engine/operator/filter'
 import {getLogger} from '../../util/debug'
 import {mergeByTypes} from '../../util'
+import {Document} from '../document'
 
-export class HashQuery<S, H extends TScalar> implements Query<S> {
+export class Query<S, H extends TScalar, R extends TScalar> {
   params = {
     KeyConditionExpression   : `#HSK = :HSK`,
     ExpressionAttributeNames : {
@@ -19,8 +20,7 @@ export class HashQuery<S, H extends TScalar> implements Query<S> {
       ':HSK': this.hashKey
     }
   } as DxQueryInput
-
-  constructor(protected runner, protected operator, protected hashKeyName, protected hashKey: H) {
+  constructor(protected runner: (params: DxQueryInput) => Document<S, H>[], protected hashKeyName, protected hashKey: H) {
   }
 
   protected genKey = replacementKeyGenerator()
@@ -75,31 +75,30 @@ export class HashQuery<S, H extends TScalar> implements Query<S> {
   }
 
   out() {
-    return R.pick(['Key'], this.params)
+    return R.omit(['Key'], this.params)
   }
 
-  run() {
-    return this.runner(this.params)
-  }
+//  run(): Document<S, H>[] {
+//    return this.runner(this.params)
+//  }
 
   observer(observer: (observer) => void) {
 
   }
 
-  next(lastEvaluatedKey) {
-    return this
-      .startAt(lastEvaluatedKey)
-      .run()
-  }
+//  next(lastEvaluatedKey) {
+//    return this
+//      .startAt(lastEvaluatedKey)
+//      .run()
+//  }
 
   protected merge(target: DxQueryInput, connector: TConnector = 'AND'): void {
     this.params = mergeByTypes(connector, this.params, target)
   }
-}
-export class CompositeQuery<S, H extends TScalar, R> extends HashQuery<S, H> implements Query<S> {
+
   range(rangeKeyName: keyof S): R extends number
-  ? RangeKeyNumberConditionOperator<S, R>
-  : RangeKeyConditionOperator<S, R> {
+  ? RangeKeyNumberConditionOperator<S, H, R>
+  : RangeKeyConditionOperator<S, H, R> {
     const genKey = R.always('#RGK')
     const genValue = R.always(':RGK')
     const _$eq = $eq('KeyConditionExpression', genKey, genValue, rangeKeyName)
@@ -109,7 +108,7 @@ export class CompositeQuery<S, H extends TScalar, R> extends HashQuery<S, H> imp
     const _$ge = $ge('KeyConditionExpression', genKey, genValue, rangeKeyName)
     const _$between = $between('KeyConditionExpression', genKey, this.genValue, rangeKeyName)
     const _$beginsWith = $beginsWith('KeyConditionExpression', genKey, genValue, rangeKeyName)
-    const withRangeKey = (rangeKey: R | null, params): Query<S> => {
+    const withRangeKey = (rangeKey: R | null, params): Omit<Query<S, H, R>, 'range'>=> {
       this.merge(params)
       this.merge({ExpressionAttributeNames: {'#RGK': rangeKeyName as string}})
       if (rangeKey !== null) {
@@ -128,34 +127,38 @@ export class CompositeQuery<S, H extends TScalar, R> extends HashQuery<S, H> imp
       beginsWith: (value: string) => withRangeKey(null, _$beginsWith(value))
     } as any
   }
+
+  run(): Document<S, H, R>[] {
+    return this.runner(this.params)
+  }
 }
 const logger = getLogger(__filename)
-
-interface Query<S> {
-  //  range?(...operators: Operator[]): this
-  project(expression: string): this
-  filter(func: (and: FilterOperator<S>, or: FilterOperator<S>) => void): this
-  limit(limit: number): this
-  desc(): this
-  consistent(): this
-  startAt(lastEvaluatedKey): this
-
-  run(): Promise<DocumentClient.QueryOutput>
-  from(precompiled: DxQueryInput): this
-  out(): DxQueryInput
+//
+//interface Query<S> {
+//  //  range?(...operators: Operator[]): this
+//  project(expression: string): this
+//  filter(func: (and: FilterOperator<S>, or: FilterOperator<S>) => void): this
+//  limit(limit: number): this
+//  desc(): this
+//  consistent(): this
+//  startAt(lastEvaluatedKey): this
+//
+////  run(): Promise<Document<S, >>
+//  from(precompiled: DxQueryInput): this
+//  out(): DxQueryInput
+//}
+interface RangeKeyCondition<S, H extends TScalar, R extends TScalar> {
+  (a: R): Query<S, H, R>,
 }
-interface RangeKeyCondition<S, R = never> {
-  (a: R): Query<S>,
+interface RangeKeyConditionOperator<S, H extends TScalar, R extends TScalar> {
+  eq: RangeKeyCondition<S, H, R>
+  lt: RangeKeyCondition<S, H, R>
+  le: RangeKeyCondition<S, H, R>
+  gt: RangeKeyCondition<S, H, R>
+  ge: RangeKeyCondition<S, H, R>
+  between: (a: R, b: R) => Query<S, H, R>
+  beginsWith: RangeKeyCondition<S, H, R>
 }
-interface RangeKeyConditionOperator<S, R> {
-  eq: RangeKeyCondition<S, R>
-  lt: RangeKeyCondition<S, R>
-  le: RangeKeyCondition<S, R>
-  gt: RangeKeyCondition<S, R>
-  ge: RangeKeyCondition<S, R>
-  between: (a: R, b: R) => Query<S>
-  beginsWith: RangeKeyCondition<S, R>
-}
-type RangeKeyNumberConditionOperator<S, R> = Omit<RangeKeyConditionOperator<S, R>, 'beginsWith'>
+type RangeKeyNumberConditionOperator<S, H extends TScalar, R extends TScalar> = Omit<RangeKeyConditionOperator<S, H, R>, 'beginsWith'>
 
 type DxQueryInput = Omit<DocumentClient.QueryInput, 'TableName'>

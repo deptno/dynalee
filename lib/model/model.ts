@@ -1,11 +1,12 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import {concat, cond, head, is, mergeWith, Omit, T, tap} from 'ramda'
+import {getDdbClient} from '../config/aws'
 import {ETimestampType} from '../constant'
 import {Engine, TScalar} from '../engine'
 import {mergeOp, replacementValueGenerator} from '../engine/expression/helper'
 import {getLogger} from '../util/debug'
 import {Document} from './document'
-import {CompositeQuery} from './method/query'
+import {Query} from './method/query'
 import {Scan} from './method/scan'
 
 const logger = getLogger(__filename)
@@ -47,14 +48,16 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
   constructor(protected readonly tableName, protected readonly hashKeyName, protected readonly rangeKeyName?, options?) {
     this.options = typeof rangeKeyName === 'object'
       ? rangeKeyName
-      : options || {}
+      : (options || {})
+    const ddbClient = getDdbClient(this.options)
+    this.engine = new Engine(ddbClient, this.tableName, this.hashKeyName, this.rangeKeyName)
   }
 
   private readonly options: ModelOptions
-  private readonly operator = new Engine(this.tableName, this.hashKeyName, this.rangeKeyName)
+  private readonly engine: Engine<H, R>
 
   of(data: S) {
-    return new Document<S, H, R>(this.tableName, this.hashKeyName, this.rangeKeyName, data, this.options)
+    return this.createDocument(data, this.options)
   }
 
   /**
@@ -121,31 +124,32 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
     }
   }
 
+  private createDocument(item, options?: ModelOptions) {
+    return new Document<S, H, R>(this.engine, this.tableName, this.hashKeyName, this.rangeKeyName, item, options)
+  }
+
   private async doQuery(params) {
     try {
-      const response = await this.operator.query(params)
+      const response = await this.engine.query(params)
       logger('response', response)
       if (response.Count === 0) {
         return []
       }
-      return response.Items!.map(item =>
-        new Document<S, H, R>(this.tableName, this.hashKeyName, this.rangeKeyName, item as S)
-      )
+      return response.Items!.map(item => this.createDocument(item))
     } catch (e) {
+      logger('doQuery', e, this)
       throw new Error(e.message)
     }
   }
 
   private async doScan(params) {
     try {
-      const response = await this.operator.scan(params)
+      const response = await this.engine.scan(params)
       logger('response', response)
       if (response.Count === 0) {
         return []
       }
-      return response.Items!.map(item =>
-        new Document<S, H, R>(this.tableName, this.hashKeyName, this.rangeKeyName, item as S)
-      )
+      return response.Items!.map(item => this.createDocument(item))
     } catch (e) {
       throw new Error(e.message)
     }
@@ -155,13 +159,12 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
   async get(hashKey: H, params?): Promise<Document<S, H, R>>
   async get(hashKey, rangeKey?, params?) {
     try {
-      const response = await this.operator.get(hashKey, rangeKey, params)
+      const response = await this.engine.get(hashKey, rangeKey, params)
       if (!response.Item) {
         throw new Error(`Item not found, hash(${hashKey}, range(${rangeKey})`)
       }
       logger('response', response)
-      const model = new Document(this.tableName, this.hashKeyName, this.rangeKeyName, response.Item as S)
-      return model
+      return this.createDocument(response.Item)
     } catch (e) {
       logger({[this.hashKeyName]: hashKey, [this.rangeKeyName!]: rangeKey})
       throw new Error(e.message)
@@ -169,11 +172,11 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
   }
 
   query(hashKey: H) {
-    return new CompositeQuery<S, H, R>(this.doQuery, this.operator, this.hashKeyName, hashKey)
+    return new Query<S, H, R>(this.doQuery.bind(this), this.hashKeyName, hashKey)
   }
 
   scan() {
-    return new Scan(logger.bind(null, 'doScan'), this.operator, this.hashKeyName)
+    return new Scan(logger.bind(null, 'doScan'))
   }
 
   /**
@@ -192,7 +195,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
   async delete(hashKey: H)
   async delete(hashKey, rangeKey?, params?) {
     try {
-      const response = await this.operator.delete(hashKey, rangeKey, params)
+      const response = await this.engine.delete(hashKey, rangeKey, params)
       logger('delete response', response)
       return this
     } catch (e) {
@@ -206,7 +209,9 @@ export interface ModelOptions {
     type: ETimestampType | (() => TScalar),
     createdAt?: string // default: createdAt
     updatedAt?: string // default: updatedAt
-  }
+  },
+  region?: string,
+  endpoint?: string
 }
 interface ModelStatic {
   new<S, H extends TScalar, R extends TScalar = never>(

@@ -1,12 +1,12 @@
 import {Engine} from '../../engine/engine'
-import {CompositeQuery} from './query'
+import {Query} from './query'
 
 +async function () {
   const tableName = 'dynalee'
   const hashKeyName = 'hello'
   const rangeKeyName = 'world'
   const op = new Engine<T['hsk'], T['rgk']>(tableName, hashKeyName, rangeKeyName)
-  const query = new CompositeQuery<T, T['hsk'], T['rgk']>(print, op, 'hsk', 'hello')
+  const query = new Query<T, T['hsk'], T['rgk']>(print, op, 'hsk', 'hello')
 
   query
     .range('rgk')

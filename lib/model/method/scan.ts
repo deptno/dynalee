@@ -6,13 +6,13 @@ import {TScalar} from '../../engine'
 import {FilterOperator} from '../../engine/operator/filter'
 import {getLogger} from '../../util/debug'
 import {mergeByTypes} from '../../util'
-import R from 'ramda'
+import * as R from 'ramda'
 
 export class Scan<S, H extends TScalar> {
   params = {
   } as DxScanInput
 
-  constructor(protected runner, protected operator, protected hashKeyName) {
+  constructor(protected runner) {
   }
 
   protected genKey = replacementKeyGenerator()
