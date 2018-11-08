@@ -1,8 +1,8 @@
-import {compose, Omit} from 'ramda'
-import {getLogger} from '../util/debug'
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
+import {compose, Omit} from 'ramda'
+import debug from 'debug'
 
-export type TScalar = string | number | BinaryType
+const logger = debug(['dynalee', __filename].join(':'))
 
 export class Engine<H extends TScalar, R extends TScalar = never> {
   constructor(
@@ -22,17 +22,19 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
         [this.tableName]: this.getKeyParam(hashKey, rangeKey),
       }
     }
-    return this.ddbClient.batchGet(params).promise()
+    return this.ddbClient
+      .batchGet(params)
+      .promise()
+      .catch(e => logger('error', this.ddbClient['service'].endpoint, e.message))
   }
 
-  async batchWrite(hashKey: H, rangeKey?: R, params?) {
-    params = {
-      RequestItems: {
-        [this.tableName]: this.getKeyParam(hashKey, rangeKey),
-      }
-    }
-    return this.ddbClient.batchGet(params).promise()
+  async batchWrite(params: DocumentClient.BatchWriteItemInput) {
+    return this.ddbClient
+      .batchWrite(params)
+      .promise()
+      .catch(e => logger('error', this.ddbClient['service'].endpoint, e.message))
   }
+
 
   /**
    * @todo
@@ -43,7 +45,10 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   async delete(hashKey: H, rangeKey?: R, params?: OperatorParam<DocumentClient.DeleteItemInput>) {
     Object.assign(params, this.createGetParam(hashKey, rangeKey))
     logger('delete', params)
-    return this.ddbClient.delete(params as DocumentClient.DeleteItemInput).promise()
+    return this.ddbClient
+      .delete(params as DocumentClient.DeleteItemInput)
+      .promise()
+      .catch(e => logger('error', this.ddbClient['service'].endpoint, e.message))
   }
 
   /**
@@ -56,7 +61,10 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       ...this.createGetParam(hashKey, rangeKey),
     }
     logger('get param', param)
-    return this.ddbClient.get(param).promise()
+    return this.ddbClient
+      .get(param)
+      .promise()
+      .catch(e => logger('error', this.ddbClient['service'].endpoint, e.message))
   }
 
   /**
@@ -72,7 +80,10 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       ...this.getTableParam(),
     }
     logger('put params', params)
-    return this.ddbClient.put(params).promise()
+    return this.ddbClient
+      .put(params)
+      .promise()
+      .catch(e => logger('error', this.ddbClient['service'].endpoint, e.message))
   }
 
   async query(params) {
@@ -81,7 +92,10 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       ...this.getTableParam(),
     }
     logger('query params', JSON.stringify(params, null, 2))
-    return this.ddbClient.query(params).promise()
+    return this.ddbClient
+      .query(params)
+      .promise()
+      .catch(e => logger('error', this.ddbClient['service'].endpoint, e.message))
   }
 
   async scan(params?) {
@@ -90,7 +104,11 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       ...params,
       ...this.getTableParam(),
     }
-    return this.ddbClient.scan(params).promise()
+    logger('doscan', params)
+    return this.ddbClient
+      .scan(params)
+      .promise()
+      .catch(e => logger('error', this.ddbClient['service'].endpoint, e.message))
   }
 
   async update(hashKey: H, rangeKey?: R, params?) {
@@ -146,7 +164,6 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   )
 }
 
-const logger = getLogger(__filename)
-
+export type TScalar = string | number | BinaryType
 // @fixme duplicated, model.ts
 type OperatorParam<T> = Partial<Omit<T, 'Key' | 'TableName'>>

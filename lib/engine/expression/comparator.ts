@@ -1,9 +1,9 @@
 import {curry} from 'ramda'
-import {getLogger} from '../../util/debug'
+import debug from 'debug'
 import {TScalar} from '../engine'
-import {ComparisonOperator, TExpression, Generator} from './type'
+import {ComparisonOperator, Generator, TExpression} from './type'
 
-const logger = getLogger(__filename)
+const logger = debug(['dynalee', __filename].join(':'))
 /**
  * https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html
  */

@@ -1,15 +1,15 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
-import {concat, cond, head, is, mergeWith, Omit, T, tap} from 'ramda'
+import {concat, cond, is, mergeWith, Omit, T, tap} from 'ramda'
 import {getDdbClient} from '../config/aws'
 import {ETimestampType} from '../constant'
 import {Engine, TScalar} from '../engine'
 import {mergeOp, replacementValueGenerator} from '../engine/expression/helper'
-import {getLogger} from '../util/debug'
+import debug from 'debug'
 import {Document} from './document'
 import {Query} from './method/query'
 import {Scan} from './method/scan'
 
-const logger = getLogger(__filename)
+const logger = debug(['dynalee', __filename].join(':'))
 const withLog = tap(logger)
 
 /**
@@ -29,7 +29,6 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
    * @param {ModelOptions} options
    */
   constructor(tableName: string, hashKeyName: string, options: ModelOptions)
-
   /**
    * HashKey & RangeKey
    * @param {string} tableName
@@ -50,6 +49,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
       ? rangeKeyName
       : (options || {})
     const ddbClient = getDdbClient(this.options)
+    logger('options', this.options)
     this.engine = new Engine(ddbClient, this.tableName, this.hashKeyName, this.rangeKeyName)
   }
 
@@ -67,8 +67,51 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
     console.warn('@todo implement batchGet')
   }
 
-  async batchWrite(params?) {
-    console.warn('@todo implement batchWrite')
+  async batchPut(items: S[]) {
+    const params = {
+      RequestItems: {
+        [this.tableName]: items.map(item => ({
+          PutRequest: {
+            Item: item
+          }
+        }))
+      }
+    }
+    try {
+      const response = await this.engine.batchWrite(params)
+      logger('response', response.$response.data)
+      return response.$response.data
+//      if (response.Count === 0) {
+//        return []
+//      }
+//      return response.Items!.map(item => this.createDocument(item))
+    } catch (e) {
+      throw new Error(e.message)
+    }
+  }
+
+  // @fixme replace Key[]
+  async batchDelete(keys: DocumentClient.Key[]) {
+    const params = {
+      RequestItems: {
+        [this.tableName]: keys.map(key => ({
+          DeleteRequest: {
+            Key: key
+          }
+        }))
+      }
+    }
+    try {
+      const response = await this.engine.batchWrite(params)
+      logger('response', response.$response.data)
+      return response.$response.data
+//      if (response.Count === 0) {
+//        return []
+//      }
+//      return response.Items!.map(item => this.createDocument(item))
+    } catch (e) {
+      throw new Error(e.message)
+    }
   }
 
   /**
@@ -149,7 +192,10 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
       if (response.Count === 0) {
         return []
       }
-      return response.Items!.map(item => this.createDocument(item))
+      return {
+        ...response,
+        Items: response.Items.map(item => this.createDocument(item))
+      }
     } catch (e) {
       throw new Error(e.message)
     }
@@ -176,7 +222,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
   }
 
   scan() {
-    return new Scan(logger.bind(null, 'doScan'))
+    return new Scan(this.doScan.bind(this))
   }
 
   /**

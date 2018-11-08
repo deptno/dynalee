@@ -1,8 +1,8 @@
-import {getLogger} from '../util/debug'
-import {Model, ModelOptions} from './model'
 import {TScalar} from '../engine'
+import debug from 'debug'
+import {Model, ModelOptions} from './model'
 
-const logger = getLogger(__filename)
+const logger = debug(['dynalee', __filename].join(':'))
 
 /**
  * @todo need to index

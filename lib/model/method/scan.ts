@@ -1,12 +1,13 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
+import * as R from 'ramda'
 import {Omit} from 'ramda'
+import {TScalar} from '../../engine'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../engine/expression/helper'
 import {TConnector} from '../../engine/expression/type'
-import {TScalar} from '../../engine'
 import {FilterOperator} from '../../engine/operator/filter'
-import {getLogger} from '../../util/debug'
 import {mergeByTypes} from '../../util'
-import * as R from 'ramda'
+import {Document} from '../document'
+import debug from 'debug'
 
 export class Scan<S, H extends TScalar> {
   params = {
@@ -26,11 +27,12 @@ export class Scan<S, H extends TScalar> {
     return this
   }
 
-  filter(setter) {
+  filter(setter: (and: FilterOperator<S>, or: FilterOperator<S>) => void) {
     setter(
       FilterOperator.of(this.genKey, this.genValue, (params) => this.merge(params)),
       FilterOperator.of(this.genKey, this.genValue, (params) => this.merge(params, 'OR')),
     )
+    logger('setted', this.params)
     return this
   }
 
@@ -61,7 +63,8 @@ export class Scan<S, H extends TScalar> {
     return this
   }
 
-  run() {
+  run(): Promise<Omit<DocumentClient.ScanOutput, 'Items'> & {Items: Document<S, H>[]}> {
+    logger('setted', this.params)
     return this.runner(this.params)
   }
 
@@ -80,7 +83,7 @@ export class Scan<S, H extends TScalar> {
   }
 }
 
-const logger = getLogger(__filename)
+const logger = debug(['dynalee', __filename].join(':'))
 
 type DxScanInput = Omit<DocumentClient.ScanInput, 'TableName'>
 type DxPreScanInput = Omit<DxScanInput, 'Key'>

@@ -1,5 +1,5 @@
 import define from '../lib'
-import {getLogger} from '../lib/util/debug'
+import debug from 'debug'
 
 const HASH_KEY = 'id'
 const RANGE_KEY = 'detail'
@@ -18,7 +18,7 @@ interface SchemaEx {
   someKey2?: string
 }
 
-const logger = getLogger(__filename)
+const logger = debug(['dynalee', __filename].join(':'))
 const User = define<SchemaEx, SchemaEx[typeof HASH_KEY], typeof RANGE_KEY>('dynalee', 'id', 'detail', {})
 const aUser = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail')
 const bUser = define<SchemaEx, SchemaEx['id']>('dynalee', 'id', {})

@@ -1,9 +1,7 @@
-import {getDdbClient} from '../../config/aws'
-import {Engine} from '../../engine'
-import {getLogger} from '../../util/debug'
-import {Query, Query} from './query'
+import debug from 'debug'
+import {Query} from './query'
 
-const logger = getLogger(__filename)
+const logger = debug(['dynalee', __filename].join(':'))
 
 describe('query', function () {
   const tableName = 'dynalee'

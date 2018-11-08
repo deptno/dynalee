@@ -1,16 +1,16 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import R, {Omit} from 'ramda'
+import {TScalar} from '../../engine'
 import {$between, $eq, $ge, $gt, $le, $lt} from '../../engine/expression/comparator'
 import {$beginsWith} from '../../engine/expression/function'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../engine/expression/helper'
 import {TConnector} from '../../engine/expression/type'
-import {TScalar} from '../../engine'
 import {FilterOperator} from '../../engine/operator/filter'
-import {getLogger} from '../../util/debug'
 import {mergeByTypes} from '../../util'
+import debug from 'debug'
 import {Document} from '../document'
 
-export class Query<S, H extends TScalar, R extends TScalar> {
+export class Query<S, H extends TScalar, RKey extends TScalar> {
   params = {
     KeyConditionExpression   : `#HSK = :HSK`,
     ExpressionAttributeNames : {
@@ -20,7 +20,10 @@ export class Query<S, H extends TScalar, R extends TScalar> {
       ':HSK': this.hashKey
     }
   } as DxQueryInput
-  constructor(protected runner: (params: DxQueryInput) => Document<S, H>[], protected hashKeyName, protected hashKey: H) {
+  constructor(
+    protected runner: (params: DxQueryInput) => Document<S, H>[],
+    protected hashKeyName,
+    protected hashKey: H) {
   }
 
   protected genKey = replacementKeyGenerator()
@@ -96,9 +99,9 @@ export class Query<S, H extends TScalar, R extends TScalar> {
     this.params = mergeByTypes(connector, this.params, target)
   }
 
-  range(rangeKeyName: keyof S): R extends number
-  ? RangeKeyNumberConditionOperator<S, H, R>
-  : RangeKeyConditionOperator<S, H, R> {
+  range(rangeKeyName: keyof S): RKey extends number
+  ? RangeKeyNumberConditionOperator<S, H, RKey>
+  : RangeKeyConditionOperator<S, H, RKey> {
     const genKey = R.always('#RGK')
     const genValue = R.always(':RGK')
     const _$eq = $eq('KeyConditionExpression', genKey, genValue, rangeKeyName)
@@ -108,7 +111,7 @@ export class Query<S, H extends TScalar, R extends TScalar> {
     const _$ge = $ge('KeyConditionExpression', genKey, genValue, rangeKeyName)
     const _$between = $between('KeyConditionExpression', genKey, this.genValue, rangeKeyName)
     const _$beginsWith = $beginsWith('KeyConditionExpression', genKey, genValue, rangeKeyName)
-    const withRangeKey = (rangeKey: R | null, params): Omit<Query<S, H, R>, 'range'>=> {
+    const withRangeKey = (rangeKey: RKey | null, params): Omit<Query<S, H, RKey>, 'range'>=> {
       this.merge(params)
       this.merge({ExpressionAttributeNames: {'#RGK': rangeKeyName as string}})
       if (rangeKey !== null) {
@@ -123,16 +126,16 @@ export class Query<S, H extends TScalar, R extends TScalar> {
       le        : R.converge(withRangeKey, [R.identity, _$le]),
       gt        : R.converge(withRangeKey, [R.identity, _$gt]),
       ge        : R.converge(withRangeKey, [R.identity, _$ge]),
-      between   : (a: R, b: R) => withRangeKey(null, _$between(a, b)),
+      between   : (a: RKey, b: RKey) => withRangeKey(null, _$between(a, b)),
       beginsWith: (value: string) => withRangeKey(null, _$beginsWith(value))
     } as any
   }
 
-  run(): Document<S, H, R>[] {
+  run(): Document<S, H, RKey>[] {
     return this.runner(this.params)
   }
 }
-const logger = getLogger(__filename)
+const logger = debug(['dynalee', __filename].join(':'))
 //
 //interface Query<S> {
 //  //  range?(...operators: Operator[]): this

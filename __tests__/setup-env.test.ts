@@ -1,12 +1,15 @@
-import {getLogger} from '../lib/util/debug'
-import {name, finance, date} from 'faker'
+import {date, name} from 'faker'
+import {DynamoDB} from 'aws-sdk'
+import {define} from '../dist'
+import debug from 'debug'
 
-const logger = getLogger(__filename)
+const logger = debug(['dynalee', __filename].join(':'))
 
-import {define, config} from '../dist'
-import DynamoDB = require('aws-sdk/clients/dynamodb')
 
-const options = {endpoint: 'http://localhost:8000'}
+const options = {
+  region: 'dynamon',
+  endpoint: 'http://localhost:8000'
+}
 
 const ddb = new DynamoDB(options)
 const TABLE_NAME = 'DynaleeTest'
@@ -25,7 +28,6 @@ interface User extends Key {
 interface Account extends Key {
 }
 
-config(options)
 const User = define<User, Key[typeof HASH_KEY], Key[typeof RANGE_KEY]>(
   TABLE_NAME,
   HASH_KEY,

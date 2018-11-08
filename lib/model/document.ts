@@ -1,9 +1,9 @@
 import {DocumentClient} from 'aws-sdk/clients/dynamodb'
 import {applyPatches, Draft, Patch, produce} from 'immer'
-import {TScalar, Engine} from '../engine'
-import {getLogger} from '../util/debug'
+import {Engine, TScalar} from '../engine'
 import {applyItemOptions} from '../options/apply-item-options'
-import {cleanDoc} from '../util/dynamodb-document'
+import debug from 'debug'
+import {dynamodbDoc} from '../util/dynamodb-document'
 import {ModelOptions} from './model'
 
 export class Document<S, H extends TScalar, R extends TScalar = never> {
@@ -22,8 +22,8 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
     data: S,
     private readonly options?: ModelOptions,
   ) {
-    logger('new Model()', tableName, hashKeyName, rangeKeyName, data)
-    this.current = Object.freeze(cleanDoc(data))
+    logger('new Document()', tableName, hashKeyName, rangeKeyName, data)
+    this.current = Object.freeze(dynamodbDoc(data))
   }
 
   /**
@@ -36,7 +36,7 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
       this.redo.push(...redos)
       this.undo.push(...undos)
     })
-    return this.current
+    return this
   }
 
   /**
@@ -92,13 +92,18 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
    * @param params
    * @returns {Request<DocumentClient.PutItemOutput, AWSError>}
    */
-  put(params?) {
+  async put(params?) {
     params = {
       ...params,
       Item: applyItemOptions(this.head(), this.options)
     }
     logger('put', params)
-    return this.engine.put(this.getHashKey(), this.getRangeKey(), params)
+    try {
+      const result = await this.engine.put(this.getHashKey(), this.getRangeKey(), params)
+      return result.$response.data
+    } catch(e) {
+      logger('error put', e)
+    }
   }
 
   /**
@@ -119,5 +124,5 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
   }
 }
 
-const logger = getLogger(__filename)
+const logger = debug(['dynalee', __filename].join(':'))
 
