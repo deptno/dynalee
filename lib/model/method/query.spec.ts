@@ -4,11 +4,6 @@ import {Query} from './query'
 const logger = debug(['dynalee', __filename].join(':'))
 
 describe('query', function () {
-  const tableName = 'dynalee'
-  const hashKeyName = 'hello'
-  const rangeKeyName = 'world'
-  //operator 가 키 이름들을 가지고 있음
-
   describe('HashQuery', () => {
     it('should new CompositeQuery', () => {
       const expected = {

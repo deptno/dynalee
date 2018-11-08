@@ -164,6 +164,6 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   )
 }
 
-export type TScalar = string | number | BinaryType
+export type TScalar = string | number | DocumentClient.binaryType
 // @fixme duplicated, model.ts
 type OperatorParam<T> = Partial<Omit<T, 'Key' | 'TableName'>>

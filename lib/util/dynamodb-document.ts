@@ -1,15 +1,14 @@
 import {DynamoDB} from 'aws-sdk'
-import * as R from 'ramda'
+import {DocumentClient} from 'aws-sdk/clients/dynamodb'
 import debug from 'debug'
+import * as R from 'ramda'
+import {TScalar} from '../engine'
 
 const logger = debug(['dynalee', __filename].join(':'))
+const getDdbClient = R.always(new DynamoDB.DocumentClient())
+const defaultSetTransformer: SetTransformer = R.compose(getDdbClient().createSet, Array.from)
 
-// Item - A map of attributes and their values.
-// Each entry in this map consists of an attribute name and an attribute value.
-// Attribute values must not be null; string and binary type attributes must have lengths greater than zero; and set type attributes must not be empty.
-// Requests that contain empty values will be rejected with a ValidationException exception.
-//If you specify any attributes that are part of an index key, then the data types for those attributes must match those of the schema in the table's attribute definition.
-export const dynamodbDoc = (obj) => {
+export const dynamodbDoc = (obj, ifSet: SetTransformer = defaultSetTransformer) => {
   const omit: string[] = []
   const clone = {...obj}
 
@@ -37,12 +36,16 @@ export const dynamodbDoc = (obj) => {
     } else if (value instanceof Set) {
       if (value.size === 0) {
         omit.push(key)
-      } else {
-        clone[key] = new DynamoDB.DocumentClient().createSet(Array.from(value))
+      } else if (ifSet) {
+        clone[key] = ifSet(value)
       }
     }
   }
 
   return R.omit(omit, clone) as typeof clone
+}
+
+interface SetTransformer {
+  (fx: Set<TScalar>): DocumentClient.DynamoDbSet|TScalar[]
 }
 
