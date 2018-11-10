@@ -29,7 +29,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   }
 
   async batchWrite(params: DocumentClient.BatchWriteItemInput) {
-    return this.ddbClient
+    return await this.ddbClient
       .batchWrite(params)
       .promise()
       .catch(e => logger('error', this.ddbClient['service'].endpoint, e.message))
@@ -42,11 +42,12 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   async createSet(list, options) {
   }
 
-  async delete(hashKey: H, rangeKey?: R, params?: OperatorParam<DocumentClient.DeleteItemInput>) {
-    Object.assign(params, this.createGetParam(hashKey, rangeKey))
-    logger('delete', params)
+  async delete(keys, params?: OperatorParam<DocumentClient.DeleteItemInput>) {
     return this.ddbClient
-      .delete(params as DocumentClient.DeleteItemInput)
+      .delete({
+        ...this.getTableParam({Key: keys}),
+        ...params
+      })
       .promise()
       .catch(e => logger('error', this.ddbClient['service'].endpoint, e.message))
   }

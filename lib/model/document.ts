@@ -77,7 +77,15 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
    */
   async delete(params?: DocumentClient.DeleteItemInput) {
     logger('delete', params)
-    return this.engine.delete(this.getHashKey(), this.getRangeKey(), params)
+    const keys: DocumentClient.DeleteItemInput['Key'] = {
+      [this.hashKeyName]: this.getHashKey()
+    }
+    if (this.rangeKeyName) {
+      keys.push({
+        [this.rangeKeyName]: this.getRangeKey()
+      })
+    }
+    return this.engine.delete(keys, params)
   }
 
   /**

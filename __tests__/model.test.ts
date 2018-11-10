@@ -91,5 +91,14 @@ async function chain() {
     await new Promise(r => setTimeout(r, 2000))
   }
 }
+async function streamTest() {
+  const Stream2 = define('Stream2', 'hid')
+  const result = await Stream2
+    .of({
+      hid: 'dynalee test'
+    })
+    .put()
+  console.log(result)
+}
 
-query()
+streamTest()

@@ -1,21 +1,19 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
-import {concat, cond, is, mergeWith, Omit, T, tap} from 'ramda'
+import debug from 'debug'
+import {Omit} from 'ramda'
 import {getDdbClient} from '../config/aws'
 import {ETimestampType} from '../constant'
 import {Engine, TScalar} from '../engine'
-import {mergeOp, replacementValueGenerator} from '../engine/expression/helper'
-import debug from 'debug'
 import {Document} from './document'
 import {Query} from './method/query'
 import {Scan} from './method/scan'
 
 const logger = debug(['dynalee', __filename].join(':'))
-const withLog = tap(logger)
 
 /**
  * @todo Is schema need to align with options(like timestamp attributes)
  */
-export class Model<S, H extends TScalar, R extends TScalar = never> {
+export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +readonly [k in keyof S]: number }> {
   /**
    * HashKey only
    * @param {string} tableName
@@ -79,12 +77,8 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
     }
     try {
       const response = await this.engine.batchWrite(params)
-      logger('response', response.$response.data)
+      logger('batchPut response.$response.data', response.$response.data)
       return response.$response.data
-//      if (response.Count === 0) {
-//        return []
-//      }
-//      return response.Items!.map(item => this.createDocument(item))
     } catch (e) {
       throw new Error(e.message)
     }
@@ -103,67 +97,10 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
     }
     try {
       const response = await this.engine.batchWrite(params)
-      logger('response', response.$response.data)
+      logger('batchDelete response.$response.data', response.$response.data)
       return response.$response.data
-//      if (response.Count === 0) {
-//        return []
-//      }
-//      return response.Items!.map(item => this.createDocument(item))
     } catch (e) {
       throw new Error(e.message)
-    }
-  }
-
-  /**
-   * @todo apply immer
-   */
-  private createRangeQueryParam(rangeKey: TScalar, params) {
-    logger('createRangeQueryParam()', rangeKey)
-    return withLog({
-      ...params,
-      ExpressionAttributeNames : {
-        ...params.ExpressionAttributeNames,
-        '#RGK': this.rangeKeyName,
-      },
-      ExpressionAttributeValues: {
-        ...params.ExpressionAttributeValues,
-        ':RGK': rangeKey
-      }
-    })
-  }
-
-  private createRangeQuery(rangeKey: TScalar, params: OperatorParam<DocumentClient.QueryInput>) {
-    return {
-      pipe: async (...operators: any[]): Promise<Document<S, H, R>[]> => {
-        // @todo move to outside of Model
-        if (operators.length === 0) {
-          throw new Error('missing operations')
-        }
-        logger('createRangeQuery() params', params)
-        params = this.createRangeQueryParam(rangeKey, mergeWith(
-          cond([
-            [is(String), concat(' AND ')],
-            [T, Object.assign],
-          ]),
-          mergeOp(replacementValueGenerator(), operators),
-          params
-        ))
-        logger('createRangeQuery() params', params)
-        return this.doQuery(params)
-      }
-    }
-  }
-
-  private createHashQueryParams(hashKey, params?) {
-    return {
-      ...params,
-      KeyConditionExpression   : `#HSK = :HSK`,
-      ExpressionAttributeNames : {
-        '#HSK': this.hashKeyName,
-      },
-      ExpressionAttributeValues: {
-        ':HSK': hashKey
-      }
     }
   }
 
@@ -174,11 +111,11 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
   private async doQuery(params) {
     try {
       const response = await this.engine.query(params)
-      logger('response', response)
-      if (response.Count === 0) {
-        return []
-      }
-      return response.Items!.map(item => this.createDocument(item))
+      logger('doQuery response', response)
+      response.Items = response.Count === 0
+        ? []
+        : response.Items!.map(item => this.createDocument(item))
+      return response
     } catch (e) {
       logger('doQuery', e, this)
       throw new Error(e.message)
@@ -188,14 +125,11 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
   private async doScan(params) {
     try {
       const response = await this.engine.scan(params)
-      logger('response', response)
-      if (response.Count === 0) {
-        return []
-      }
-      return {
-        ...response,
-        Items: response.Items.map(item => this.createDocument(item))
-      }
+      logger('doScan response', response)
+      response.Items = response.Count === 0
+        ? []
+        : response.Items!.map(item => this.createDocument(item))
+      return response
     } catch (e) {
       throw new Error(e.message)
     }
@@ -209,7 +143,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
       if (!response.Item) {
         throw new Error(`Item not found, hash(${hashKey}, range(${rangeKey})`)
       }
-      logger('response', response)
+      logger('get response', response)
       return this.createDocument(response.Item)
     } catch (e) {
       logger({[this.hashKeyName]: hashKey, [this.rangeKeyName!]: rangeKey})
@@ -235,13 +169,12 @@ export class Model<S, H extends TScalar, R extends TScalar = never> {
     console.warn('@todo implment createSet()')
   }
 
-  async delete(hashKey: H, rangeKey: R, params: DocumentClient.DeleteItemInput)
-  async delete(hashKey: H, rangeKey: R)
-  async delete(hashKey: H, params: DocumentClient.DeleteItemInput)
-  async delete(hashKey: H)
-  async delete(hashKey, rangeKey?, params?) {
+  async delete(keys: KEYS, params: DocumentClient.DeleteItemInput)
+  async delete(keys: KEYS)
+  async delete(keys: KEYS, params?) {
     try {
-      const response = await this.engine.delete(hashKey, rangeKey, params)
+      logger('delete params', keys, params)
+      const response = await this.engine.delete(keys, params)
       logger('delete response', response)
       return this
     } catch (e) {
