@@ -1,7 +1,7 @@
 import debug from 'debug'
 import {Query} from './query'
 
-const logger = debug(['dynalee', __filename].join(':'))
+const log = debug(['dynalee', __filename].join(':'))
 
 describe('query', function () {
   describe('HashQuery', () => {
@@ -11,7 +11,7 @@ describe('query', function () {
         ExpressionAttributeNames : {'#HSK': 'hsk'},
         ExpressionAttributeValues: {':HSK': 'hello'}
       }
-      const query = new Query<Schema, Schema['hsk']>(logger, 'hsk', 'hello')
+      const query = new Query<Schema, Schema['hsk']>(log, 'hsk', 'hello')
       const actual = query.out()
       expect(actual).toEqual(expected)
     })
@@ -30,7 +30,7 @@ describe('query', function () {
           ':b'  : 1,
         }
       }
-      const query = new Query<Schema, Schema['hsk']>(logger, 'hsk', 'hello')
+      const query = new Query<Schema, Schema['hsk']>(log, 'hsk', 'hello')
       const actual = query
         .filter(operator => {
           operator.eq('hsk', 'a2')
@@ -48,7 +48,7 @@ describe('query', function () {
         ExpressionAttributeValues: {':HSK': 'hello'},
         ScanIndexForward         : false
       }
-      const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(logger, 'hsk', 'hello')
+      const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(log, 'hsk', 'hello')
       const actual = await query
         .desc()
         .out()
@@ -62,7 +62,7 @@ describe('query', function () {
         ExpressionAttributeValues: {':HSK': 'hello'},
         ConsistentRead           : true
       }
-      const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(logger, 'hsk', 'hello')
+      const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(log, 'hsk', 'hello')
       const actual = await query
         .consistent()
         .out()
@@ -75,7 +75,7 @@ describe('query', function () {
         ExpressionAttributeNames : {'#HSK': 'hsk'},
         ExpressionAttributeValues: {':HSK': 'hello'},
       }
-      const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(logger, 'hsk', 'hello')
+      const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(log, 'hsk', 'hello')
       const actual = await query
         .out()
       expect(actual).toEqual(expected)
@@ -89,7 +89,7 @@ describe('query', function () {
             ExpressionAttributeNames : {'#HSK': 'hsk', '#RGK': 'rgk'},
             ExpressionAttributeValues: {':HSK': 'hello', ':RGK': 5945},
           }
-          const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(logger, 'hsk', 'hello')
+          const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(log, 'hsk', 'hello')
           const actual = await query
             .range('rgk').eq(5945)
             .out()
@@ -102,7 +102,7 @@ describe('query', function () {
             ExpressionAttributeNames : {'#HSK': 'hsk', '#RGK': 'rgk'},
             ExpressionAttributeValues: {':HSK': 'hello', ':RGK': 5945},
           }
-          const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(logger, 'hsk', 'hello')
+          const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(log, 'hsk', 'hello')
           const actual = await query
             .range('rgk').lt(5945)
             .out()
@@ -115,7 +115,7 @@ describe('query', function () {
             ExpressionAttributeNames : {'#HSK': 'hsk', '#RGK': 'rgk'},
             ExpressionAttributeValues: {':HSK': 'hello', ':RGK': 5945},
           }
-          const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(logger, 'hsk', 'hello')
+          const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(log, 'hsk', 'hello')
           const actual = await query
             .range('rgk').le(5945)
             .out()
@@ -128,7 +128,7 @@ describe('query', function () {
             ExpressionAttributeNames : {'#HSK': 'hsk', '#RGK': 'rgk'},
             ExpressionAttributeValues: {':HSK': 'hello', ':RGK': 5945},
           }
-          const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(logger, 'hsk', 'hello')
+          const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(log, 'hsk', 'hello')
           const actual = await query
             .range('rgk').gt(5945)
             .out()
@@ -141,7 +141,7 @@ describe('query', function () {
             ExpressionAttributeNames : {'#HSK': 'hsk', '#RGK': 'rgk'},
             ExpressionAttributeValues: {':HSK': 'hello', ':RGK': 5945},
           }
-          const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(logger, 'hsk', 'hello')
+          const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(log, 'hsk', 'hello')
           const actual = await query
             .range('rgk').ge(5945)
             .out()
@@ -154,7 +154,7 @@ describe('query', function () {
             ExpressionAttributeNames : {'#HSK': 'hsk', '#RGK': 'rgk'},
             ExpressionAttributeValues: {':HSK': 'hello', ':a': 5944, ':b': 5946},
           }
-          const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(logger, 'hsk', 'hello')
+          const query = new Query<Schema, Schema['hsk'], Schema['rgk']>(log, 'hsk', 'hello')
           const actual = await query
             .range('rgk').between(5944, 5946)
             .out()
@@ -167,7 +167,7 @@ describe('query', function () {
             ExpressionAttributeNames : {'#HSK': 'hsk', '#RGK': 'rgk'},
             ExpressionAttributeValues: {':HSK': 'hello', ':RGK': '123'},
           }
-          const query = new Query<StringSchema, StringSchema['hsk'], StringSchema['rgk']>(logger, 'hsk', 'hello')
+          const query = new Query<StringSchema, StringSchema['hsk'], StringSchema['rgk']>(log, 'hsk', 'hello')
           const actual = await query
             .range('rgk')
             .beginsWith('123')

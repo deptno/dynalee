@@ -2,7 +2,7 @@ import {TScalar} from '../engine'
 import debug from 'debug'
 import {Model, ModelOptions} from './model'
 
-const logger = debug(['dynalee', __filename].join(':'))
+const log = debug(['dynalee', __filename].join(':'))
 
 /**
  * @todo need to index

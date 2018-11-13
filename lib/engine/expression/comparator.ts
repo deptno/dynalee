@@ -3,7 +3,7 @@ import debug from 'debug'
 import {TScalar} from '../engine'
 import {ComparisonOperator, Generator, TExpression} from './type'
 
-const logger = debug(['dynalee', __filename].join(':'))
+const log = debug(['dynalee', __filename].join(':'))
 /**
  * https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html
  */

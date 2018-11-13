@@ -8,7 +8,7 @@ import {TConnector} from '../../../engine/expression/type'
 import {FilterOperator} from '../../../engine/operator/filter'
 import {mergeByTypes} from '../../../util'
 
-const logger = debug(['dynalee', __filename].join(':'))
+const log = debug(['dynalee', __filename].join(':'))
 
 type ScanInput = Omit<DocumentClient.ScanInput, 'TableName' | 'Key'>
 type QueryInput = Omit<DocumentClient.QueryInput, 'TableName' | 'Key'>
@@ -74,7 +74,7 @@ export abstract class Read<S, H extends TScalar, I extends Input> {
   }
 
   run(): Promise<Omit<Output, 'Items'> & { Items: Document<S, H>[] }> {
-    logger('run', this.params)
+    log('run', this.params)
     return this.runner(this.params)
   }
 }

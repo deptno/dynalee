@@ -6,7 +6,7 @@ import {$between, $eq, $ge, $gt, $le, $lt} from '../../engine/expression/compara
 import {$beginsWith} from '../../engine/expression/function'
 import {Read, Runner} from './internal/read'
 
-const logger = debug(['dynalee', __filename].join(':'))
+const log = debug(['dynalee', __filename].join(':'))
 
 export class Query<S, H extends TScalar, RKey extends TScalar = never> extends Read<S, H, DxQueryInput> {
   constructor(runner: Runner<S, H>, protected hashKeyName, protected hashKey: H) {

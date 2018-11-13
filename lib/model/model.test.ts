@@ -1,7 +1,7 @@
 import debug from 'debug'
 import {Model} from './model'
 
-const logger = debug(['dynalee', __filename].join(':'))
+const log = debug(['dynalee', __filename].join(':'))
 
 interface SchemaEx {
   readonly detail: string

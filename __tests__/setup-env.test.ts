@@ -3,9 +3,7 @@ import {DynamoDB} from 'aws-sdk'
 import {define} from '../dist'
 import debug from 'debug'
 
-const logger = debug(['dynalee', __filename].join(':'))
-
-
+const log = debug(['dynalee', __filename].join(':'))
 const options = {
   region: 'dynamon',
   endpoint: 'http://localhost:8000'
@@ -42,7 +40,7 @@ const Pet = define<Account, Key[typeof HASH_KEY], Key[typeof RANGE_KEY]>(
 !async function () {
   try {
     const list = await ddb.listTables().promise()
-    logger(list)
+    log(list)
     if (!list.TableNames || list.TableNames.length == 0) {
       await createTable()
     }
@@ -50,7 +48,7 @@ const Pet = define<Account, Key[typeof HASH_KEY], Key[typeof RANGE_KEY]>(
     const users = createUserData(4).map(data => User.of(data))
     const results = await Promise.all(users.map(user => user.put()))
 
-    logger(results)
+    log(results)
   } catch (e) {
     console.log(e)
     console.error(e)
@@ -88,7 +86,7 @@ async function createTable() {
       TableName            : TABLE_NAME,
     })
     .promise()
-  logger(table)
+  log(table)
   return table
 }
 

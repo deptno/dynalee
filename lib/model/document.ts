@@ -22,7 +22,7 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
     data: S,
     private readonly options?: ModelOptions,
   ) {
-    logger('new Document()', tableName, hashKeyName, rangeKeyName, data)
+    log('new Document()', tableName, hashKeyName, rangeKeyName, data)
     this.current = Object.freeze(dynamodbDoc(data))
   }
 
@@ -31,7 +31,7 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
    * @todo immer already support record
    */
   set(setter: (draft: Draft<S>) => void) {
-    logger('set', this.current)
+    log('set', this.current)
     this.current = produce(this.current, setter, (redos, undos) => {
       this.redo.push(...redos)
       this.undo.push(...undos)
@@ -76,7 +76,7 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
    * @todo check, is created from DB
    */
   async delete(params?: DocumentClient.DeleteItemInput) {
-    logger('delete', params)
+    log('delete', params)
     const keys: DocumentClient.DeleteItemInput['Key'] = {
       [this.hashKeyName]: this.getHashKey()
     }
@@ -105,12 +105,12 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
       ...params,
       Item: applyItemOptions(this.head(), this.options)
     }
-    logger('put', params)
+    log('put', params)
     try {
       const result = await this.engine.put(this.getHashKey(), this.getRangeKey(), params)
       return result.$response.data
     } catch(e) {
-      logger('error put', e)
+      log('error put', e)
     }
   }
 
@@ -124,13 +124,13 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
       Item: this.head()
     }
 
-    logger('update', params)
-    logger('update', applyPatches(
+    log('update', params)
+    log('update', applyPatches(
       this.keys(), this.redo,
     ))
     return this.engine.update(this.getHashKey(), this.getRangeKey(), params)
   }
 }
 
-const logger = debug(['dynalee', __filename].join(':'))
+const log = debug(['dynalee', __filename].join(':'))
 

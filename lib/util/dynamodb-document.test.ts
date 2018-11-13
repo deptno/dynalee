@@ -1,7 +1,7 @@
 import {define} from '../model'
 import debug from 'debug'
 
-const logger = debug(['dynalee', __filename].join(':'))
+const log = debug(['dynalee', __filename].join(':'))
 const params = [
   {hash: 'hashkey0', validValue: 0},
   {hash: 'hashkey1', validString: '1'},
@@ -27,21 +27,21 @@ const Model = define('Test', 'hash', 'range', {
 //      }
 //    }
 //  }))
-//  logger(result)
+//  log(result)
   await Promise.all(
     params.map(async i => {
       const item = Model.of(i)
       try {
         await item.put()
       } catch(e) {
-        logger('error', i)
-        logger(e.message.slice(0, 100))
+        log('error', i)
+        log(e.message.slice(0, 100))
       }
     })
   )
 
   console.log('start')
-  logger(
+  log(
     await Model
       .scan()
       .run()

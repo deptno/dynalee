@@ -8,7 +8,7 @@ import {Document} from './document'
 import {Query} from './method/query'
 import {Scan} from './method/scan'
 
-const logger = debug(['dynalee', __filename].join(':'))
+const log = debug(['dynalee', __filename].join(':'))
 
 /**
  * @todo Is schema need to align with options(like timestamp attributes)
@@ -47,7 +47,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
       ? rangeKeyName
       : (options || {})
     const ddbClient = getDdbClient(this.options)
-    logger('options', this.options)
+    log('options', this.options)
     this.engine = new Engine(ddbClient, this.tableName, this.hashKeyName, this.rangeKeyName)
   }
 
@@ -77,7 +77,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
     }
     try {
       const response = await this.engine.batchWrite(params)
-      logger('batchPut response.$response.data', response.$response.data)
+      log('batchPut response', response)
       return response.$response.data
     } catch (e) {
       throw new Error(e.message)
@@ -97,7 +97,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
     }
     try {
       const response = await this.engine.batchWrite(params)
-      logger('batchDelete response.$response.data', response.$response.data)
+      log('batchDelete response.$response.data', response.$response.data)
       return response.$response.data
     } catch (e) {
       throw new Error(e.message)
@@ -111,13 +111,13 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
   private async doQuery(params) {
     try {
       const response = await this.engine.query(params)
-      logger('doQuery response', response)
+      log('doQuery response', response)
       response.Items = response.Count === 0
         ? []
         : response.Items!.map(item => this.createDocument(item))
       return response
     } catch (e) {
-      logger('doQuery', e, this)
+      log('doQuery', e, this)
       throw new Error(e.message)
     }
   }
@@ -125,7 +125,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
   private async doScan(params) {
     try {
       const response = await this.engine.scan(params)
-      logger('doScan response', response)
+      log('doScan response', response)
       response.Items = response.Count === 0
         ? []
         : response.Items!.map(item => this.createDocument(item))
@@ -143,10 +143,10 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
       if (!response.Item) {
         throw new Error(`Item not found, hash(${hashKey}, range(${rangeKey})`)
       }
-      logger('get response', response)
+      log('get response', response)
       return this.createDocument(response.Item)
     } catch (e) {
-      logger({[this.hashKeyName]: hashKey, [this.rangeKeyName!]: rangeKey})
+      log({[this.hashKeyName]: hashKey, [this.rangeKeyName!]: rangeKey})
       throw new Error(e.message)
     }
   }
@@ -173,12 +173,12 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
   async delete(keys: KEYS)
   async delete(keys: KEYS, params?) {
     try {
-      logger('delete params', keys, params)
+      log('delete params', keys, params)
       const response = await this.engine.delete(keys, params)
-      logger('delete response', response)
+      log('delete response', response)
       return this
     } catch (e) {
-      logger(e)
+      log(e)
     }
   }
 }

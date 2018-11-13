@@ -4,7 +4,7 @@ import debug from 'debug'
 import * as R from 'ramda'
 import {TScalar} from '../engine'
 
-const logger = debug(['dynalee', __filename].join(':'))
+const log = debug(['dynalee', __filename].join(':'))
 const getDdbClient = R.always(new DynamoDB.DocumentClient())
 const defaultSetTransformer: SetTransformer = R.compose(getDdbClient().createSet, Array.from)
 

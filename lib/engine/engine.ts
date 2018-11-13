@@ -2,7 +2,7 @@ import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import {compose, Omit} from 'ramda'
 import debug from 'debug'
 
-const logger = debug(['dynalee', __filename].join(':'))
+const log = debug(['dynalee', __filename].join(':'))
 
 export class Engine<H extends TScalar, R extends TScalar = never> {
   constructor(
@@ -25,14 +25,14 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
     return this.ddbClient
       .batchGet(params)
       .promise()
-      .catch(e => logger('error', this.ddbClient['service'].endpoint, e.message))
+      .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
   }
 
   async batchWrite(params: DocumentClient.BatchWriteItemInput) {
     return await this.ddbClient
       .batchWrite(params)
       .promise()
-      .catch(e => logger('error', this.ddbClient['service'].endpoint, e.message))
+      .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
   }
 
 
@@ -49,23 +49,23 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
         ...params
       })
       .promise()
-      .catch(e => logger('error', this.ddbClient['service'].endpoint, e.message))
+      .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
   }
 
   /**
    * @todo throw Error, if (this.rangeKeyName && !rangeKey)
    */
   async get(hashKey: H, rangeKey?: R, params?) {
-    logger('get args', hashKey, rangeKey, params)
+    log('get args', hashKey, rangeKey, params)
     const param = {
       ...params,
       ...this.createGetParam(hashKey, rangeKey),
     }
-    logger('get param', param)
+    log('get param', param)
     return this.ddbClient
       .get(param)
       .promise()
-      .catch(e => logger('error', this.ddbClient['service'].endpoint, e.message))
+      .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
   }
 
   /**
@@ -80,11 +80,11 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       ...params,
       ...this.getTableParam(),
     }
-    logger('put params', params)
+    log('put params', params)
     return this.ddbClient
       .put(params)
       .promise()
-      .catch(e => logger('error', this.ddbClient['service'].endpoint, e.message))
+      .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
   }
 
   async query(params) {
@@ -92,28 +92,28 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       ...params,
       ...this.getTableParam(),
     }
-    logger('query params', JSON.stringify(params, null, 2))
+    log('query params', JSON.stringify(params, null, 2))
     return this.ddbClient
       .query(params)
       .promise()
-      .catch(e => logger('error', this.ddbClient['service'].endpoint, e.message))
+      .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
   }
 
   async scan(params?) {
-    logger('@todo return Scan instead')
+    log('@todo return Scan instead')
     params = {
       ...params,
       ...this.getTableParam(),
     }
-    logger('doscan', params)
+    log('doscan', params)
     return this.ddbClient
       .scan(params)
       .promise()
-      .catch(e => logger('error', this.ddbClient['service'].endpoint, e.message))
+      .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
   }
 
   async update(hashKey: H, rangeKey?: R, params?) {
-    logger('@todo update')
+    log('@todo update')
   }
 
   /**
@@ -136,7 +136,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   private getKeyParam = (hashKey: H, rangeKey?: R) => {
     if (!this.rangeKeyName) {
       if (rangeKey) {
-        logger(`ignore. range key(${rangeKey}), rangeKey is not defined`)
+        log(`ignore. range key(${rangeKey}), rangeKey is not defined`)
       }
       return {
         Key: {
