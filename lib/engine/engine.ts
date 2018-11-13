@@ -96,7 +96,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
     return this.ddbClient
       .query(params)
       .promise()
-      .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
+      .catch(e => log('error', this.ddbClient['service'].endpoint, e))
   }
 
   async scan(params?) {

@@ -112,6 +112,9 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
     try {
       const response = await this.engine.query(params)
       log('doQuery response', response)
+      if (!response) {
+        return
+      }
       response.Items = response.Count === 0
         ? []
         : response.Items!.map(item => this.createDocument(item))
@@ -126,6 +129,9 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
     try {
       const response = await this.engine.scan(params)
       log('doScan response', response)
+      if (!response) {
+        return
+      }
       response.Items = response.Count === 0
         ? []
         : response.Items!.map(item => this.createDocument(item))

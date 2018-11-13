@@ -3,7 +3,6 @@ import debug from 'debug'
 
 const log = debug(['dynalee', __filename].join(':'))
 const regexpRegion = /\S+-\S+-.{1}/
-
 const cache = new Map()
 
 export const getDdbClient = (options = {} as DynamoDB.Types.ClientConfiguration) => {
