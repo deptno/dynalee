@@ -1,6 +1,6 @@
 import {mergeByTypes} from '../../util'
 import {replacementKeyGenerator, replacementValueGenerator} from '../expression/helper'
-import {FilterOperator} from './filter'
+import {FilterOperator} from './operator'
 
 interface S {
   readonly hashkey: number

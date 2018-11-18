@@ -1,4 +1,3 @@
-import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import debug from 'debug'
 import R, {Omit} from 'ramda'
 import {TScalar} from '../../engine'
@@ -8,7 +7,7 @@ import {Read, Runner} from './internal/read'
 
 const log = debug(['dynalee', __filename].join(':'))
 
-export class Query<S, H extends TScalar, RKey extends TScalar = never> extends Read<S, H, DxQueryInput> {
+export class Query<S, H extends TScalar, RKey extends TScalar = never> extends Read<S, H> {
   constructor(runner: Runner<S, H>, protected hashKeyName, protected hashKey: H) {
     super(runner)
     this.params = {
@@ -73,4 +72,3 @@ interface RangeKeyConditionOperator<S, H extends TScalar, R extends TScalar> {
   beginsWith: RangeKeyCondition<S, H, R>
 }
 type RangeKeyNumberConditionOperator<S, H extends TScalar, R extends TScalar> = Omit<RangeKeyConditionOperator<S, H, R>, 'beginsWith'>
-type DxQueryInput = Omit<DocumentClient.QueryInput, 'TableName' | 'Key'>

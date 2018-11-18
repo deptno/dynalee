@@ -13,7 +13,8 @@ const createComparator = curry((
   genKey: Generator,
   genValue: Generator,
   keyName: string,
-  a: TScalar) => {
+  a: TScalar
+) => {
   const key = genKey()
   const value = genValue()
   return {

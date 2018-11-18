@@ -3,7 +3,7 @@ import {$between, $eq, $ge, $gt, $in, $le, $lt, $ne} from '../expression/compara
 import {$attributeExists, $attributeNotExists, $attributeType, $beginsWith, $contains} from '../expression/function'
 import {DDBDataType, TExpression} from '../expression/type'
 
-const filter: TExpression = 'FilterExpression'
+const operator: TExpression = 'FilterExpression'
 export class FilterOperator<S, K extends string = keyof S, T = TScalar> implements Operator<K, T> {
   private constructor(private genKey, private genValue, private done) {
   }
@@ -13,67 +13,67 @@ export class FilterOperator<S, K extends string = keyof S, T = TScalar> implemen
   }
 
   eq(path, value) {
-    this.done($eq(filter, this.genKey, this.genValue, path, value))
+    this.done($eq(operator, this.genKey, this.genValue, path, value))
     return this
   }
 
   ne(path, value) {
-    this.done($ne(filter, this.genKey, this.genValue, path, value))
+    this.done($ne(operator, this.genKey, this.genValue, path, value))
     return this
   }
 
   lt(path, value) {
-    this.done($lt(filter, this.genKey, this.genValue, path, value))
+    this.done($lt(operator, this.genKey, this.genValue, path, value))
     return this
   }
 
   le(path, value) {
-    this.done($le(filter, this.genKey, this.genValue, path, value))
+    this.done($le(operator, this.genKey, this.genValue, path, value))
     return this
   }
 
   gt(path, value) {
-    this.done($gt(filter, this.genKey, this.genValue, path, value))
+    this.done($gt(operator, this.genKey, this.genValue, path, value))
     return this
   }
 
   ge(path, value) {
-    this.done($ge(filter, this.genKey, this.genValue, path, value))
+    this.done($ge(operator, this.genKey, this.genValue, path, value))
     return this
   }
 
   in(path, ...values) {
-    this.done($in(filter, this.genKey, this.genValue, path, ...values))
+    this.done($in(operator, this.genKey, this.genValue, path, ...values))
     return this
   }
 
   between(path, a, b) {
-    this.done($between(filter, this.genKey, this.genValue, path, a, b))
+    this.done($between(operator, this.genKey, this.genValue, path, a, b))
     return this
   }
 
   attributeExists(path: string) {
-    this.done($attributeExists(filter, this.genKey, path))
+    this.done($attributeExists(operator, this.genKey, path))
     return this
   }
 
   attributeNotExists(path: string) {
-    this.done($attributeNotExists(filter, this.genKey, path))
+    this.done($attributeNotExists(operator, this.genKey, path))
     return this
   }
 
   attributeType(path: string, type: DDBDataType) {
-    this.done($attributeType(filter, this.genKey, this.genValue, path, type))
+    this.done($attributeType(operator, this.genKey, this.genValue, path, type))
     return this
   }
 
   beginsWith(path: string, sub: string) {
-    this.done($beginsWith(filter, this.genKey, this.genValue, path, sub))
+    this.done($beginsWith(operator, this.genKey, this.genValue, path, sub))
     return this
   }
 
   contains(path: string, sub: string) {
-    this.done($contains(filter, this.genKey, this.genValue, path, sub))
+    this.done($contains(operator, this.genKey, this.genValue, path, sub))
     return this
   }
 

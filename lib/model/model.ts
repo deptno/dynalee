@@ -1,12 +1,12 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import debug from 'debug'
-import {Omit} from 'ramda'
 import {getDdbClient} from '../config/aws'
 import {ETimestampType} from '../constant'
 import {Engine, TScalar} from '../engine'
 import {Document} from './document'
 import {Query} from './method/query'
 import {Scan} from './method/scan'
+import {Update} from './method/update'
 
 const log = debug(['dynalee', __filename].join(':'))
 
@@ -65,6 +65,24 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
     console.warn('@todo implement batchGet')
   }
 
+  async batchWrite(updateItems: S[], deleteKeys: KEYS[]) {
+    const params = {
+      RequestItems: {
+        [this.tableName]: [
+          ...updateItems.map(item => ({
+            PutRequest: {
+              Item: item
+            }
+          })),
+          ...deleteKeys.map(key => ({
+            DeleteRequest: {
+              Key: key
+            }
+          }))
+        ]
+      }
+    }
+  }
   async batchPut(items: S[]) {
     const params = {
       RequestItems: {
@@ -141,6 +159,22 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
     }
   }
 
+  private async doUpdate(params) {
+    try {
+      const response = await this.engine.update(params)
+      log('doUpdate response', response)
+      if (!response) {
+        return
+      }
+      response.Items = response.Count === 0
+        ? []
+        : response.Items!.map(item => this.createDocument(item))
+      return response
+    } catch (e) {
+      throw new Error(e.message)
+    }
+  }
+
   async get(hashKey: H, rangeKey?: R, params?): Promise<Document<S, H, R>>
   async get(hashKey: H, params?): Promise<Document<S, H, R>>
   async get(hashKey, rangeKey?, params?) {
@@ -155,6 +189,10 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
       log({[this.hashKeyName]: hashKey, [this.rangeKeyName!]: rangeKey})
       throw new Error(e.message)
     }
+  }
+
+  update() {
+    return new Update<S, H>(this.doQuery.bind(this))
   }
 
   query(hashKey: H) {
@@ -198,21 +236,3 @@ export interface ModelOptions {
   region?: string,
   endpoint?: string
 }
-interface ModelStatic {
-  new<S, H extends TScalar, R extends TScalar = never>(
-    tableName: string, hashKeyName: H, rangeKeyName?: R, options?: ModelOptions,
-  ): Model<S, H, R>
-
-  new<S, H extends TScalar, R extends TScalar>(
-    tableName: string, hashKeyName: H, rangeKeyName: R
-  ): Model<S, H, R>
-
-  new<S, H extends TScalar>(
-    tableName: string, hashKeyName: H, options?: ModelOptions
-  ): Model<S, H>
-
-  new<S, H extends TScalar, R extends TScalar>(
-    tableName: string, hashKeyName: H, rangeKeyName: R, options?: ModelOptions
-  ): Model<S, H, R>
-}
-type OperatorParam<T> = Partial<Omit<T, 'Key' | 'TableName'>>

@@ -4,6 +4,7 @@ import {Omit} from 'ramda'
 import {TScalar} from '../../../engine'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../../engine/expression/helper'
 import {FilterOperator} from '../../../engine/operator/operator'
+import {Updater} from '../../../engine/operator/updater'
 import {Document} from '../../document'
 import {Printable} from './printable'
 
@@ -15,38 +16,34 @@ type Input = ScanInput|QueryInput
 type Output = Omit<DocumentClient.ScanOutput | DocumentClient.QueryOutput, 'TableName'>
 export type Runner<S, H extends TScalar> = (params: Input) => Promise<Omit<Output, 'Items'> & { Items: Document<S, H>[] }>
 
-export abstract class Read<S, H extends TScalar> extends Printable<S ,H, Input> {
+export abstract class Write<S, H extends TScalar, I extends Input> extends Printable<S, H, I> {
   protected genKey = replacementKeyGenerator()
   protected genValue = replacementValueGenerator()
   protected params = {} as Input
 
-  project(expression: DocumentClient.ProjectionExpression) {
-    console.warn('@todo implement project, any idea?')
-    return this.merge({
-      ProjectionExpression: expression
-    })
-  }
-
-  filter(setter: (and: FilterOperator<S>, or: FilterOperator<S>) => void) {
+  update(setter: (and: Updater<S>) => void) {
     setter(
-      FilterOperator.of(this.genKey, this.genValue, (params) => this.merge(params)),
-      FilterOperator.of(this.genKey, this.genValue, (params) => this.merge(params, 'OR')),
+      Updater.of(this.genKey, this.genValue, (params) => this.merge(params)),
     )
     return this
   }
 
-  limit(limit: number) {
-    return this.merge({Limit: limit})
+  condition(setter: (and: FilterOperator<S>, or: FilterOperator<S>, not: FilterOperator<S>) => void) {
+    setter(
+      FilterOperator.of(this.genKey, this.genValue, (params) => this.merge(params)),
+      FilterOperator.of(this.genKey, this.genValue, (params) => this.merge(params, 'OR')),
+      FilterOperator.of(this.genKey, this.genValue, (params) => this.merge(params, 'NOT')),
+    )
+    return this
   }
 
-  consistent() {
-    return this.merge({ConsistentRead: true})
+  returnValue() {
+
   }
 
-  startAt(lastEvaluatedKey: Partial<S>) {
-    // @todo LastEvaluatedKey
-    return this.merge({
-      ExclusiveStartKey: lastEvaluatedKey
-    })
-  }
+  UpdateExpression
+  ConditionExpression
+  ExpressionAttributeNames
+  ExpressionAttributeValues
+  ReturnValue
 }

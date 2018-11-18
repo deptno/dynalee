@@ -113,7 +113,16 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   }
 
   async update(hashKey: H, rangeKey?: R, params?) {
-    log('@todo update')
+    log('@todo update', hashKey, rangeKey, params)
+    const param = {
+      ...params,
+      ...this.createGetParam(hashKey, rangeKey),
+    }
+    log('get param', param)
+    return this.ddbClient
+      .update(param)
+      .promise()
+      .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
   }
 
   /**
