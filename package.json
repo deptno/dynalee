@@ -21,6 +21,7 @@
   },
   "engineStrict": true,
   "dependencies": {
+    "dayjs": "^1.7.7",
     "immer": "^1.7.3",
     "number-converter-alphabet": "^1.1.0",
     "ramda": "^0.25.0"

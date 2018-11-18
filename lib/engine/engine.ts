@@ -1,6 +1,8 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import {compose, Omit} from 'ramda'
 import debug from 'debug'
+import {DocumentOptions, ModelOptions} from '../model/option'
+import {applyItemOptions} from '../options/apply-item-options'
 
 const log = debug(['dynalee', __filename].join(':'))
 
@@ -113,12 +115,12 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   }
 
   async update(hashKey: H, rangeKey?: R, params?) {
-    log('@todo update', hashKey, rangeKey, params)
+    log('update()', hashKey, rangeKey, params)
     const param = {
       ...params,
       ...this.createGetParam(hashKey, rangeKey),
     }
-    log('get param', param)
+    log('update() param', param)
     return this.ddbClient
       .update(param)
       .promise()

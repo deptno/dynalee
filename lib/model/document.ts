@@ -1,10 +1,9 @@
 import {DocumentClient} from 'aws-sdk/clients/dynamodb'
 import {applyPatches, Draft, Patch, produce} from 'immer'
 import {Engine, TScalar} from '../engine'
-import {applyItemOptions} from '../options/apply-item-options'
 import debug from 'debug'
 import {dynamodbDoc} from '../util/dynamodb-document'
-import {ModelOptions} from './model'
+import {DocumentOptions} from './option'
 
 export class Document<S, H extends TScalar, R extends TScalar = never> {
   /**
@@ -20,7 +19,7 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
     protected readonly hashKeyName: string,
     protected readonly rangeKeyName: string|undefined,
     data: S,
-    private readonly options?: ModelOptions,
+    protected readonly options: DocumentOptions
   ) {
     log('new Document()', tableName, hashKeyName, rangeKeyName, data)
     this.current = Object.freeze(dynamodbDoc(data))
@@ -103,7 +102,7 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
   async put(params?) {
     params = {
       ...params,
-      Item: applyItemOptions(this.head(), this.options)
+      Item: this.head()
     }
     log('put', params)
     try {

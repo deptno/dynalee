@@ -1,12 +1,12 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import debug from 'debug'
 import {getDdbClient} from '../config/aws'
-import {ETimestampType} from '../constant'
 import {Engine, TScalar} from '../engine'
 import {Document} from './document'
 import {Query} from './method/query'
 import {Scan} from './method/scan'
 import {Update} from './method/update'
+import {defaultModelOptions, ModelOptions} from './option'
 
 const log = debug(['dynalee', __filename].join(':'))
 
@@ -42,20 +42,27 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
    * @param {ModelOptions} options
    */
   constructor(tableName: string, hashKeyName: string, rangeKeyName: string, options: ModelOptions)
-  constructor(protected readonly tableName, protected readonly hashKeyName, protected readonly rangeKeyName?, options?) {
+  constructor(protected readonly tableName, protected readonly hashKeyName, protected readonly rangeKeyName?, options?: ModelOptions) {
     this.options = typeof rangeKeyName === 'object'
       ? rangeKeyName
-      : (options || {})
-    const ddbClient = getDdbClient(this.options)
-    log('options', this.options)
-    this.engine = new Engine(ddbClient, this.tableName, this.hashKeyName, this.rangeKeyName)
+      : options || {}
+    if (!this.options.document) {
+      this.options.document = defaultModelOptions.document
+    }
+    const ddbClient = getDdbClient(this.options.aws)
+    this.engine = new Engine(
+      ddbClient,
+      this.tableName,
+      this.hashKeyName,
+      this.rangeKeyName,
+    )
   }
 
   private readonly options: ModelOptions
   private readonly engine: Engine<H, R>
 
   of(data: S) {
-    return this.createDocument(data, this.options)
+    return this.createDocument(data)
   }
 
   /**
@@ -65,15 +72,33 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
     console.warn('@todo implement batchGet')
   }
 
+  private createPutRequestItem = (item: S) => {
+    if (!this.options.document || !this.options.document.timestamp) {
+      return {
+        PutRequest: {
+          Item: item
+        }
+      }
+    }
+    const {createdAt, updatedAt} = this.options.document.timestamp
+    const change = {}
+    if (createdAt && item[createdAt.attributeName] === undefined) {
+      change[createdAt.attributeName] = createdAt.handler()
+    }
+    if (updatedAt) {
+      change[updatedAt.attributeName] = updatedAt.handler()
+    }
+    return {
+      PutRequest: {
+        Item: Object.assign(change, item)
+      }
+    }
+  }
   async batchWrite(updateItems: S[], deleteKeys: KEYS[]) {
     const params = {
       RequestItems: {
         [this.tableName]: [
-          ...updateItems.map(item => ({
-            PutRequest: {
-              Item: item
-            }
-          })),
+          ...updateItems.map(this.createPutRequestItem),
           ...deleteKeys.map(key => ({
             DeleteRequest: {
               Key: key
@@ -86,11 +111,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
   async batchPut(items: S[]) {
     const params = {
       RequestItems: {
-        [this.tableName]: items.map(item => ({
-          PutRequest: {
-            Item: item
-          }
-        }))
+        [this.tableName]: items.map(this.createPutRequestItem)
       }
     }
     try {
@@ -122,8 +143,8 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
     }
   }
 
-  private createDocument(item, options?: ModelOptions) {
-    return new Document<S, H, R>(this.engine, this.tableName, this.hashKeyName, this.rangeKeyName, item, options)
+  private createDocument(item) {
+    return new Document<S, H, R>(this.engine, this.tableName, this.hashKeyName, this.rangeKeyName, item, this.options.document!)
   }
 
   private async doQuery(params) {
@@ -159,16 +180,9 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
     }
   }
 
-  private async doUpdate(params) {
+  private async doUpdate(hashKey, rangeKey, params) {
     try {
-      const response = await this.engine.update(params)
-      log('doUpdate response', response)
-      if (!response) {
-        return
-      }
-      response.Items = response.Count === 0
-        ? []
-        : response.Items!.map(item => this.createDocument(item))
+      const response = await this.engine.update(hashKey, rangeKey, params)
       return response
     } catch (e) {
       throw new Error(e.message)
@@ -191,8 +205,8 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
     }
   }
 
-  update() {
-    return new Update<S, H>(this.doQuery.bind(this))
+  updateItem(hashKey: H, rangeKey?: R) {
+    return new Update<S, H>(this.doUpdate.bind(this, hashKey, rangeKey))
   }
 
   query(hashKey: H) {
@@ -227,12 +241,3 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
   }
 }
 
-export interface ModelOptions {
-  timestamp?: {
-    type: ETimestampType | (() => TScalar),
-    createdAt?: string // default: createdAt
-    updatedAt?: string // default: updatedAt
-  },
-  region?: string,
-  endpoint?: string
-}

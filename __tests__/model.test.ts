@@ -91,6 +91,7 @@ async function chain() {
     await new Promise(r => setTimeout(r, 2000))
   }
 }
+
 async function streamTest() {
   const Stream2 = define('Stream2', 'hid')
   const result = await Stream2
@@ -101,4 +102,22 @@ async function streamTest() {
   console.log(result)
 }
 
-streamTest()
+async function updateItem() {
+  interface S {
+    readonly _id: string
+    readonly _sort: string
+    added: string
+  }
+  const User = define<S, string>(
+    'local-googit.io',
+    '_id',
+  )
+  const result = User.updateItem('63701340')
+    .update(setter => {
+      setter.set('added', 3)
+    })
+    .run()
+  console.log('result', result)
+}
+
+updateItem()

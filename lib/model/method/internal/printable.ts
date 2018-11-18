@@ -30,6 +30,9 @@ export abstract class Printable<S, H extends TScalar, I extends Input> {
     return this
   }
 
+  protected preRun(): void {
+
+  }
   /**
    * @todo low priority. not implement yet.
    * @deprecated
@@ -44,6 +47,7 @@ export abstract class Printable<S, H extends TScalar, I extends Input> {
   }
 
   run(): Promise<Omit<Output, 'Items'> & { Items: Document<S, H>[] }> {
+    this.preRun()
     log('run', this.params)
     return this.runner(this.params)
   }

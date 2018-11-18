@@ -14,13 +14,13 @@ export const define: Define = (tableName, hashKeyName, rangeKeyName?, options?) 
 interface Define {
   <S, H extends TScalar, R extends TScalar = never>(
     tableName: string,
-    hashKeyName: H,
-    rangeKeyName: R,
+    hashKeyName: keyof S,
+    rangeKeyName: keyof S,
     options?: ModelOptions
   ): Model<S, H, R>
   <S, H extends TScalar>(
     tableName: string,
-    hashKeyName: H,
+    hashKeyName: keyof S,
     options?: ModelOptions
   ): Model<S, H, any>
 }
