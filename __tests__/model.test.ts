@@ -35,6 +35,7 @@ async function put() {
     user.someKey = 'hello'
   })
   const next = await user.put()
+  log(next)
   log('< put')
 }
 
@@ -121,4 +122,4 @@ async function updateItem() {
   console.log('result', result)
 }
 
-updateItem()
+put()

@@ -1,22 +1,43 @@
 import * as AWS from 'aws-sdk'
-AWS.DynamoDB.DocumentClient = class MockDocumentClient {
-  private identity(params) {
+
+function promisify(fx) {
+  return (params) => {
+    console.log('promisify', params)
     return {
-      promise: () => Promise.resolve({
-        params,
-        __mocked: true
-      })
+      async promise() {
+        return fx(params)
+      }
     }
   }
-  batchWrite = this.identity
-  batchGet = this.identity
-  createSet = this.identity
-  delete = this.identity
-  put = this.identity
-  update = this.identity
-  get = this.identity
-  query = this.identity
-  scan = this.identity
+}
+function identity(params) {
+  console.log('ientity', params)
+  return {
+    ...params,
+    __mocked: true
+  }
+}
+
+function $response(params) {
+  console.log('response', params)
+  return {
+    $response: {
+      data: identity(params)
+    }
+  }
+}
+AWS.DynamoDB.DocumentClient = class MockDocumentClient {
+
+
+  batchWrite = promisify(identity)
+  batchGet = promisify(identity)
+  createSet = promisify(identity)
+  delete = promisify(identity)
+  put = promisify($response)
+  update = promisify(identity)
+  get = promisify(identity)
+  query = promisify(identity)
+  scan = promisify(identity)
 } as any
 
 console.log('mocked - AWS.DynamoDB.DocumentClient')
