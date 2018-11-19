@@ -1,6 +1,6 @@
-import '../lib/__mocks__/document-client'
 import define from '../lib'
-import debug from 'debug'
+import '../lib/__mocks__/document-client'
+import {ELogs, getLogger} from '../lib/util/log'
 
 const HASH_KEY = 'id'
 const RANGE_KEY = 'detail'
@@ -19,7 +19,7 @@ interface SchemaEx {
   someKey2?: string
 }
 
-const log = debug(['dynalee', __filename].join(':'))
+const log = getLogger(ELogs.TEST)
 const User = define<SchemaEx, SchemaEx[typeof HASH_KEY], typeof RANGE_KEY>('dynalee', 'id', 'detail', {})
 const aUser = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail')
 const bUser = define<SchemaEx, SchemaEx['id']>('dynalee', 'id', {})

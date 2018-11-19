@@ -1,15 +1,14 @@
 import {DynamoDB} from 'aws-sdk'
 import {DocumentClient} from 'aws-sdk/clients/dynamodb'
-import debug from 'debug'
 import * as R from 'ramda'
 import {TScalar} from '../engine'
+import {ELogs, getLogger} from './log'
 
-const log = debug(['dynalee', __filename].join(':'))
+const log = getLogger(ELogs.UTIL_DYNAMODB_DOCUMENT)
 const getDdbClient = R.always(new DynamoDB.DocumentClient())
 const defaultSetTransformer: SetTransformer = R.compose(getDdbClient().createSet, Array.from)
 
 export const dynamodbDoc = (obj, ifSet: SetTransformer = defaultSetTransformer) => {
-  log('dynamodbDoc')
   const omit: string[] = []
   const clone = {...obj}
 
@@ -46,7 +45,7 @@ export const dynamodbDoc = (obj, ifSet: SetTransformer = defaultSetTransformer) 
   }
 
 
-  return R.tap(log, R.omit(omit, clone)) as typeof clone
+  return R.omit(omit, clone) as typeof clone
 }
 
 interface SetTransformer {

@@ -1,9 +1,9 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
-import debug from 'debug'
 import {compose, Omit} from 'ramda'
 import {DocumentOptions} from '../model/option'
+import {ELogs, getLogger} from '../util/log'
 
-const log = debug(['dynalee', __filename].join(':'))
+const log = getLogger(ELogs.ENGINE_ENGINE)
 
 export class Engine<H extends TScalar, R extends TScalar = never> {
   constructor(

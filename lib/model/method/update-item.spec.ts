@@ -1,7 +1,7 @@
-import debug from 'debug'
+import {ELogs, getLogger} from '../../util/log'
 import {UpdateItem} from './update-item'
 
-const log = debug(['dynalee', __filename].join(':'))
+const log: any = getLogger(ELogs.TEST)
 
 describe('update', function () {
   it('set', () => {

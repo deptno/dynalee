@@ -1,16 +1,16 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
-import debug from 'debug'
+import {compose, unary} from 'ramda'
 import {getDdbClient} from '../config/aws'
 import {Engine, TScalar} from '../engine'
 import {dynamodbDoc} from '../util/dynamodb-document'
+import {ELogs, getLogger} from '../util/log'
 import {Document} from './document'
 import {Query} from './method/query'
 import {Scan} from './method/scan'
 import {UpdateItem} from './method/update-item'
 import {defaultModelOptions, ModelOptions} from './option'
-import {compose, unary} from 'ramda'
 
-const log = debug(['dynalee', __filename].join(':'))
+const log = getLogger(ELogs.MODEL_MODEL)
 
 /**
  * @todo Is schema need to align with options(like timestamp attributes)
@@ -69,6 +69,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
   }
 
   /**
+   * @deprecated It's not implemented yet.
    * @todo apply options, is it good to Use `Document`?
    */
   async batchGet(params?) {
@@ -98,6 +99,9 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
     }
   }
 
+  /**
+   * @deprecated It's not implemented yet.
+   */
   async batchWrite(updateItems: S[], deleteKeys: KEYS[]) {
     const params = {
       RequestItems: {
@@ -125,12 +129,14 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
       if (!response) {
         return
       }
-      const unprocessedItems = Object.keys(response.UnprocessedItems)
-      if (unprocessedItems) {
-        /**
-         * @todo back-off, or use queue
-         */
-        response.UnprocessedItems
+      if (response.UnprocessedItems) {
+        const unprocessedItems = Object.keys(response.UnprocessedItems)
+        if (unprocessedItems) {
+          /**
+           * @todo back-off, or use queue
+           */
+          response.UnprocessedItems
+        }
       }
       return response.$response.data
     } catch (e) {
@@ -151,7 +157,19 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
     }
     try {
       const response = await this.engine.batchWrite(params)
-      log('batchDelete response.$response.data', response.$response.data)
+      log('batchDelete response', response)
+      if (!response) {
+        return
+      }
+      if (response.UnprocessedItems) {
+        const unprocessedItems = Object.keys(response.UnprocessedItems)
+        if (unprocessedItems) {
+          /**
+           * @todo back-off, or use queue
+           */
+          response.UnprocessedItems
+        }
+      }
       return response.$response.data
     } catch (e) {
       throw new Error(e.message)
@@ -209,6 +227,10 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
   async get(hashKey, rangeKey?, params?) {
     try {
       const response = await this.engine.get(hashKey, rangeKey, params)
+      log('response', response)
+      if (!response) {
+        throw new Error(`Item not found, hash(${hashKey}, range(${rangeKey})`)
+      }
       if (!response.Item) {
         throw new Error(`Item not found, hash(${hashKey}, range(${rangeKey})`)
       }

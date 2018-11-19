@@ -1,12 +1,12 @@
-import debug from 'debug'
 import R, {Omit} from 'ramda'
 import {TScalar} from '../../engine'
 import {$between, $eq, $ge, $gt, $le, $lt} from '../../engine/expression/comparator'
 import {$beginsWith} from '../../engine/expression/function'
+import {ELogs, getLogger} from '../../util/log'
 import {Runner} from './internal/printable'
 import {Read} from './internal/read'
 
-const log = debug(['dynalee', __filename].join(':'))
+const log = getLogger(ELogs.MODEL_METHOD_QUERY)
 
 export class Query<S, H extends TScalar, RKey extends TScalar = never> extends Read<S, H> {
   constructor(runner: Runner<S, H>, protected hashKeyName, protected hashKey: H) {

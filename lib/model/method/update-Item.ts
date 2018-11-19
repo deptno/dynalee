@@ -1,12 +1,12 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
-import debug from 'debug'
 import {Omit} from 'ramda'
 import {TScalar} from '../../engine'
+import {ELogs, getLogger} from '../../util/log'
 import {defaultModelOptions, DocumentOptions} from '../option'
 import {Runner} from './internal/printable'
 import {Write} from './internal/write'
 
-const log = debug(['dynalee', __filename].join(':'))
+const log = getLogger(ELogs.MODEL_METHOD_UPDATE_ITEM)
 
 export class UpdateItem<S, H extends TScalar> extends Write<S, H, DxPreUpdateInput> {
   protected params = {

@@ -1,13 +1,13 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
-import debug from 'debug'
 import R, {Omit} from 'ramda'
 import {TScalar} from '../../../engine'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../../engine/expression/helper'
 import {TConnector} from '../../../engine/expression/type'
 import {mergeByTypes} from '../../../util'
+import {ELogs, getLogger} from '../../../util/log'
 import {Document} from '../../document'
 
-const log = debug(['dynalee', __filename].join(':'))
+const log = getLogger(ELogs.MODEL_METHOD_INTERNAL_PRINTABLE)
 
 type ScanInput = Omit<DocumentClient.ScanInput, 'TableName' | 'Key'>
 type QueryInput = Omit<DocumentClient.QueryInput, 'TableName' | 'Key'>

@@ -1,12 +1,9 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
-import debug from 'debug'
 import {Omit} from 'ramda'
 import {TScalar} from '../../../engine'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../../engine/expression/helper'
 import {FilterOperator} from '../../../engine/operator/operator'
 import {Printable} from './printable'
-
-const log = debug(['dynalee', __filename].join(':'))
 
 type ScanInput = Omit<DocumentClient.ScanInput, 'TableName' | 'Key'>
 type QueryInput = Omit<DocumentClient.QueryInput, 'TableName' | 'Key'>

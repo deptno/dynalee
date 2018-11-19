@@ -1,9 +1,9 @@
 import {TScalar} from '../engine'
-import debug from 'debug'
+import {ELogs, getLogger} from '../util/log'
 import {Model} from './model'
 import {ModelOptions} from './option'
 
-const log = debug(['dynalee', __filename].join(':'))
+const log = getLogger(ELogs.MODEL_INDEX)
 
 /**
  * @todo need to index

@@ -1,9 +1,9 @@
-import {date, name} from 'faker'
 import {DynamoDB} from 'aws-sdk'
+import {date, name} from 'faker'
 import {define} from '../dist'
-import debug from 'debug'
+import {ELogs, getLogger} from '../lib/util/log'
 
-const log = debug(['dynalee', __filename].join(':'))
+const log = getLogger(ELogs.TEST)
 const options = {
   region: 'dynamon',
   endpoint: 'http://localhost:8000'

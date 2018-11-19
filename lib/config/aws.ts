@@ -1,7 +1,7 @@
 import {DynamoDB} from 'aws-sdk'
-import debug from 'debug'
+import {getLogger, ELogs} from '../util/log'
 
-const log = debug(['dynalee', __filename].join(':'))
+const log = getLogger(ELogs.CONFIG_AWS)
 const regexpRegion = /\S+-\S+-.{1}/
 const cache = new Map()
 

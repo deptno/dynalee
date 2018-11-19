@@ -1,7 +1,7 @@
 import {define} from '../model'
-import debug from 'debug'
+import {ELogs, getLogger} from './log'
 
-const log = debug(['dynalee', __filename].join(':'))
+const log = getLogger(ELogs.UTIL_DYNAMODB_DOCUMENT)
 const params = [
   {hash: 'hashkey0', validValue: 0},
   {hash: 'hashkey1', validString: '1'},
@@ -15,8 +15,10 @@ const params = [
 ]
 
 const Model = define('Test', 'hash', 'range', {
-  region: 'dynamon',
-  endpoint: 'http://localhost:8000'
+  aws: {
+    region: 'dynamon',
+    endpoint: 'http://localhost:8000'
+  }
 })
 
 !async function main() {
@@ -29,12 +31,12 @@ const Model = define('Test', 'hash', 'range', {
 //  }))
 //  log(result)
   await Promise.all(
-    params.map(async i => {
-      const item = Model.of(i)
+    params.map(async (p: any) => {
+      const item = Model.of(p)
       try {
         await item.put()
       } catch(e) {
-        log('error', i)
+        log('error', p)
         log(e.message.slice(0, 100))
       }
     })

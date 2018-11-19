@@ -1,7 +1,7 @@
-import debug from 'debug'
+import {ELogs, getLogger} from '../util/log'
 import {Model} from './model'
 
-const log = debug(['dynalee', __filename].join(':'))
+const log = getLogger(ELogs.TEST)
 
 interface SchemaEx {
   readonly detail: string

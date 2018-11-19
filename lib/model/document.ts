@@ -1,9 +1,10 @@
 import {DocumentClient} from 'aws-sdk/clients/dynamodb'
 import {applyPatches, Draft, Patch, produce} from 'immer'
 import {Engine, TScalar} from '../engine'
-import debug from 'debug'
 import {dynamodbDoc} from '../util/dynamodb-document'
-import {DocumentOptions} from './option'
+import {ELogs, getLogger} from '../util/log'
+
+const log = getLogger(ELogs.MODEL_DOCUMENT)
 
 export class Document<S, H extends TScalar, R extends TScalar = never> {
   /**
@@ -105,8 +106,12 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
     }
     log('put', params)
     try {
-      const result = await this.engine.put(this.getHashKey(), this.getRangeKey(), params)
-      return result.$response.data
+      const response = await this.engine.put(this.getHashKey(), this.getRangeKey(), params)
+      if (!response) {
+        log('put response', response)
+        return
+      }
+      return response.$response.data
     } catch(e) {
       log('error put', e)
     }
@@ -130,6 +135,4 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
     return this.engine.update(this.getHashKey(), this.getRangeKey(), params)
   }
 }
-
-const log = debug(['dynalee', __filename].join(':'))
 
