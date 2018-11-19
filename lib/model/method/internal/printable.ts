@@ -11,11 +11,11 @@ const log = debug(['dynalee', __filename].join(':'))
 
 type ScanInput = Omit<DocumentClient.ScanInput, 'TableName' | 'Key'>
 type QueryInput = Omit<DocumentClient.QueryInput, 'TableName' | 'Key'>
-type UpdateItemInput = Omit<DocumentClient.UpdateItemInput, 'TableName' | 'Key'>
-type Input = ScanInput | QueryInput | UpdateItemInput
-type Output = Omit<DocumentClient.ScanOutput | DocumentClient.QueryOutput | DocumentClient.UpdateItemOutput, 'TableName'>
+type Input = ScanInput | QueryInput
+type Output = Omit<DocumentClient.ScanOutput | DocumentClient.QueryOutput, 'TableName'>
 
 export type Runner<S, H extends TScalar> = (params: Input) => Promise<Omit<Output, 'Items'> & { Items: Document<S, H>[] }>
+
 export abstract class Printable<S, H extends TScalar, I extends Input> {
   protected genKey = replacementKeyGenerator()
   protected genValue = replacementValueGenerator()
@@ -49,7 +49,7 @@ export abstract class Printable<S, H extends TScalar, I extends Input> {
 
   run(): Promise<Omit<Output, 'Items'> & { Items: Document<S, H>[] }> {
     this.preRun()
-    log('run', this.params)
+    log('before runner() params', this.params)
     return this.runner(this.params)
   }
 }

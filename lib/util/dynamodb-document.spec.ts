@@ -33,4 +33,17 @@ describe('util', function () {
     }
     expect(dynamodbDoc(params)).toEqual({validValue: 0})
   })
+  it('should care nested object', function () {
+    const params = {
+      nested: {
+        validValue : 0,
+        emptyString: '',
+        emptySet   : new Set(),
+        emptyList  : [],
+        undefined  : undefined,
+        null       : null,
+      }
+    }
+    expect(dynamodbDoc(params)).toEqual({nested: {validValue: 0}})
+  })
 })

@@ -9,6 +9,7 @@ const getDdbClient = R.always(new DynamoDB.DocumentClient())
 const defaultSetTransformer: SetTransformer = R.compose(getDdbClient().createSet, Array.from)
 
 export const dynamodbDoc = (obj, ifSet: SetTransformer = defaultSetTransformer) => {
+  log('dynamodbDoc')
   const omit: string[] = []
   const clone = {...obj}
 
@@ -39,10 +40,13 @@ export const dynamodbDoc = (obj, ifSet: SetTransformer = defaultSetTransformer) 
       } else if (ifSet) {
         clone[key] = ifSet(value)
       }
+    } else if (typeof value === 'object') {
+      clone[key] = dynamodbDoc(value, ifSet)
     }
   }
 
-  return R.omit(omit, clone) as typeof clone
+
+  return R.tap(log, R.omit(omit, clone)) as typeof clone
 }
 
 interface SetTransformer {

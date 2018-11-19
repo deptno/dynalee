@@ -2,11 +2,13 @@ import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import debug from 'debug'
 import {getDdbClient} from '../config/aws'
 import {Engine, TScalar} from '../engine'
+import {dynamodbDoc} from '../util/dynamodb-document'
 import {Document} from './document'
 import {Query} from './method/query'
 import {Scan} from './method/scan'
 import {UpdateItem} from './method/update-item'
 import {defaultModelOptions, ModelOptions} from './option'
+import {compose, unary} from 'ramda'
 
 const log = debug(['dynalee', __filename].join(':'))
 
@@ -100,7 +102,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
     const params = {
       RequestItems: {
         [this.tableName]: [
-          ...updateItems.map(this.createPutRequestItem),
+          ...updateItems.map(compose(this.createPutRequestItem, unary(dynamodbDoc))),
           ...deleteKeys.map(key => ({
             DeleteRequest: {
               Key: key
@@ -110,15 +112,26 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
       }
     }
   }
+
   async batchPut(items: S[]) {
     const params = {
       RequestItems: {
-        [this.tableName]: items.map(this.createPutRequestItem)
-      }
+        [this.tableName]: items.map(compose(this.createPutRequestItem, unary(dynamodbDoc)))
+      },
     }
     try {
       const response = await this.engine.batchWrite(params)
       log('batchPut response', response)
+      if (!response) {
+        return
+      }
+      const unprocessedItems = Object.keys(response.UnprocessedItems)
+      if (unprocessedItems) {
+        /**
+         * @todo back-off, or use queue
+         */
+        response.UnprocessedItems
+      }
       return response.$response.data
     } catch (e) {
       throw new Error(e.message)
