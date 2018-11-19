@@ -1,3 +1,4 @@
+import '../lib/__mocks__/document-client'
 import define from '../lib'
 import debug from 'debug'
 
@@ -112,7 +113,7 @@ async function updateItem() {
     'local-googit.io',
     '_id',
   )
-  const result = User.updateItem('63701340')
+  const result = await User.updateItem('63701340')
     .update(setter => {
       setter.set('added', 3)
     })
