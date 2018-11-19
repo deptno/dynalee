@@ -1,6 +1,7 @@
 import debug from 'debug'
 import {TScalar} from '../../engine'
-import {Read, Runner} from './internal/read'
+import {Runner} from './internal/printable'
+import {Read} from './internal/read'
 
 const log = debug(['dynalee', __filename].join(':'))
 

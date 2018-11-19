@@ -4,7 +4,6 @@ import {Omit} from 'ramda'
 import {TScalar} from '../../../engine'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../../engine/expression/helper'
 import {FilterOperator} from '../../../engine/operator/operator'
-import {Document} from '../../document'
 import {Printable} from './printable'
 
 const log = debug(['dynalee', __filename].join(':'))
@@ -12,8 +11,6 @@ const log = debug(['dynalee', __filename].join(':'))
 type ScanInput = Omit<DocumentClient.ScanInput, 'TableName' | 'Key'>
 type QueryInput = Omit<DocumentClient.QueryInput, 'TableName' | 'Key'>
 type Input = ScanInput|QueryInput
-type Output = Omit<DocumentClient.ScanOutput | DocumentClient.QueryOutput, 'TableName'>
-export type Runner<S, H extends TScalar> = (params: Input) => Promise<Omit<Output, 'Items'> & { Items: Document<S, H>[] }>
 
 export abstract class Read<S, H extends TScalar> extends Printable<S ,H, Input> {
   protected genKey = replacementKeyGenerator()

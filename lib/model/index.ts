@@ -1,6 +1,7 @@
 import {TScalar} from '../engine'
 import debug from 'debug'
-import {Model, ModelOptions} from './model'
+import {Model} from './model'
+import {ModelOptions} from './option'
 
 const log = debug(['dynalee', __filename].join(':'))
 

@@ -11,11 +11,23 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
     private readonly ddbClient: DocumentClient,
     protected readonly tableName: string,
     protected readonly hashKeyName: string,
-    protected readonly rangeKeyName?: string,
+    protected readonly rangeKeyName: string|undefined,
+    protected readonly options: DocumentOptions
   ) {
-    /**
-     * @todo need dynamodbclient instance
-     */
+  }
+  private applyPutOptions(item) {
+    if (!this.options || !this.options.timestamp) {
+      return item
+    }
+    const {createdAt, updatedAt} = this.options.timestamp
+    const change = {}
+    if (createdAt && item[createdAt.attributeName] === undefined) {
+      change[createdAt.attributeName] = createdAt.handler()
+    }
+    if (updatedAt) {
+      change[updatedAt.attributeName] = updatedAt.handler()
+    }
+    return Object.assign(change, item)
   }
 
   async batchGet(hashKey: H, rangeKey?: R, params?) {
@@ -31,6 +43,12 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   }
 
   async batchWrite(params: DocumentClient.BatchWriteItemInput) {
+    params.RequestItems[this.tableName].forEach(requestItem => {
+      if (requestItem.PutRequest) {
+        requestItem.PutRequest.Item = this.applyPutOptions(requestItem)
+      }
+    })
+
     return await this.ddbClient
       .batchWrite(params)
       .promise()
@@ -74,13 +92,14 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
    *
    * @param hashKey
    * @param rangeKey
-   * @param params
+   * @param input
    * @returns {Promise<PromiseResult<DocumentClient.PutItemOutput, AWSError>>}
    */
-  put(hashKey: H, rangeKey?: R, params?) {
-    params = {
-      ...params,
+  put(hashKey: H, rangeKey: R|undefined, input: DocumentClient.PutItemInput) {
+    const params: DocumentClient.PutItemInput = {
+      ...input,
       ...this.getTableParam(),
+      Item: this.applyPutOptions(input.Item)
     }
     log('put params', params)
     return this.ddbClient
@@ -114,11 +133,11 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
   }
 
-  async update(hashKey: H, rangeKey?: R, params?) {
-    log('update()', hashKey, rangeKey, params)
+  async update(hashKey: H, rangeKey: R|undefined, input?: DocumentClient.UpdateItemInput) {
+    log('update()', hashKey, rangeKey, input)
     const param = {
-      ...params,
-      ...this.createGetParam(hashKey, rangeKey),
+      ...input,
+      ...this.createGetParam(hashKey, rangeKey)
     }
     log('update() param', param)
     return this.ddbClient

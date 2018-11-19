@@ -3,12 +3,12 @@ import debug from 'debug'
 import {Omit} from 'ramda'
 import {TScalar} from '../../engine'
 import {defaultModelOptions, DocumentOptions} from '../option'
-import {Runner} from './internal/read'
+import {Runner} from './internal/printable'
 import {Write} from './internal/write'
 
 const log = debug(['dynalee', __filename].join(':'))
 
-export class Update<S, H extends TScalar> extends Write<S, H, DxPreUpdateInput> {
+export class UpdateItem<S, H extends TScalar> extends Write<S, H, DxPreUpdateInput> {
   protected params = {
     ReturnValues: 'ALL_NEW'
   } as DxPreUpdateInput
@@ -29,7 +29,11 @@ export class Update<S, H extends TScalar> extends Write<S, H, DxPreUpdateInput> 
   }
 
   private reviseUpdatedAt() {
-    const {attributeName, handler} = this.options.timestamp.updatedAt
+    const {updatedAt} = this.options.timestamp
+    if (!updatedAt) {
+      return
+    }
+    const {attributeName, handler} = updatedAt
     const rUpdatedAtKey = this.genKey()
     const rUpdatedAtValue = this.genValue()
     if (!this.params.UpdateExpression!.includes(attributeName)) {

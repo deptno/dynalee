@@ -19,7 +19,6 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
     protected readonly hashKeyName: string,
     protected readonly rangeKeyName: string|undefined,
     data: S,
-    protected readonly options: DocumentOptions
   ) {
     log('new Document()', tableName, hashKeyName, rangeKeyName, data)
     this.current = Object.freeze(dynamodbDoc(data))
@@ -114,6 +113,7 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
   }
 
   /**
+   * @deprecated It's not implemented
    * @todo send diff only, use immer@>1.7.3 `isDraft`
    * @todo check [immer limiation](https://github.com/mweststrate/immer#limitations)
    */

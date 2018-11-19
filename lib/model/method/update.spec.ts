@@ -1,5 +1,5 @@
 import debug from 'debug'
-import {Update} from './update'
+import {UpdateItem} from './update-item'
 
 const log = debug(['dynalee', __filename].join(':'))
 
@@ -11,13 +11,14 @@ describe('update', function () {
         expected: {
           UpdateExpression         : 'SET #a = :a',
           ExpressionAttributeNames : {'#a': 'hello'},
-          ExpressionAttributeValues: {':a': 'world'}
+          ExpressionAttributeValues: {':a': 'world'},
+          ReturnValues             : 'ALL_NEW'
         }
       }
     ]
 
     for (const {args, expected} of sets) {
-      const update = new Update<Schema, Schema['hsk']>(log)
+      const update = new UpdateItem<Schema, Schema['hsk']>(log)
       const actual = update
         .update(op => op.set.apply(op, args))
         .out()
@@ -33,7 +34,8 @@ describe('update', function () {
           ExpressionAttributeNames : {
             '#a': 'propA',
           },
-          ExpressionAttributeValues: {':a': 3}
+          ExpressionAttributeValues: {':a': 3},
+          ReturnValues             : 'ALL_NEW'
         }
       },
       {
@@ -44,24 +46,26 @@ describe('update', function () {
             '#a': 'propA',
             '#b': 'propB'
           },
-          ExpressionAttributeValues: {':a': 3}
+          ExpressionAttributeValues: {':a': 3},
+          ReturnValues             : 'ALL_NEW'
         }
       },
       {
         args    : ['propA', 'propB', 'propC'],
         expected: {
-          UpdateExpression         : 'SET #a = #b + #c',
-          ExpressionAttributeNames : {
+          UpdateExpression        : 'SET #a = #b + #c',
+          ExpressionAttributeNames: {
             '#a': 'propA',
             '#b': 'propB',
             '#c': 'propC'
-          }
+          },
+          ReturnValues            : 'ALL_NEW'
         }
       },
     ]
 
     for (const {args, expected} of sets) {
-      const update = new Update<Schema, Schema['hsk']>(log)
+      const update = new UpdateItem<Schema, Schema['hsk']>(log)
       const actual = update
         .update(op => op.plus.apply(op, args))
         .out()
@@ -78,7 +82,8 @@ describe('update', function () {
           ExpressionAttributeNames : {
             '#a': 'propA',
           },
-          ExpressionAttributeValues: {':a': 3}
+          ExpressionAttributeValues: {':a': 3},
+          ReturnValues             : 'ALL_NEW',
         }
       },
       {
@@ -89,24 +94,26 @@ describe('update', function () {
             '#a': 'propA',
             '#b': 'propB'
           },
-          ExpressionAttributeValues: {':a': 3}
+          ExpressionAttributeValues: {':a': 3},
+          ReturnValues             : 'ALL_NEW'
         }
       },
       {
         args    : ['propA', 'propB', 'propC'],
         expected: {
-          UpdateExpression         : 'SET #a = #b - #c',
-          ExpressionAttributeNames : {
+          UpdateExpression        : 'SET #a = #b - #c',
+          ExpressionAttributeNames: {
             '#a': 'propA',
             '#b': 'propB',
             '#c': 'propC'
-          }
+          },
+          ReturnValues            : 'ALL_NEW'
         }
       },
     ]
 
     for (const {args, expected} of sets) {
-      const update = new Update<Schema, Schema['hsk']>(log)
+      const update = new UpdateItem<Schema, Schema['hsk']>(log)
       const actual = update
         .update(op => op.minus.apply(op, args))
         .out()
@@ -123,13 +130,14 @@ describe('update', function () {
           ExpressionAttributeNames : {
             '#a': 'propA',
           },
-          ExpressionAttributeValues: {':a': 3}
+          ExpressionAttributeValues: {':a': 3},
+          ReturnValues             : 'ALL_NEW'
         }
       },
     ]
 
     for (const {args, expected} of sets) {
-      const update = new Update<Schema, Schema['hsk']>(log)
+      const update = new UpdateItem<Schema, Schema['hsk']>(log)
       const actual = update
         .update(op => op.append.apply(op, args))
         .out()
@@ -142,18 +150,19 @@ describe('update', function () {
       {
         args    : ['propA', 'propB', 'propC'],
         expected: {
-          UpdateExpression         : 'REMOVE #a, #b, #c',
-          ExpressionAttributeNames : {
+          UpdateExpression        : 'REMOVE #a, #b, #c',
+          ExpressionAttributeNames: {
             '#a': 'propA',
             '#b': 'propB',
             '#c': 'propC',
-          }
+          },
+          ReturnValues            : 'ALL_NEW'
         }
       },
     ]
 
     for (const {args, expected} of sets) {
-      const update = new Update<Schema, Schema['hsk']>(log)
+      const update = new UpdateItem<Schema, Schema['hsk']>(log)
       const actual = update
         .update(op => op.remove.apply(op, args))
         .out()

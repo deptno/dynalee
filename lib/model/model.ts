@@ -5,7 +5,7 @@ import {Engine, TScalar} from '../engine'
 import {Document} from './document'
 import {Query} from './method/query'
 import {Scan} from './method/scan'
-import {Update} from './method/update'
+import {UpdateItem} from './method/update-item'
 import {defaultModelOptions, ModelOptions} from './option'
 
 const log = debug(['dynalee', __filename].join(':'))
@@ -55,6 +55,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
       this.tableName,
       this.hashKeyName,
       this.rangeKeyName,
+      this.options.document!
     )
   }
 
@@ -94,6 +95,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
       }
     }
   }
+
   async batchWrite(updateItems: S[], deleteKeys: KEYS[]) {
     const params = {
       RequestItems: {
@@ -144,7 +146,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
   }
 
   private createDocument(item) {
-    return new Document<S, H, R>(this.engine, this.tableName, this.hashKeyName, this.rangeKeyName, item, this.options.document!)
+    return new Document<S, H, R>(this.engine, this.tableName, this.hashKeyName, this.rangeKeyName, item)
   }
 
   private async doQuery(params) {
@@ -206,7 +208,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
   }
 
   updateItem(hashKey: H, rangeKey?: R) {
-    return new Update<S, H>(this.doUpdate.bind(this, hashKey, rangeKey))
+    return new UpdateItem<S, H>(this.doUpdate.bind(this, hashKey, rangeKey))
   }
 
   query(hashKey: H) {

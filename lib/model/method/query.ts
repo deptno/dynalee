@@ -3,7 +3,8 @@ import R, {Omit} from 'ramda'
 import {TScalar} from '../../engine'
 import {$between, $eq, $ge, $gt, $le, $lt} from '../../engine/expression/comparator'
 import {$beginsWith} from '../../engine/expression/function'
-import {Read, Runner} from './internal/read'
+import {Runner} from './internal/printable'
+import {Read} from './internal/read'
 
 const log = debug(['dynalee', __filename].join(':'))
 

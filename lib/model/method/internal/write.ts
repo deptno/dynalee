@@ -5,7 +5,6 @@ import {TScalar} from '../../../engine'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../../engine/expression/helper'
 import {FilterOperator} from '../../../engine/operator/operator'
 import {Updater} from '../../../engine/operator/updater'
-import {Document} from '../../document'
 import {Printable} from './printable'
 
 const log = debug(['dynalee', __filename].join(':'))
@@ -16,7 +15,6 @@ type UpdateItemInput = Omit<DocumentClient.UpdateItemInput, 'TableName' | 'Key'>
 type Input = ScanInput|QueryInput|UpdateItemInput
 type Output = Omit<DocumentClient.ScanOutput | DocumentClient.QueryOutput, 'TableName'>
 
-export type Runner<S, H extends TScalar> = (params: Input) => Promise<Omit<Output, 'Items'> & { Items: Document<S, H>[] }>
 export abstract class Write<S, H extends TScalar, I extends Input> extends Printable<S, H, I> {
   protected genKey = replacementKeyGenerator()
   protected genValue = replacementValueGenerator()
