@@ -1,8 +1,7 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
-import {compose, Omit} from 'ramda'
 import debug from 'debug'
-import {DocumentOptions, ModelOptions} from '../model/option'
-import {applyItemOptions} from '../options/apply-item-options'
+import {compose, Omit} from 'ramda'
+import {DocumentOptions} from '../model/option'
 
 const log = debug(['dynalee', __filename].join(':'))
 
@@ -45,7 +44,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   async batchWrite(params: DocumentClient.BatchWriteItemInput) {
     params.RequestItems[this.tableName].forEach(requestItem => {
       if (requestItem.PutRequest) {
-        requestItem.PutRequest.Item = this.applyPutOptions(requestItem)
+        requestItem.PutRequest.Item = this.applyPutOptions(requestItem.PutRequest.Item)
       }
     })
 

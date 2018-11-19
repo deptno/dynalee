@@ -122,4 +122,4 @@ async function updateItem() {
   console.log('result', result)
 }
 
-put()
+updateItem()

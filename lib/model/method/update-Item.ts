@@ -26,19 +26,29 @@ export class UpdateItem<S, H extends TScalar> extends Write<S, H, DxPreUpdateInp
 
   protected preRun() {
     this.reviseUpdatedAt()
+    super.preRun()
   }
 
   private reviseUpdatedAt() {
+    if (!this.options.timestamp) {
+      return
+    }
     const {updatedAt} = this.options.timestamp
     if (!updatedAt) {
       return
     }
     const {attributeName, handler} = updatedAt
+    log('reviseUpdatedAt', updatedAt)
     const rUpdatedAtKey = this.genKey()
     const rUpdatedAtValue = this.genValue()
-    if (!this.params.UpdateExpression!.includes(attributeName)) {
+
+    // @todo @fixme pattern is broken
+    if (!this.params.ExpressionAttributeNames) {
+      return
+    }
+    if (!this.params.ExpressionAttributeNames[attributeName]) {
+      this.updater.expressions.push(`SET ${rUpdatedAtKey} = ${rUpdatedAtValue}`)
       this.merge({
-        UpdateExpression         : `SET ${rUpdatedAtKey} = ${rUpdatedAtValue}`,
         ExpressionAttributeNames : {
           [rUpdatedAtKey]: attributeName
         },

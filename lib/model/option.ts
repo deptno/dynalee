@@ -10,7 +10,7 @@ interface AWSOption {
   endpoint: string
 }
 export interface DocumentOptions {
-  timestamp: {
+  timestamp?: {
     createdAt: MapHandlerAttribute
     updatedAt?: MapHandlerAttribute
   }

@@ -43,6 +43,7 @@ export abstract class Printable<S, H extends TScalar, I extends Input> {
   }
 
   out() {
+    this.preRun()
     return R.omit(['Key'], this.params)
   }
 

@@ -10,12 +10,15 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
     return new Updater<S, K, T>(genKey, genValue, done)
   }
 
+  public readonly expressionType: string = operator
+  public readonly expressions: string[] = []
+
   set(path: K, value: T) {
     const rKey = this.genKey()
     const rValue = this.genValue()
 
+    this.expressions.push(`SET ${rKey} = ${rValue}`)
     this.done({
-      [operator]               : `SET ${rKey} = ${rValue}`,
       ExpressionAttributeNames : {[rKey]: path},
       ExpressionAttributeValues: {[rValue]: value}
     })
@@ -28,8 +31,8 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
     if (typeof a === 'number') {
       // path + value
       const rValueA = this.genValue()
+      this.expressions.push(`SET ${rKey} = ${rKey} + ${rValueA}`)
       this.done({
-        [operator]               : `SET ${rKey} = ${rKey} + ${rValueA}`,
         ExpressionAttributeNames : {[rKey]: path},
         ExpressionAttributeValues: {[rValueA]: a}
       })
@@ -37,8 +40,8 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
       // another path + value
       const rKeyA = this.genKey()
       const rValueA = this.genValue()
+      this.expressions.push(`SET ${rKey} = ${rKeyA} + ${rValueA}`)
       this.done({
-        [operator]               : `SET ${rKey} = ${rKeyA} + ${rValueA}`,
         ExpressionAttributeNames : {
           [rKey] : path,
           [rKeyA]: a
@@ -52,8 +55,8 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
       // another path + another path
       const rKeyA = this.genKey()
       const rKeyB = this.genKey()
+      this.expressions.push(`SET ${rKey} = ${rKeyA} + ${rKeyB}`)
       this.done({
-        [operator]              : `SET ${rKey} = ${rKeyA} + ${rKeyB}`,
         ExpressionAttributeNames: {
           [rKey] : path,
           [rKeyA]: a,
@@ -70,8 +73,8 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
     if (typeof a === 'number') {
       // path - value
       const rValueA = this.genValue()
+      this.expressions.push(`SET ${rKey} = ${rKey} - ${rValueA}`)
       this.done({
-        [operator]               : `SET ${rKey} = ${rKey} - ${rValueA}`,
         ExpressionAttributeNames : {[rKey]: path},
         ExpressionAttributeValues: {[rValueA]: a}
       })
@@ -79,8 +82,8 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
       // another path - value
       const rKeyA = this.genKey()
       const rValueA = this.genValue()
+      this.expressions.push(`SET ${rKey} = ${rKeyA} - ${rValueA}`)
       this.done({
-        [operator]               : `SET ${rKey} = ${rKeyA} - ${rValueA}`,
         ExpressionAttributeNames : {
           [rKey] : path,
           [rKeyA]: a
@@ -91,8 +94,8 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
       // another path - another path
       const rKeyA = this.genKey()
       const rKeyB = this.genKey()
+      this.expressions.push(`SET ${rKey} = ${rKeyA} - ${rKeyB}`)
       this.done({
-        [operator]              : `SET ${rKey} = ${rKeyA} - ${rKeyB}`,
         ExpressionAttributeNames: {
           [rKey] : path,
           [rKeyA]: a,
@@ -112,15 +115,15 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
 
     if (set === undefined) {
       set = sourceProp
+      this.expressions.push(`SET ${rKey} = list_append(${rKey}, ${rValue})`)
       this.done({
-        [operator]               : `SET ${rKey} = list_append(${rKey}, ${rValue})`,
         ExpressionAttributeNames : {[rKey]: path},
         ExpressionAttributeValues: {[rValue]: set}
       })
     } else {
       const rSourceKey = this.genKey()
+      this.expressions.push(`SET ${rKey} = list_append(${rSourceKey}, ${rValue})`)
       this.done({
-        [operator]               : `SET ${rKey} = list_append(${rSourceKey}, ${rValue})`,
         ExpressionAttributeNames : {
           [rKey]: path,
           [rSourceKey]: sourceProp
@@ -137,8 +140,8 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
       acc[this.genKey()] = path
       return acc
     }, {})
+    this.expressions.push(`REMOVE ${Object.keys(expressionAttributeNames).join(', ')}`)
     this.done({
-      [operator]: `REMOVE ${Object.keys(expressionAttributeNames).join(', ')}`,
       ExpressionAttributeNames: expressionAttributeNames
     })
     return this

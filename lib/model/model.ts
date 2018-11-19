@@ -208,7 +208,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
   }
 
   updateItem(hashKey: H, rangeKey?: R) {
-    return new UpdateItem<S, H>(this.doUpdate.bind(this, hashKey, rangeKey))
+    return new UpdateItem<S, H>(this.doUpdate.bind(this, hashKey, rangeKey), this.options.document)
   }
 
   query(hashKey: H) {

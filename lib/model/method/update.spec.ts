@@ -18,7 +18,7 @@ describe('update', function () {
     ]
 
     for (const {args, expected} of sets) {
-      const update = new UpdateItem<Schema, Schema['hsk']>(log)
+      const update = new UpdateItem<Schema, Schema['hsk']>(log, {})
       const actual = update
         .update(op => op.set.apply(op, args))
         .out()
@@ -65,7 +65,7 @@ describe('update', function () {
     ]
 
     for (const {args, expected} of sets) {
-      const update = new UpdateItem<Schema, Schema['hsk']>(log)
+      const update = new UpdateItem<Schema, Schema['hsk']>(log, {})
       const actual = update
         .update(op => op.plus.apply(op, args))
         .out()
@@ -113,7 +113,7 @@ describe('update', function () {
     ]
 
     for (const {args, expected} of sets) {
-      const update = new UpdateItem<Schema, Schema['hsk']>(log)
+      const update = new UpdateItem<Schema, Schema['hsk']>(log, {})
       const actual = update
         .update(op => op.minus.apply(op, args))
         .out()
@@ -137,7 +137,7 @@ describe('update', function () {
     ]
 
     for (const {args, expected} of sets) {
-      const update = new UpdateItem<Schema, Schema['hsk']>(log)
+      const update = new UpdateItem<Schema, Schema['hsk']>(log, {})
       const actual = update
         .update(op => op.append.apply(op, args))
         .out()
@@ -162,7 +162,7 @@ describe('update', function () {
     ]
 
     for (const {args, expected} of sets) {
-      const update = new UpdateItem<Schema, Schema['hsk']>(log)
+      const update = new UpdateItem<Schema, Schema['hsk']>(log, {})
       const actual = update
         .update(op => op.remove.apply(op, args))
         .out()
