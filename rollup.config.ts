@@ -10,7 +10,6 @@ export = async (argv) => {
       file   : 'dist/index.js',
     },
     external: [
-      'filename-logger',
       'immer',
       'debug',
       'aws-sdk',

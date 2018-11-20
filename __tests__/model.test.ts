@@ -1,5 +1,5 @@
 import define from '../lib'
-import '../lib/__mocks__/document-client'
+import './__mocks__/document-client'
 import {ELogs, getLogger} from '../lib/util/log'
 
 const HASH_KEY = 'id'
