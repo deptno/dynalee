@@ -1,6 +1,6 @@
 {
   "name": "dynalee",
-  "version": "0.1.15",
+  "version": "0.1.16",
   "description": "Typescript DynamoDB ORM",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -15,7 +15,7 @@
     "test": "jest",
     "compile": "npm run build:config; tsc -p tsconfig.cjs.json",
     "rollup": "npm run build && rollup -c; node -e \"console.log(require('.'))\"",
-    "prepare": "rm -rf dist; npm run rollup"
+    "prepare": "rm -rf dist; npm run build"
   },
   "engines": {
     "node": ">=8.10"

@@ -1,20 +1,23 @@
 import debug from 'debug'
 
 export enum ELogs {
-  CONFIG_AWS = 'CONFIG_AWS',
-  ENGINE_EXPRESSION_COMPARATOR = 'ENGINE_EXPRESSION_COMPARATOR',
-  MODEL_DOCUMENT = 'MODEL_DOCUMENT',
-  MODEL_INDEX = 'MODEL_INDEX',
-  MODEL_MODEL = 'MODEL_MODEL',
-  MODEL_METHOD_QUERY = 'MODEL_METHOD_QUERY',
-  MODEL_METHOD_UPDATE_ITEM = 'MODEL_METHOD_UPDATE_ITEM',
-  MODEL_METHOD_INTERNAL_PRINTABLE = 'MODEL_METHOD_INTERNAL_PRINTABLE',
-  UTIL_DYNAMODB_DOCUMENT = 'UTIL_DYNAMODB_DOCUMENT',
-  ENGINE_ENGINE = 'ENGINE_ENGINE',
-  TEST = 'TEST',
+  CONFIG_AWS                      = 'config:aws',
+  ENGINE_EXPRESSION_COMPARATOR    = 'engine:expression:comparator',
+  MODEL_DOCUMENT                  = 'model:document',
+  MODEL_INDEX                     = 'model:index',
+  MODEL_MODEL                     = 'model:model',
+  MODEL_METHOD_QUERY              = 'model:method:query',
+  MODEL_METHOD_UPDATE_ITEM        = 'model:method:update_item',
+  MODEL_METHOD_INTERNAL_PRINTABLE = 'model:method:internal:printable',
+  MODEL_METHOD_INTERNAL_WRITE     = 'model:method:internal:write',
+  UTIL_DYNAMODB_DOCUMENT          = 'util:dynamodb_document',
+  ENGINE_ENGINE                   = 'engine:engine',
+  ENGINE_EXPRESSION_HELPER        = 'engine:expression:helper',
+  ENGINE_OPERATOR_UPDATER         = 'engine:operator:updater',
+  TEST                            = 'test',
 }
 
-if (process.env.NODE_ENV = 'production') {
+if (process.env.NODE_ENV === 'production') {
   debug.log = console.log.bind(console)
 }
 

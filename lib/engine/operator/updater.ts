@@ -1,6 +1,8 @@
+import {ELogs, getLogger} from '../../util/log'
 import {TScalar} from '../engine'
 import {TExpression} from '../expression/type'
 
+const log = getLogger(ELogs.ENGINE_OPERATOR_UPDATER)
 const operator: TExpression = 'UpdateExpression'
 export class Updater<S, K extends string = keyof S, T = TScalar> implements Operator<K, T> {
   private constructor(private genKey, private genValue, private done) {

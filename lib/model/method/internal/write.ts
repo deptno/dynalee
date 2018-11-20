@@ -4,6 +4,7 @@ import {TScalar} from '../../../engine'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../../engine/expression/helper'
 import {FilterOperator} from '../../../engine/operator/operator'
 import {Updater} from '../../../engine/operator/updater'
+import {ELogs, getLogger} from '../../../util/log'
 import {Printable} from './printable'
 
 type ScanInput = Omit<DocumentClient.ScanInput, 'TableName' | 'Key'>
@@ -11,6 +12,8 @@ type QueryInput = Omit<DocumentClient.QueryInput, 'TableName' | 'Key'>
 type UpdateItemInput = Omit<DocumentClient.UpdateItemInput, 'TableName' | 'Key'>
 type Input = ScanInput | QueryInput | UpdateItemInput
 type Output = Omit<DocumentClient.ScanOutput | DocumentClient.QueryOutput, 'TableName'>
+
+const log = getLogger(ELogs.ENGINE_ENGINE)
 
 export abstract class Write<S, H extends TScalar, I extends Input> extends Printable<S, H, I> {
   protected genKey = replacementKeyGenerator()

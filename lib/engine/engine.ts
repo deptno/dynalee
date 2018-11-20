@@ -45,14 +45,14 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
     log('error', this.ddbClient['service'].endpoint, e.message, params)
   }
 
-  async batchWrite(params: DocumentClient.BatchWriteItemInput) {
+  batchWrite(params: DocumentClient.BatchWriteItemInput) {
     params.RequestItems[this.tableName].forEach(requestItem => {
       if (requestItem.PutRequest) {
         requestItem.PutRequest.Item = this.applyPutOptions(requestItem.PutRequest.Item)
       }
     })
 
-    return await this.ddbClient
+    return this.ddbClient
       .batchWrite(params)
       .promise()
       .catch(e => this.handleError(params, e))
@@ -62,10 +62,10 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   /**
    * @todo
    */
-  async createSet(list, options) {
+  createSet(list, options) {
   }
 
-  async delete(keys, params?: OperatorParam<DocumentClient.DeleteItemInput>) {
+  delete(keys, params?: OperatorParam<DocumentClient.DeleteItemInput>) {
     return this.ddbClient
       .delete({
         ...this.getTableParam({Key: keys}),
@@ -78,7 +78,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   /**
    * @todo throw Error, if (this.rangeKeyName && !rangeKey)
    */
-  async get(hashKey: H, rangeKey?: R, params?) {
+  get(hashKey: H, rangeKey?: R, params?) {
     log('get args', hashKey, rangeKey, params)
     const param = {
       ...params,
@@ -111,7 +111,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       .catch(e => this.handleError(params, e))
   }
 
-  async query(params) {
+  query(params) {
     params = {
       ...params,
       ...this.getTableParam(),
@@ -123,7 +123,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       .catch(e => this.handleError(params, e))
   }
 
-  async scan(params?) {
+  scan(params?) {
     log('@todo return Scan instead')
     params = {
       ...params,
@@ -136,7 +136,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       .catch(e => this.handleError(params, e))
   }
 
-  async update(hashKey: H, rangeKey: R|undefined, input?: DocumentClient.UpdateItemInput) {
+  update(hashKey: H, rangeKey: R|undefined, input?: DocumentClient.UpdateItemInput) {
     log('update()', hashKey, rangeKey, input)
     const params = {
       ...input,
