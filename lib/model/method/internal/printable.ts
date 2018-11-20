@@ -49,7 +49,7 @@ export abstract class Printable<S, H extends TScalar, I extends Input> {
 
   run(): Promise<Omit<Output, 'Items'> & { Items: Document<S, H>[] }> {
     this.preRun()
-    log('before runner() params', this.params)
+    log('runner() params', this.params)
     return this.runner(this.params)
   }
 }

@@ -216,8 +216,10 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
   private async doUpdate(hashKey, rangeKey, params) {
     try {
       const response = await this.engine.update(hashKey, rangeKey, params)
+      log('doUpdate response', response)
       return response
     } catch (e) {
+      log('doUpdate error', e.message, e.stack)
       throw new Error(e.message)
     }
   }

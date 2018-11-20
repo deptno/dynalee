@@ -16,6 +16,10 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
   public readonly expressions: string[] = []
 
   set(path: K, value: T) {
+    if (value === undefined) {
+      log(`set {${path}: ${value}} is ignored`)
+      return this
+    }
     const rKey = this.genKey()
     const rValue = this.genValue()
 
@@ -28,6 +32,10 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
   }
 
   plus(path, a, b?) {
+    if (a === undefined) {
+      log(`plus {${path}: ${a}} is ignored`)
+      return this
+    }
     const rKey = this.genKey()
 
     if (typeof a === 'number') {
@@ -70,6 +78,11 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
   }
 
   minus(path, a, b?) {
+    if (a === undefined) {
+      log(`minus {${path}: ${a}} is ignored`)
+      return this
+    }
+
     const rKey = this.genKey()
 
     if (typeof a === 'number') {
@@ -139,6 +152,10 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
   remove(...paths) {
     // @todo check to includes Index character
     const expressionAttributeNames = paths.reduce((acc, path) => {
+      if (!path) {
+        log(`remove ${path} is ignored`)
+        return this
+      }
       acc[this.genKey()] = path
       return acc
     }, {})
@@ -150,12 +167,20 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
   }
 
   add(path: K, value: T) {
+    if (value === undefined) {
+      log(`add {${path}: ${value}} is ignored`)
+      return this
+    }
     // @todo
     console.warn('add() is not implemented yet.')
     return this
   }
 
   delete(path: K, value: T) {
+    if (value === undefined) {
+      log(`delete {${path}: ${value}} is ignored`)
+      return this
+    }
     // @todo
     console.warn('delete() is not implemented yet.')
     return this

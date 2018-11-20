@@ -22,6 +22,7 @@ export abstract class Write<S, H extends TScalar, I extends Input> extends Print
   protected updater = Updater.of(this.genKey, this.genValue, (params) => this.merge(params, ','))
 
   protected preRun() {
+    log('> preRun()')
     const expressions = this.updater.expressions.reduce((acc, exp) => {
       const [op, ...expression] = exp.split(' ')
       acc[op] = [acc[op], expression.join(' ')]
@@ -41,6 +42,7 @@ export abstract class Write<S, H extends TScalar, I extends Input> extends Print
       .join(', ')
       .trim()
     this.merge({[this.updater.expressionType]: result} as any, ',')
+    log('< preRun()')
   }
 
   update(setter: (and: Updater<S>) => void) {
