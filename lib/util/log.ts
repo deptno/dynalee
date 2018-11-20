@@ -13,4 +13,9 @@ export enum ELogs {
   ENGINE_ENGINE = 'ENGINE_ENGINE',
   TEST = 'TEST',
 }
+
+if (process.env.NODE_ENV = 'production') {
+  debug.log = console.log.bind(console)
+}
+
 export const getLogger: (type: ELogs) => (...args: any[]) => void = type => debug(`dynalee:${type}`)

@@ -38,7 +38,11 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
     return this.ddbClient
       .batchGet(params)
       .promise()
-      .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
+      .catch(e => this.handleError(params, e))
+  }
+
+  private handleError = (params, e) => {
+    log('error', this.ddbClient['service'].endpoint, e.message, params)
   }
 
   async batchWrite(params: DocumentClient.BatchWriteItemInput) {
@@ -51,7 +55,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
     return await this.ddbClient
       .batchWrite(params)
       .promise()
-      .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
+      .catch(e => this.handleError(params, e))
   }
 
 
@@ -68,7 +72,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
         ...params
       })
       .promise()
-      .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
+      .catch(e => this.handleError(params, e))
   }
 
   /**
@@ -84,7 +88,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
     return this.ddbClient
       .get(param)
       .promise()
-      .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
+      .catch(e => this.handleError(params, e))
   }
 
   /**
@@ -104,7 +108,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
     return this.ddbClient
       .put(params)
       .promise()
-      .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
+      .catch(e => this.handleError(params, e))
   }
 
   async query(params) {
@@ -116,7 +120,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
     return this.ddbClient
       .query(params)
       .promise()
-      .catch(e => log('error', this.ddbClient['service'].endpoint, e))
+      .catch(e => this.handleError(params, e))
   }
 
   async scan(params?) {
@@ -129,20 +133,20 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
     return this.ddbClient
       .scan(params)
       .promise()
-      .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
+      .catch(e => this.handleError(params, e))
   }
 
   async update(hashKey: H, rangeKey: R|undefined, input?: DocumentClient.UpdateItemInput) {
     log('update()', hashKey, rangeKey, input)
-    const param = {
+    const params = {
       ...input,
       ...this.createGetParam(hashKey, rangeKey)
     }
-    log('update() param', param)
+    log('update() param', params)
     return this.ddbClient
-      .update(param)
+      .update(params)
       .promise()
-      .catch(e => log('error', this.ddbClient['service'].endpoint, e.message))
+      .catch(e => this.handleError(params, e))
   }
 
   /**

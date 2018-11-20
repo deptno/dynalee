@@ -10,6 +10,7 @@ function promisify(fx) {
     }
   }
 }
+
 function identity(params) {
   console.log('ientity', params)
   return {
@@ -26,9 +27,8 @@ function $response(params) {
     }
   }
 }
+
 AWS.DynamoDB.DocumentClient = class MockDocumentClient {
-
-
   batchWrite = promisify(identity)
   batchGet = promisify(identity)
   createSet = promisify(identity)
