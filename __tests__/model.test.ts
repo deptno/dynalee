@@ -20,10 +20,24 @@ interface SchemaEx {
 }
 
 const log = getLogger(ELogs.TEST)
-const User = define<SchemaEx, SchemaEx[typeof HASH_KEY], typeof RANGE_KEY>('dynalee', 'id', 'detail', {})
-const aUser = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>('dynalee', 'id', 'detail')
-const bUser = define<SchemaEx, SchemaEx['id']>('dynalee', 'id', {})
-const cser = define<SchemaEx, SchemaEx['id']>('dynalee', 'id')
+const User = define<SchemaEx, SchemaEx[typeof HASH_KEY], typeof RANGE_KEY>({
+  table: 'dynalee',
+  hash : 'id',
+  range: 'detail'
+})
+const aUser = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>({
+  table: 'dynalee',
+  hash : 'id',
+  range: 'detail'
+})
+const bUser = define<SchemaEx, SchemaEx['id']>({
+  table: 'dynalee',
+  hash : 'id'
+})
+const cser = define<SchemaEx, SchemaEx['id']>({
+  table: 'dynalee',
+  hash : 'id'
+})
 
 async function put() {
   log('> put')
@@ -95,7 +109,7 @@ async function chain() {
 }
 
 async function streamTest() {
-  const Stream2 = define('Stream2', 'hid')
+  const Stream2 = define({table: 'Stream2', hash: 'hid'})
   const result = await Stream2
     .of({
       hid: 'dynalee test'
@@ -110,10 +124,10 @@ async function updateItem() {
     readonly _sort: string
     added: string
   }
-  const User = define<S, string>(
-    'local-googit.io',
-    '_id',
-  )
+  const User = define<S, string>({
+    table: 'local-googit.io',
+    hash : '_id',
+  })
   const result = await User.updateItem('63701340')
     .update(setter => {
       setter.set('added', 3)

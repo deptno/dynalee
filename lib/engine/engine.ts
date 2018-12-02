@@ -5,15 +5,33 @@ import {ELogs, getLogger} from '../util/log'
 
 const log = getLogger(ELogs.ENGINE_ENGINE)
 
+interface EngineParams {
+  ddbClient: DocumentClient
+  table: string
+  options: DocumentOptions
+  hash: string
+  index?: string
+  range?: string
+}
+
 export class Engine<H extends TScalar, R extends TScalar = never> {
-  constructor(
-    private readonly ddbClient: DocumentClient,
-    protected readonly tableName: string,
-    protected readonly hashKeyName: string,
-    protected readonly rangeKeyName: string|undefined,
-    protected readonly options: DocumentOptions
-  ) {
+  private readonly ddbClient: DocumentClient
+  protected readonly table: string
+  protected readonly hash: string
+  protected readonly range?: string
+  protected readonly index?: string
+  protected readonly options: DocumentOptions
+
+  constructor(params: EngineParams) {
+    const {ddbClient, table, hash, range, index, options} = params
+    this.ddbClient = ddbClient
+    this.table = table
+    this.hash = hash
+    this.range = range
+    this.index = index
+    this.options = options
   }
+
   private applyPutOptions(item) {
     if (!this.options || !this.options.timestamp) {
       return item
@@ -32,7 +50,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   async batchGet(hashKey: H, rangeKey?: R, params?) {
     params = {
       RequestItems: {
-        [this.tableName]: this.getKeyParam(hashKey, rangeKey),
+        [this.table]: this.getKeyParam(hashKey, rangeKey),
       }
     }
     return this.ddbClient
@@ -46,7 +64,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   }
 
   batchWrite(params: DocumentClient.BatchWriteItemInput) {
-    params.RequestItems[this.tableName].forEach(requestItem => {
+    params.RequestItems[this.table].forEach(requestItem => {
       if (requestItem.PutRequest) {
         requestItem.PutRequest.Item = this.applyPutOptions(requestItem.PutRequest.Item)
       }
@@ -98,7 +116,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
    * @param input
    * @returns {Promise<PromiseResult<DocumentClient.PutItemOutput, AWSError>>}
    */
-  put(hashKey: H, rangeKey: R|undefined, input: DocumentClient.PutItemInput) {
+  put(hashKey: H, rangeKey: R | undefined, input: DocumentClient.PutItemInput) {
     const params: DocumentClient.PutItemInput = {
       ...input,
       ...this.getTableParam(),
@@ -136,7 +154,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       .catch(e => this.handleError(params, e))
   }
 
-  update(hashKey: H, rangeKey: R|undefined, input?: DocumentClient.UpdateItemInput) {
+  update(hashKey: H, rangeKey: R | undefined, input?: DocumentClient.UpdateItemInput) {
     log('update()', hashKey, rangeKey, input)
     const params = {
       ...input,
@@ -154,9 +172,16 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
    * @todo memoize?
    */
   private getTableParam = (params?) => {
+    if (this.index) {
+      return {
+        ...params,
+        TableName: this.table,
+        Index: this.index
+      }
+    }
     return {
       ...params,
-      TableName: this.tableName
+      TableName: this.table
     }
   }
 
@@ -167,27 +192,27 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
    * @returns {{Key: {}}}
    */
   private getKeyParam = (hashKey: H, rangeKey?: R) => {
-    if (!this.rangeKeyName) {
+    if (!this.range) {
       if (rangeKey) {
         log(`ignore. range key(${rangeKey}), rangeKey is not defined`)
       }
       return {
         Key: {
-          [this.hashKeyName]: hashKey
+          [this.hash]: hashKey
         }
       }
     }
     if (rangeKey) {
       return {
         Key: {
-          [this.hashKeyName] : hashKey,
-          [this.rangeKeyName]: rangeKey
+          [this.hash] : hashKey,
+          [this.range]: rangeKey
         }
       }
     }
     return {
       Key: {
-        [this.hashKeyName]: hashKey,
+        [this.hash]: hashKey,
       }
     }
   }

@@ -14,28 +14,25 @@ const params = [
   {hash: 'hashkey8', null: null},
 ]
 
-const Model = define('Test', 'hash', 'range', {
-  aws: {
-    region: 'dynamon',
-    endpoint: 'http://localhost:8000'
+const Model = define({
+  table  : 'Test',
+  hash   : 'hash',
+  range  : 'range',
+  options: {
+    aws: {
+      region  : 'dynamon',
+      endpoint: 'http://localhost:8000'
+    }
   }
 })
 
 !async function main() {
-//  const result = await Model.batchWrite(params.map(Item => {
-//    return {
-//      PutRequest: {
-//        Item
-//      }
-//    }
-//  }))
-//  log(result)
   await Promise.all(
     params.map(async (p: any) => {
       const item = Model.of(p)
       try {
         await item.put()
-      } catch(e) {
+      } catch (e) {
         log('error', p)
         log(e.message.slice(0, 100))
       }

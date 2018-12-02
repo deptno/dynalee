@@ -8,10 +8,10 @@ const HASH_KEY = 'hashKey'
 const RANGE_KEY = 'rangeKey'
 
 describe('ComparisonOperator', () => {
-//  const Fake = new Model<Schema, Schema['key']>('dynalee', 'key')
-//  const Fake = new Model<Schema, Schema['key']>('dynalee', 'key', {})
-  const Fake = new Model<Schema, Schema['key'], Schema['key']>('dynalee', 'key', 'string')
-//  const Fake = new Model<Schema, Schema['key'], Schema['key']>('dynalee', 'key', 'rangeN', {})
+  //  const Fake = new Model<Schema, Schema['key']>('dynalee', 'key')
+  //  const Fake = new Model<Schema, Schema['key']>('dynalee', 'key', {})
+  const Fake = new Model<Schema, Schema['key'], Schema['key']>({table: 'dynalee', hash: 'key', range: 'string'})
+  //  const Fake = new Model<Schema, Schema['key'], Schema['key']>('dynalee', 'key', 'rangeN', {})
   beforeEach(() => {
   })
   it('query', async done => {
@@ -21,8 +21,8 @@ describe('ComparisonOperator', () => {
     done()
   })
   it('eq', () => {
-//    console.log(ret(generator))
-//    console.log(merged)
+    //    console.log(ret(generator))
+    //    console.log(merged)
   })
   it('ne', () => {
   })
