@@ -1,6 +1,6 @@
 import {DynamoDB} from 'aws-sdk'
 import {date, name} from 'faker'
-import {define} from '../dist'
+import {Model} from '../lib'
 import {ELogs, getLogger} from '../lib/util/log'
 
 const log = getLogger(ELogs.TEST)
@@ -10,10 +10,6 @@ const options = {
 }
 
 const ddb = new DynamoDB(options)
-const TABLE_NAME = 'DynaleeTest'
-const HASH_KEY = 'name'
-const RANGE_KEY = 'createdAt'
-
 interface Key {
   readonly name: string
   readonly createdAt: string
@@ -26,16 +22,16 @@ interface User extends Key {
 interface Account extends Key {
 }
 
-const User = define<User, Key[typeof HASH_KEY], Key[typeof RANGE_KEY]>(
-  TABLE_NAME,
-  HASH_KEY,
-  RANGE_KEY
-)
-const Pet = define<Account, Key[typeof HASH_KEY], Key[typeof RANGE_KEY]>(
-  TABLE_NAME,
-  HASH_KEY,
-  RANGE_KEY
-)
+const User = Model.define<User, string, string>({
+  table: 'DynaleeTest',
+  hash : 'name',
+  range: 'createdAt',
+})
+const Pet = Model.define<Account, string, string>({
+  table: 'DynaleeTest',
+  hash: 'name',
+  range: 'createdAt',
+})
 
 !async function () {
   try {
@@ -61,21 +57,21 @@ async function createTable() {
     .createTable({
       AttributeDefinitions : [
         {
-          AttributeName: HASH_KEY,
+          AttributeName: 'name',
           AttributeType: 'N'
         },
         {
-          AttributeName: RANGE_KEY,
+          AttributeName: 'createdAt',
           AttributeType: 'S'
         },
       ],
       KeySchema            : [
         {
-          AttributeName: HASH_KEY,
+          AttributeName: 'name',
           KeyType      : 'HASH'
         },
         {
-          AttributeName: RANGE_KEY,
+          AttributeName: 'createdAt',
           KeyType      : 'RANGE'
         }
       ],
@@ -83,7 +79,7 @@ async function createTable() {
         ReadCapacityUnits : 1,
         WriteCapacityUnits: 1
       },
-      TableName            : TABLE_NAME,
+      TableName            : 'DynaleeTest',
     })
     .promise()
   log(table)

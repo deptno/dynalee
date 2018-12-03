@@ -1,4 +1,2 @@
-import {define} from './model'
-export {define} from './model'
-
-export default define
+export {Model} from './model/model'
+export {SecondaryIndex} from './model/secondary-index'

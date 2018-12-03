@@ -1,57 +1,22 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import {compose, unary} from 'ramda'
-import {getDdbClient} from '../config/aws'
-import {Engine, TScalar} from '../engine'
+import {TScalar} from '../engine'
 import {dynamodbDoc} from '../util/dynamodb-document'
 import {ELogs, getLogger} from '../util/log'
 import {Document} from './document'
-import {Query} from './method/query'
-import {Scan} from './method/scan'
 import {UpdateItem} from './method/update-item'
-import {defaultModelOptions, ModelOptions} from './option'
+import {Readable, ReadableParams} from './readable'
 
 const log = getLogger(ELogs.MODEL_MODEL)
 
-interface ModelParams {
-  table: string
-  hash: string
-  range?: string
-  index?: string
-  options?: ModelOptions
-}
-/**
- * @todo Is schema need to align with options(like timestamp attributes)
- */
-export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +readonly [k in keyof S]: number }> {
-  private readonly table: string
-  private readonly hash: string
-  private readonly range?: string
-  private readonly index?: string
-  private readonly options: ModelOptions
-  private readonly engine: Engine<H, R>
-
-  constructor(protected params: ModelParams) {
-    const {table, hash, range, index, options = {} as ModelOptions} = params
-    this.options = options
-    this.table = table
-    this.hash = hash
-    this.range = range
-    this.index = index
-
-    if (!this.options.document) {
-      this.options.document = defaultModelOptions.document
-    }
-
-    this.engine = new Engine({
-      table,
-      hash,
-      range,
-      index,
-      ddbClient: getDdbClient(this.options.aws),
-      options  : this.options.document!
-    })
+export class Model<S, H extends TScalar, R extends TScalar = never> extends Readable<S, H, R> {
+  constructor(params: ReadableParams<S, H, R>) {
+    super(params)
   }
 
+  static define<S, H extends TScalar, R extends TScalar = never>(params: ReadableParams<S, H, R>) {
+    return new Model<S, H, R>(params)
+  }
 
   of(data: S) {
     return this.createDocument(data)
@@ -91,7 +56,7 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
   /**
    * @deprecated It's not implemented yet.
    */
-  async batchWrite(updateItems: S[], deleteKeys: KEYS[]) {
+  async batchWrite(updateItems: S[], deleteKeys: Partial<S>[]) {
     const params = {
       RequestItems: {
         [this.table]: [
@@ -165,43 +130,6 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
     }
   }
 
-  private createDocument(item) {
-    return new Document<S, H, R>(this.engine, this.table, this.hash, this.range, item)
-  }
-
-  private async doQuery(params) {
-    try {
-      const response = await this.engine.query(params)
-      log('doQuery response', response)
-      if (!response) {
-        return
-      }
-      response.Items = response.Count === 0
-        ? []
-        : response.Items!.map(item => this.createDocument(item))
-      return response
-    } catch (e) {
-      log('doQuery', e, this)
-      throw new Error(e.message)
-    }
-  }
-
-  private async doScan(params) {
-    try {
-      const response = await this.engine.scan(params)
-      log('doScan response', response)
-      if (!response) {
-        return
-      }
-      response.Items = response.Count === 0
-        ? []
-        : response.Items!.map(item => this.createDocument(item))
-      return response
-    } catch (e) {
-      throw new Error(e.message)
-    }
-  }
-
   private async doUpdate(hashKey, rangeKey, params) {
     try {
       const response = await this.engine.update(hashKey, rangeKey, params)
@@ -237,14 +165,6 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
     return new UpdateItem<S, H>(this.doUpdate.bind(this, hashKey, rangeKey), this.options.document)
   }
 
-  query(hashKey: H) {
-    return new Query<S, H, R>(this.doQuery.bind(this), this.hash, hashKey)
-  }
-
-  scan() {
-    return new Scan(this.doScan.bind(this))
-  }
-
   /**
    * @deprecated not implement
    * @param list
@@ -255,9 +175,9 @@ export class Model<S, H extends TScalar, R extends TScalar = never, KEYS = { +re
     console.warn('@todo implment createSet()')
   }
 
-  async delete(keys: KEYS, params: DocumentClient.DeleteItemInput)
-  async delete(keys: KEYS)
-  async delete(keys: KEYS, params?) {
+  async delete(keys: Partial<S>, params: DocumentClient.DeleteItemInput)
+  async delete(keys: Partial<S>)
+  async delete(keys: Partial<S>, params?) {
     try {
       log('delete params', keys, params)
       const response = await this.engine.delete(keys, params)

@@ -30,6 +30,9 @@ export abstract class Read<S, H extends TScalar> extends Printable<S ,H, Input> 
   }
 
   limit(limit: number) {
+    if (typeof limit !== 'number') {
+      return this.merge({Limit: 1})
+    }
     return this.merge({Limit: limit})
   }
 
@@ -37,8 +40,11 @@ export abstract class Read<S, H extends TScalar> extends Printable<S ,H, Input> 
     return this.merge({ConsistentRead: true})
   }
 
-  startAt(lastEvaluatedKey: Partial<S>) {
+  startAt(lastEvaluatedKey?: Partial<S>) {
     // @todo LastEvaluatedKey
+    if (!lastEvaluatedKey) {
+      return this
+    }
     return this.merge({
       ExclusiveStartKey: lastEvaluatedKey
     })

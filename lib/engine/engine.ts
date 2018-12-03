@@ -176,7 +176,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       return {
         ...params,
         TableName: this.table,
-        Index: this.index
+        IndexName: this.index
       }
     }
     return {

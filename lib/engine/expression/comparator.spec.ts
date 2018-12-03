@@ -1,4 +1,4 @@
-import {Model} from '../../model/model'
+import {Model} from '../..'
 
 interface Schema {
   key: string
@@ -10,7 +10,11 @@ const RANGE_KEY = 'rangeKey'
 describe('ComparisonOperator', () => {
   //  const Fake = new Model<Schema, Schema['key']>('dynalee', 'key')
   //  const Fake = new Model<Schema, Schema['key']>('dynalee', 'key', {})
-  const Fake = new Model<Schema, Schema['key'], Schema['key']>({table: 'dynalee', hash: 'key', range: 'string'})
+  const Fake = new Model<Schema, Schema['key'], Schema['key']>({
+    table: 'dynalee',
+    hash: 'key',
+    range: 'rangeN'
+  })
   //  const Fake = new Model<Schema, Schema['key'], Schema['key']>('dynalee', 'key', 'rangeN', {})
   beforeEach(() => {
   })

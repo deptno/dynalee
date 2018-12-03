@@ -1,4 +1,5 @@
-import R, {Omit} from 'ramda'
+import * as R from 'ramda'
+import {Omit} from 'ramda'
 import {TScalar} from '../../engine'
 import {$between, $eq, $ge, $gt, $le, $lt} from '../../engine/expression/comparator'
 import {$beginsWith} from '../../engine/expression/function'

@@ -6,6 +6,7 @@ export enum ELogs {
   MODEL_DOCUMENT                  = 'model:document',
   MODEL_INDEX                     = 'model:index',
   MODEL_MODEL                     = 'model:model',
+  MODEL_SECONDARY_INDEX                     = 'model:secondary-index',
   MODEL_METHOD_QUERY              = 'model:method:query',
   MODEL_METHOD_UPDATE_ITEM        = 'model:method:update_item',
   MODEL_METHOD_INTERNAL_PRINTABLE = 'model:method:internal:printable',
