@@ -2,15 +2,8 @@
 
 ## Import
 
-1. Default import
-
 ```typescript
-import define from 'dynalee'
-```
-2. Named import
-
-```typescript
-import {define} from 'dynalee'
+import {Model, SecondaryIndex} from 'dynalee'
 ```
 
 ## API
@@ -20,7 +13,35 @@ import {define} from 'dynalee'
 - `define`
 
 ```typescript
-define<Schema, THashKey, TRangeKey?>(tableName: string, hashKeyName: TScalar, rangeKeyName?: TScalar, options: any): Model<Schema, THashKey,TRangeKey>
+Model.define<Schema, THashKey, TRangeKey?>({
+  table,
+  hash,
+  range?,
+  options?
+}): Model<Schema, THashKey,TRangeKey>
+SecondaryIndex.define<Schema, THashKey, TRangeKey?>({
+  table,
+  hash,
+  index,
+  range?,
+  options?
+}): SecondaryIndex<Schema, THashKey,TRangeKey>
+```
+
+you can use `new` instead of `.define`
+
+### SecondaryIndex
+
+- `scan`
+
+```typescript
+scan(): Scan
+```
+
+- `query`
+
+```typescript
+query(hashKey: THashKey): Query
 ```
 
 ### Model
@@ -56,7 +77,6 @@ query(hashKey: THashKey): Query
 ```
 
 - ~~`batchGet`~~
-
 - ~~`batchWrite`~~
 - ~~`createSet`~~
 
