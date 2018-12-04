@@ -7,15 +7,6 @@ import {mergeByTypes} from '../../../util'
 import {ELogs, getLogger} from '../../../util/log'
 import {Document} from '../../document'
 
-const log = getLogger(ELogs.MODEL_METHOD_INTERNAL_PRINTABLE)
-
-type ScanInput = Omit<DocumentClient.ScanInput, 'TableName' | 'Key'>
-type QueryInput = Omit<DocumentClient.QueryInput, 'TableName' | 'Key'>
-type Input = ScanInput | QueryInput
-type Output = Omit<DocumentClient.ScanOutput | DocumentClient.QueryOutput, 'TableName'>
-
-export type Runner<S, H extends TScalar> = (params: Input) => Promise<Omit<Output, 'Items'> & { Items: Document<S, H>[] }>
-
 export abstract class Printable<S, H extends TScalar, I extends Input> {
   protected genKey = replacementKeyGenerator()
   protected genValue = replacementValueGenerator()
@@ -52,4 +43,14 @@ export abstract class Printable<S, H extends TScalar, I extends Input> {
     log('runner() params', this.params)
     return this.runner(this.params)
   }
+}
+const log = getLogger(ELogs.MODEL_METHOD_INTERNAL_PRINTABLE)
+
+export type Runner<S, H extends TScalar> = (params: Input) => Promise<Omit<Output, 'Items'> & { Items: Document<S, H>[] }>
+type ScanInput = Omit<DocumentClient.ScanInput, 'TableName' | 'Key'>
+type QueryInput = Omit<DocumentClient.QueryInput, 'TableName' | 'Key'>
+type Input = ScanInput | QueryInput
+type Output = Omit<DocumentClient.ScanOutput | DocumentClient.QueryOutput, 'TableName'>
+interface RunOption {
+  original: boolean
 }

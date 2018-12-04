@@ -18,7 +18,7 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
     protected readonly engine: Engine<H, R>,
     protected readonly tableName: string,
     protected readonly hashKeyName: string,
-    protected readonly rangeKeyName: string|undefined,
+    protected readonly rangeKeyName: string | undefined,
     data: S,
   ) {
     log('new Document()', tableName, hashKeyName, rangeKeyName, data)
@@ -57,7 +57,7 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
       }
     }
     return {
-      [this.hashKeyName] : this.getHashKey(),
+      [this.hashKeyName]: this.getHashKey(),
     }
   }
 
@@ -65,7 +65,7 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
     return this.base()[this.hashKeyName]
   }
 
-  private getRangeKey(): R|undefined {
+  private getRangeKey(): R | undefined {
     if (this.rangeKeyName) {
       return this.base()[this.rangeKeyName]
     }
@@ -111,8 +111,8 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
         log('put response', response)
         return
       }
-      return response.$response.data
-    } catch(e) {
+      return this
+    } catch (e) {
       log('error put', e)
     }
   }
@@ -129,9 +129,7 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
     }
 
     log('update', params)
-    log('update', applyPatches(
-      this.keys(), this.redo,
-    ))
+    log('update', applyPatches(this.keys(), this.redo,))
     return this.engine.update(this.getHashKey(), this.getRangeKey(), params)
   }
 }

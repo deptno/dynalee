@@ -1,4 +1,4 @@
-import define from '../lib'
+import {Model} from '../lib'
 import './__mocks__/document-client'
 import {ELogs, getLogger} from '../lib/util/log'
 
@@ -20,21 +20,21 @@ interface SchemaEx {
 }
 
 const log = getLogger(ELogs.TEST)
-const User = define<SchemaEx, SchemaEx[typeof HASH_KEY], typeof RANGE_KEY>({
+const User = Model.define<SchemaEx, SchemaEx[typeof HASH_KEY], typeof RANGE_KEY>({
   table: 'dynalee',
   hash : 'id',
   range: 'detail'
 })
-const aUser = define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>({
+const aUser = Model.define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>({
   table: 'dynalee',
   hash : 'id',
   range: 'detail'
 })
-const bUser = define<SchemaEx, SchemaEx['id']>({
+const bUser = Model.define<SchemaEx, SchemaEx['id']>({
   table: 'dynalee',
   hash : 'id'
 })
-const cser = define<SchemaEx, SchemaEx['id']>({
+const cser = Model.define<SchemaEx, SchemaEx['id']>({
   table: 'dynalee',
   hash : 'id'
 })
@@ -109,7 +109,7 @@ async function chain() {
 }
 
 async function streamTest() {
-  const Stream2 = define({table: 'Stream2', hash: 'hid'})
+  const Stream2 = Model.define({table: 'Stream2', hash: 'hid'})
   const result = await Stream2
     .of({
       hid: 'dynalee test'
@@ -124,7 +124,7 @@ async function updateItem() {
     readonly _sort: string
     added: string
   }
-  const User = define<S, string>({
+  const User = Model.define<S, string>({
     table: 'local-googit.io',
     hash : '_id',
   })
