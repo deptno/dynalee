@@ -1,5 +1,3 @@
-import day from 'dayjs'
-
 export interface ModelOptions {
   aws?: AWSOption
   document?: DocumentOptions
@@ -10,33 +8,19 @@ interface AWSOption {
   endpoint: string
 }
 export interface DocumentOptions {
-  timestamp?: {
-    createdAt: MapHandlerAttribute
-    updatedAt?: MapHandlerAttribute
-  }
+  onCreate: MapHandlerAttribute[],
+  onUpdate: MapHandlerAttribute[],
 }
 
-interface MapHandlerAttribute {
+export interface MapHandlerAttribute {
   attributeName: string
-  handler(): unknown
+  handler(prevVal?): unknown
 }
 
 export const defaultModelOptions: ModelOptions = {
   aws: undefined,
   document: {
-    timestamp: {
-      createdAt: {
-        attributeName: 'createdAt',
-        handler() {
-          return day().format()
-        }
-      },
-      updatedAt: {
-        attributeName: 'updatedAt',
-        handler() {
-          return day().format()
-        }
-      }
-    }
+    onCreate: [],
+    onUpdate: []
   }
 }

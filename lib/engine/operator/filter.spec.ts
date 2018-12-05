@@ -1,6 +1,6 @@
 import {mergeByTypes} from '../../util'
 import {replacementKeyGenerator, replacementValueGenerator} from '../expression/helper'
-import {FilterOperator} from './operator'
+import {Filter} from './filter'
 
 interface S {
   readonly hashkey: number
@@ -15,7 +15,7 @@ describe('FilterOperator', () => {
         ExpressionAttributeNames : {'#a': 'testEq'},
         ExpressionAttributeValues: {':a': 'a'}
       })
-      FilterOperator
+      Filter
         .of<S>(replacementKeyGenerator(), replacementValueGenerator(), done)
         .eq('testEq', 'a')
     })
@@ -25,7 +25,7 @@ describe('FilterOperator', () => {
         ExpressionAttributeNames : {'#a': 'testNe'},
         ExpressionAttributeValues: {':a': 4}
       })
-      FilterOperator
+      Filter
         .of<S>(replacementKeyGenerator(), replacementValueGenerator(), done)
         .ne('testNe', 4)
     })
@@ -35,7 +35,7 @@ describe('FilterOperator', () => {
         ExpressionAttributeNames : {'#a': 'testLt'},
         ExpressionAttributeValues: {':a': 4}
       })
-      FilterOperator
+      Filter
         .of<S>(replacementKeyGenerator(), replacementValueGenerator(), done)
         .lt('testLt', 4)
     })
@@ -45,7 +45,7 @@ describe('FilterOperator', () => {
         ExpressionAttributeNames : {'#a': 'testLE'},
         ExpressionAttributeValues: {':a': 4}
       })
-      FilterOperator
+      Filter
         .of<S>(replacementKeyGenerator(), replacementValueGenerator(), done)
         .le('testLE', 4)
     })
@@ -55,7 +55,7 @@ describe('FilterOperator', () => {
         ExpressionAttributeNames : {'#a': 'testGT'},
         ExpressionAttributeValues: {':a': 4}
       })
-      FilterOperator
+      Filter
         .of<S>(replacementKeyGenerator(), replacementValueGenerator(), done)
         .gt('testGT', 4)
     })
@@ -65,7 +65,7 @@ describe('FilterOperator', () => {
         ExpressionAttributeNames : {'#a': 'testGe'},
         ExpressionAttributeValues: {':a': 4}
       })
-      FilterOperator
+      Filter
         .of<S>(replacementKeyGenerator(), replacementValueGenerator(), done)
         .ge('testGe', 4)
     })
@@ -75,7 +75,7 @@ describe('FilterOperator', () => {
         ExpressionAttributeNames : {'#a': 'testBetween'},
         ExpressionAttributeValues: {':a': 'a', ':b': 1}
       })
-      FilterOperator
+      Filter
         .of<S>(replacementKeyGenerator(), replacementValueGenerator(), done)
         .between('testBetween', 'a', 1)
     })
@@ -85,7 +85,7 @@ describe('FilterOperator', () => {
         ExpressionAttributeNames : {'#a': 'testIn'},
         ExpressionAttributeValues: {':a': 'TT', ':b': 'TTT', ':c': 33, ':d': 333}
       })
-      FilterOperator
+      Filter
         .of<S>(replacementKeyGenerator(), replacementValueGenerator(), done)
         .in('testIn', 'TT', 'TTT', 33, 333)
     })
@@ -94,7 +94,7 @@ describe('FilterOperator', () => {
         FilterExpression        : 'attribute_exists(#a)',
         ExpressionAttributeNames: {'#a': 'testAttributeExists'}
       })
-      FilterOperator
+      Filter
         .of<S>(replacementKeyGenerator(), replacementValueGenerator(), done)
         .attributeExists('testAttributeExists')
     })
@@ -103,7 +103,7 @@ describe('FilterOperator', () => {
         FilterExpression        : 'attribute_not_exists(#a)',
         ExpressionAttributeNames: {'#a': 'testAttributeNotExists'}
       })
-      FilterOperator
+      Filter
         .of<S>(replacementKeyGenerator(), replacementValueGenerator(), done)
         .attributeNotExists('testAttributeNotExists')
     })
@@ -113,7 +113,7 @@ describe('FilterOperator', () => {
         ExpressionAttributeNames : {'#a': 'testAttirubteType'},
         ExpressionAttributeValues: {':a': 'NS'}
       })
-      FilterOperator
+      Filter
         .of<S>(replacementKeyGenerator(), replacementValueGenerator(), done)
         .attributeType('testAttirubteType', 'NS')
     })
@@ -123,7 +123,7 @@ describe('FilterOperator', () => {
         ExpressionAttributeNames : {'#a': 'testBeginsWith'},
         ExpressionAttributeValues: {':a': '^^'}
       })
-      FilterOperator
+      Filter
         .of<S>(replacementKeyGenerator(), replacementValueGenerator(), done)
         .beginsWith('testBeginsWith', '^^')
     })
@@ -133,7 +133,7 @@ describe('FilterOperator', () => {
         ExpressionAttributeNames : {'#a': 'testContains'},
         ExpressionAttributeValues: {':a': 'included?'}
       })
-      FilterOperator
+      Filter
         .of<S>(replacementKeyGenerator(), replacementValueGenerator(), done)
         .contains('testContains', 'included?')
     })
@@ -142,7 +142,7 @@ describe('FilterOperator', () => {
   it('should increment replace id', () => {
     let store = {}
     const updateStore = (params) => store = mergeByTypes('AND', store, params)
-    FilterOperator
+    Filter
       .of<S>(replacementKeyGenerator(), replacementValueGenerator(), updateStore)
       .eq('testEq', 'a')
       .ne('testNe', 4)

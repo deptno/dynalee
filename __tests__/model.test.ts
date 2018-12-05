@@ -120,13 +120,13 @@ async function streamTest() {
 
 async function updateItem() {
   interface S {
-    readonly _id: string
-    readonly _sort: string
+    readonly hash: string
+    readonly range: string
     added: string
   }
   const User = Model.define<S, string>({
-    table: 'local-googit.io',
-    hash : '_id',
+    table: 'DynaleeTest',
+    hash : 'hash',
   })
   const result = await User.updateItem('63701340')
     .update(setter => {
@@ -136,4 +136,49 @@ async function updateItem() {
   console.log('result', result)
 }
 
-updateItem()
+async function trigger() {
+  interface S {
+    readonly hash: string
+    readonly range: string
+    added?: string
+  }
+  const User = Model.define<S, string, string>({
+    table  : 'DynaleeTest',
+    hash   : 'hash',
+    range  : 'range',
+    options: {
+      document: {
+        onCreate: [
+          {
+            attributeName: 'createdAt',
+            handler(prevVal?): unknown {
+              return new Date().toISOString()
+            }
+          }
+        ],
+        onUpdate: [
+          {
+            attributeName: 'updatedAt',
+            handler(prevVal?): unknown {
+              return new Date().toISOString()
+            }
+          }
+        ]
+      }
+    }
+  })
+  {
+    const user = User.of({
+      hash : 'a',
+      range: 'b',
+    })
+    await user.put()
+  }
+  {
+    console.log('-- update')
+    const user = await User.get('a', 'b',)
+    console.log('user')
+    await user.put()
+  }
+}
+trigger()

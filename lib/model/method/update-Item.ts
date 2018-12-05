@@ -25,38 +25,37 @@ export class UpdateItem<S, H extends TScalar> extends Write<S, H, DxPreUpdateInp
   }
 
   protected preRun() {
-    this.reviseUpdatedAt()
+    this.revise()
     super.preRun()
   }
 
-  private reviseUpdatedAt() {
-    if (!this.options.timestamp) {
+  private revise() {
+    if (!this.options) {
       return
     }
-    const {updatedAt} = this.options.timestamp
-    if (!updatedAt) {
-      return
-    }
-    const {attributeName, handler} = updatedAt
-    log('reviseUpdatedAt', updatedAt)
-    const rUpdatedAtKey = this.genKey()
-    const rUpdatedAtValue = this.genValue()
+    this.options.onUpdate
+      .forEach(trigger => {
+        const {attributeName, handler} = trigger
+        const rUpdatedAtKey = this.genKey()
+        const rUpdatedAtValue = this.genValue()
 
-    // @todo @fixme pattern is broken
-    if (!this.params.ExpressionAttributeNames) {
-      return
-    }
-    if (!this.params.ExpressionAttributeNames[attributeName]) {
-      this.updater.expressions.push(`SET ${rUpdatedAtKey} = ${rUpdatedAtValue}`)
-      this.merge({
-        ExpressionAttributeNames : {
-          [rUpdatedAtKey]: attributeName
-        },
-        ExpressionAttributeValues: {
-          [rUpdatedAtValue]: handler()
+        // @todo @fixme pattern is broken
+        if (!this.params.ExpressionAttributeNames) {
+          console.error('unpredictablee error')
+          return
+        }
+        if (!this.params.ExpressionAttributeNames[attributeName]) {
+          this.updater.expressions.push(`SET ${rUpdatedAtKey} = ${rUpdatedAtValue}`)
+          this.merge({
+            ExpressionAttributeNames : {
+              [rUpdatedAtKey]: attributeName
+            },
+            ExpressionAttributeValues: {
+              [rUpdatedAtValue]: handler()
+            }
+          })
         }
       })
-    }
   }
 }
 

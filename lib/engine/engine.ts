@@ -20,7 +20,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   protected readonly hash: string
   protected readonly range?: string
   protected readonly index?: string
-  protected readonly options: DocumentOptions
+  public readonly options: DocumentOptions
 
   constructor(params: EngineParams) {
     const {ddbClient, table, hash, range, index, options} = params
@@ -30,21 +30,6 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
     this.range = range
     this.index = index
     this.options = options
-  }
-
-  private applyPutOptions(item) {
-    if (!this.options || !this.options.timestamp) {
-      return item
-    }
-    const {createdAt, updatedAt} = this.options.timestamp
-    const change = {}
-    if (createdAt && item[createdAt.attributeName] === undefined) {
-      change[createdAt.attributeName] = createdAt.handler()
-    }
-    if (updatedAt) {
-      change[updatedAt.attributeName] = updatedAt.handler()
-    }
-    return Object.assign(change, item)
   }
 
   async batchGet(hashKey: H, rangeKey?: R, params?) {
@@ -64,12 +49,6 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   }
 
   batchWrite(params: DocumentClient.BatchWriteItemInput) {
-    params.RequestItems[this.table].forEach(requestItem => {
-      if (requestItem.PutRequest) {
-        requestItem.PutRequest.Item = this.applyPutOptions(requestItem.PutRequest.Item)
-      }
-    })
-
     return this.ddbClient
       .batchWrite(params)
       .promise()
@@ -80,17 +59,14 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   /**
    * @todo
    */
-  createSet(list, options) {
-  }
+//  createSet(list, options) {
+//  }
 
-  delete(keys, params?: OperatorParam<DocumentClient.DeleteItemInput>) {
+  delete(keys) {
     return this.ddbClient
-      .delete({
-        ...this.getTableParam({Key: keys}),
-        ...params
-      })
+      .delete(this.getTableParam({Key: keys}))
       .promise()
-      .catch(e => this.handleError(params, e))
+      .catch(e => this.handleError(keys, e))
   }
 
   /**
@@ -110,17 +86,13 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   }
 
   /**
-   *
-   * @param hashKey
-   * @param rangeKey
    * @param input
    * @returns {Promise<PromiseResult<DocumentClient.PutItemOutput, AWSError>>}
    */
-  put(hashKey: H, rangeKey: R | undefined, input: DocumentClient.PutItemInput) {
+  put(input: Omit<DocumentClient.PutItemInput, 'TableName'>) {
     const params: DocumentClient.PutItemInput = {
       ...input,
       ...this.getTableParam(),
-      Item: this.applyPutOptions(input.Item)
     }
     log('put params', params)
     return this.ddbClient
@@ -191,7 +163,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
    * @param rangeKey
    * @returns {{Key: {}}}
    */
-  private getKeyParam = (hashKey: H, rangeKey?: R) => {
+  private getKeyParam = (hashKey: H, rangeKey?: R): { Key: {}; } => {
     if (!this.range) {
       if (rangeKey) {
         log(`ignore. range key(${rangeKey}), rangeKey is not defined`)

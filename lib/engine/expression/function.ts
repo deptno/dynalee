@@ -1,8 +1,7 @@
 import {curry} from 'ramda'
-import {TScalar} from '../engine'
 import {DDBDataType, Generator, TExpression} from './type'
 
-export const $attributeExists = curry(<T extends TScalar>(
+export const $attributeExists = curry((
   expressionName: TExpression,
   genKey: Generator,
   keyPath: string) => {
@@ -12,7 +11,7 @@ export const $attributeExists = curry(<T extends TScalar>(
     ExpressionAttributeNames: {[key]: keyPath},
   }
 })
-export const $attributeNotExists = curry(<T extends TScalar>(
+export const $attributeNotExists = curry((
   expressionName: TExpression,
   genKey: Generator,
   keyPath: string) => {

@@ -37,7 +37,7 @@ const Pet = Model.define<Account, string, string>({
   try {
     const list = await ddb.listTables().promise()
     log(list)
-    if (!list.TableNames || list.TableNames.length == 0) {
+    if (!list.TableNames || list.TableNames.length == 0 || !list.TableNames.includes('DynaleeTest')) {
       await createTable()
     }
 
@@ -57,21 +57,21 @@ async function createTable() {
     .createTable({
       AttributeDefinitions : [
         {
-          AttributeName: 'name',
-          AttributeType: 'N'
+          AttributeName: 'hash',
+          AttributeType: 'S'
         },
         {
-          AttributeName: 'createdAt',
+          AttributeName: 'range',
           AttributeType: 'S'
         },
       ],
       KeySchema            : [
         {
-          AttributeName: 'name',
+          AttributeName: 'hash',
           KeyType      : 'HASH'
         },
         {
-          AttributeName: 'createdAt',
+          AttributeName: 'range',
           KeyType      : 'RANGE'
         }
       ],
@@ -89,7 +89,7 @@ async function createTable() {
 function createUserData(howmany: 4): User[] {
   return Array(howmany)
     .fill(0)
-    .map((_, i) => {
+    .map((_) => {
       return {
         name     : name.title(),
         createdAt: date.past().toISOString(),

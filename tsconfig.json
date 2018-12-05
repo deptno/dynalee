@@ -6,6 +6,7 @@
     "strictNullChecks": true,
 //    "strictFunctionTypes": true,
     "strictPropertyInitialization": true,
+    "noUnusedParameters": true,
     "esModuleInterop": true,
     "keyofStringsOnly": true
   },

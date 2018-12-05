@@ -62,7 +62,7 @@ export const $in = <T extends TScalar>(
     throw new Error(`dynamodb doesn't support \`A in (... more than 100)\` expression`)
   }
   const key = genKey()
-  const replacements = values.map((_, i) => genValue())
+  const replacements = values.map(genValue)
   const attributeValues = replacements.reduce((ret, r, i) => ({
     ...ret,
     [r]: values[i]

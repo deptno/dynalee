@@ -2,7 +2,7 @@ import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import {Omit} from 'ramda'
 import {TScalar} from '../../../engine'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../../engine/expression/helper'
-import {FilterOperator} from '../../../engine/operator/operator'
+import {Filter} from '../../../engine/operator/filter'
 import {Printable} from './printable'
 
 type ScanInput = Omit<DocumentClient.ScanInput, 'TableName' | 'Key'>
@@ -21,10 +21,10 @@ export abstract class Read<S, H extends TScalar> extends Printable<S ,H, Input> 
     })
   }
 
-  filter(setter: (and: FilterOperator<S>, or: FilterOperator<S>) => void) {
+  filter(setter: (and: Filter<S>, or: Filter<S>) => void) {
     setter(
-      FilterOperator.of(this.genKey, this.genValue, (params) => this.merge(params)),
-      FilterOperator.of(this.genKey, this.genValue, (params) => this.merge(params, 'OR')),
+      Filter.of(this.genKey, this.genValue, (params) => this.merge(params)),
+      Filter.of(this.genKey, this.genValue, (params) => this.merge(params, 'OR')),
     )
     return this
   }

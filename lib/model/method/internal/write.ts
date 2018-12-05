@@ -2,7 +2,7 @@ import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import {Omit} from 'ramda'
 import {TScalar} from '../../../engine'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../../engine/expression/helper'
-import {FilterOperator} from '../../../engine/operator/operator'
+import {Filter} from '../../../engine/operator/filter'
 import {Updater} from '../../../engine/operator/updater'
 import {ELogs, getLogger} from '../../../util/log'
 import {Printable} from './printable'
@@ -37,7 +37,7 @@ export abstract class Write<S, H extends TScalar, I extends Input> extends Print
     })
     const result = Object
       .entries(expressions)
-      .filter(([op, exp]) => Boolean(exp))
+      .filter(([_, exp]) => Boolean(exp))
       .map(([op, exp]) => `${op} ${exp}`)
       .join(', ')
       .trim()
@@ -50,11 +50,11 @@ export abstract class Write<S, H extends TScalar, I extends Input> extends Print
     return this
   }
 
-  condition(setter: (and: FilterOperator<S>, or: FilterOperator<S>, not: FilterOperator<S>) => void) {
+  condition(setter: (and: Filter<S>, or: Filter<S>, not: Filter<S>) => void) {
     setter(
-      FilterOperator.of(this.genKey, this.genValue, (params) => this.merge(params)),
-      FilterOperator.of(this.genKey, this.genValue, (params) => this.merge(params, 'OR')),
-      FilterOperator.of(this.genKey, this.genValue, (params) => this.merge(params, 'NOT')),
+      Filter.of(this.genKey, this.genValue, (params) => this.merge(params)),
+      Filter.of(this.genKey, this.genValue, (params) => this.merge(params, 'OR')),
+      Filter.of(this.genKey, this.genValue, (params) => this.merge(params, 'NOT')),
     )
     return this
   }

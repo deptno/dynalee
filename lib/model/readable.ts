@@ -8,7 +8,7 @@ import {defaultModelOptions, ModelOptions} from './option'
 
 const log = getLogger(ELogs.MODEL_MODEL)
 
-export interface ReadableParams<S, H, R> {
+export interface ReadableParams<S> {
   table: string
   hash: keyof S
   range?: keyof S
@@ -22,21 +22,29 @@ export abstract class Readable<S, H extends TScalar, R extends TScalar = never> 
   protected readonly options: ModelOptions
   protected engine!: Engine<H, R>
 
-  protected constructor(params: ReadableParams<S, H, R>) {
+  protected constructor(params: ReadableParams<S>) {
     const {table, hash, range, options = {} as ModelOptions} = params
     this.options = options
     this.table = table
     this.hash = hash
     this.range = range
-
-    if (!this.options.document) {
-      this.options.document = defaultModelOptions.document
+    this.options.document = {
+      ...defaultModelOptions.document!,
+      ...options.document
     }
 
     this.setEngine(params)
   }
 
-  protected setEngine(params: ReadableParams<S, H, R>) {
+  query(hashKey: H) {
+    return new Query<S, H, R>(this.doQuery.bind(this), this.hash, hashKey)
+  }
+
+  scan() {
+    return new Scan(this.doScan.bind(this))
+  }
+
+  protected setEngine(params: ReadableParams<S>) {
     this.engine = new Engine({
       ...params,
       ddbClient: getDdbClient(this.options.aws),
@@ -44,8 +52,8 @@ export abstract class Readable<S, H extends TScalar, R extends TScalar = never> 
     })
   }
 
-  protected createDocument(item) {
-    return new Document<S, H, R>(this.engine, this.table, this.hash, this.range, item)
+  protected createDocument(item, exists = false) {
+    return new Document<S, H, R>(this.engine, this.table, this.hash, this.range, exists, item)
   }
 
   private async doQuery(params) {
@@ -57,7 +65,7 @@ export abstract class Readable<S, H extends TScalar, R extends TScalar = never> 
       }
       response.Items = response.Count === 0
         ? []
-        : response.Items!.map(item => this.createDocument(item))
+        : response.Items!.map(item => this.createDocument(item, true))
       return response
     } catch (e) {
       log('doQuery', e, this)
@@ -74,19 +82,11 @@ export abstract class Readable<S, H extends TScalar, R extends TScalar = never> 
       }
       response.Items = response.Count === 0
         ? []
-        : response.Items!.map(item => this.createDocument(item))
+        : response.Items!.map(item => this.createDocument(item, true))
       return response
     } catch (e) {
       throw new Error(e.message)
     }
-  }
-
-  query(hashKey: H) {
-    return new Query<S, H, R>(this.doQuery.bind(this), this.hash, hashKey)
-  }
-
-  scan() {
-    return new Scan(this.doScan.bind(this))
   }
 }
 

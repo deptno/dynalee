@@ -15,6 +15,7 @@ export enum ELogs {
   ENGINE_ENGINE                   = 'engine:engine',
   ENGINE_EXPRESSION_HELPER        = 'engine:expression:helper',
   ENGINE_OPERATOR_UPDATER         = 'engine:operator:updater',
+  ENGINE_OPERATOR_CONDITION         = 'engine:operator:condition',
   TEST                            = 'test',
 }
 

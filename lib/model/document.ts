@@ -1,5 +1,6 @@
 import {DocumentClient} from 'aws-sdk/clients/dynamodb'
 import {applyPatches, Draft, Patch, produce} from 'immer'
+import {Omit} from 'ramda'
 import {Engine, TScalar} from '../engine'
 import {dynamodbDoc} from '../util/dynamodb-document'
 import {ELogs, getLogger} from '../util/log'
@@ -19,18 +20,14 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
     protected readonly tableName: string,
     protected readonly hashKeyName: string,
     protected readonly rangeKeyName: string | undefined,
+    private readonly sureExistOnDb: boolean,
     data: S,
   ) {
     log('new Document()', tableName, hashKeyName, rangeKeyName, data)
     this.current = Object.freeze(dynamodbDoc(data))
   }
 
-  /**
-   * @todo make it lazy
-   * @todo immer already support record
-   */
   set(setter: (draft: Draft<S>) => void) {
-    log('set', this.current)
     this.current = produce(this.current, setter, (redos, undos) => {
       this.redo.push(...redos)
       this.undo.push(...undos)
@@ -38,9 +35,6 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
     return this
   }
 
-  /**
-   * @todo for lazy, debug
-   */
   head() {
     return this.current
   }
@@ -74,8 +68,8 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
   /**
    * @todo check, is created from DB
    */
-  async delete(params?: DocumentClient.DeleteItemInput) {
-    log('delete', params)
+  async delete() {
+    log('delete')
     const keys: DocumentClient.DeleteItemInput['Key'] = {
       [this.hashKeyName]: this.getHashKey()
     }
@@ -84,7 +78,7 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
         [this.rangeKeyName]: this.getRangeKey()
       })
     }
-    return this.engine.delete(keys, params)
+    return this.engine.delete(keys)
   }
 
   /**
@@ -99,14 +93,25 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
    * @param params
    * @returns {Request<DocumentClient.PutItemOutput, AWSError>}
    */
-  async put(params?) {
-    params = {
-      ...params,
-      Item: this.head()
-    }
-    log('put', params)
+  async put() {
+    const params = {} as Omit<DocumentClient.PutItemInput, 'TableName'>
+    log('put', params, this.sureExistOnDb)
     try {
-      const response = await this.engine.put(this.getHashKey(), this.getRangeKey(), params)
+      // Do not overwrite item when it exists on server
+      if (!this.sureExistOnDb) {
+        params.ConditionExpression = `attribute_not_exists(#HSK)`
+        params.ExpressionAttributeNames = {
+          '#HSK': this.hashKeyName
+        }
+        this.engine.options.onCreate
+          .forEach(({attributeName, handler}) => this.set(setter => void (setter[attributeName] = handler())))
+      }
+
+      this.engine.options.onUpdate
+        .forEach(({attributeName, handler}) => this.set(setter => void (setter[attributeName] = handler())))
+
+      params.Item = this.head()
+      const response = await this.engine.put(params)
       if (!response) {
         log('put response', response)
         return
