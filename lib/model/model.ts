@@ -29,7 +29,7 @@ export class Model<S, H extends TScalar, RK extends TScalar = never> extends Rea
 
   async batchWrite(items: DocumentClient.WriteRequest[]) {
     const documentOption = this.options.document
-    const requestToPut = item => documentOption!.onCreate.reduce(triggerReducer(item), item)
+    const requestToPut = item => documentOption!.onCreate.reduce(triggerReducer, item)
     const transform = documentOption
       ? (item: DocumentClient.WriteRequest) => item.PutRequest
         ? {

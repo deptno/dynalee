@@ -6,7 +6,7 @@ export enum ELogs {
   MODEL_DOCUMENT                  = 'model:document',
   MODEL_INDEX                     = 'model:index',
   MODEL_MODEL                     = 'model:model',
-  MODEL_SECONDARY_INDEX                     = 'model:secondary-index',
+  MODEL_SECONDARY_INDEX           = 'model:secondary-index',
   MODEL_METHOD_QUERY              = 'model:method:query',
   MODEL_METHOD_UPDATE_ITEM        = 'model:method:update_item',
   MODEL_METHOD_INTERNAL_PRINTABLE = 'model:method:internal:printable',
@@ -15,7 +15,7 @@ export enum ELogs {
   ENGINE_ENGINE                   = 'engine:engine',
   ENGINE_EXPRESSION_HELPER        = 'engine:expression:helper',
   ENGINE_OPERATOR_UPDATER         = 'engine:operator:updater',
-  ENGINE_OPERATOR_CONDITION         = 'engine:operator:condition',
+  ENGINE_OPERATOR_CONDITION       = 'engine:operator:condition',
   TEST                            = 'test',
 }
 
