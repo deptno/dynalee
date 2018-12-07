@@ -23,7 +23,6 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
     private readonly sureExistOnDb: boolean,
     data: S,
   ) {
-    log('new Document()', tableName, hashKeyName, rangeKeyName, data)
     this.current = Object.freeze(dynamodbDoc(data))
   }
 
@@ -69,7 +68,6 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
    * @todo check, is created from DB
    */
   async delete() {
-    log('delete')
     const keys: DocumentClient.DeleteItemInput['Key'] = {
       [this.hashKeyName]: this.getHashKey()
     }
@@ -94,8 +92,8 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
    * @returns {Request<DocumentClient.PutItemOutput, AWSError>}
    */
   async put() {
+    log('put overwrite', this.sureExistOnDb)
     const params = {} as Omit<DocumentClient.PutItemInput, 'TableName'>
-    log('put', params, this.sureExistOnDb)
     try {
       // Do not overwrite item when it exists on server
       if (!this.sureExistOnDb) {
@@ -112,8 +110,8 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
 
       params.Item = this.head()
       const response = await this.engine.put(params)
+      log('put response', response)
       if (!response) {
-        log('put response', response)
         return
       }
       return this
@@ -132,9 +130,6 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
       ...params,
       Item: this.head()
     }
-
-    log('update', params)
-    log('update', applyPatches(this.keys(), this.redo,))
     return this.engine.update(this.getHashKey(), this.getRangeKey(), params)
   }
 }

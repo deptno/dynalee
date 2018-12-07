@@ -12,6 +12,7 @@ export enum ELogs {
   MODEL_METHOD_INTERNAL_PRINTABLE = 'model:method:internal:printable',
   MODEL_METHOD_INTERNAL_WRITE     = 'model:method:internal:write',
   UTIL_DYNAMODB_DOCUMENT          = 'util:dynamodb_document',
+  UTIL_TRIGGER                    = 'util:trigger',
   ENGINE_ENGINE                   = 'engine:engine',
   ENGINE_EXPRESSION_HELPER        = 'engine:expression:helper',
   ENGINE_OPERATOR_UPDATER         = 'engine:operator:updater',

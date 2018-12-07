@@ -12,7 +12,7 @@ function promisify(fx) {
 }
 
 function identity(params) {
-  console.log('ientity', params)
+  console.log('identity', params)
   return {
     ...params,
     __mocked: true

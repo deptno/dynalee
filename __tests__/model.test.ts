@@ -1,5 +1,5 @@
+//import './__mocks__/document-client'
 import {Model} from '../lib'
-import './__mocks__/document-client'
 import {ELogs, getLogger} from '../lib/util/log'
 
 const HASH_KEY = 'id'
@@ -151,7 +151,7 @@ async function trigger() {
         onCreate: [
           {
             attributeName: 'createdAt',
-            handler(prevVal?): unknown {
+            handler(): unknown {
               return new Date().toISOString()
             }
           }
@@ -159,7 +159,7 @@ async function trigger() {
         onUpdate: [
           {
             attributeName: 'updatedAt',
-            handler(prevVal?): unknown {
+            handler(): unknown {
               return new Date().toISOString()
             }
           }
@@ -181,4 +181,45 @@ async function trigger() {
     await user.put()
   }
 }
-trigger()
+
+async function list() {
+  interface S {
+    readonly hash: string
+    readonly range: string
+    added?: string
+    li?: Set<string>
+    list?: string[]
+  }
+  const User = Model.define<S, string, string>({
+    table: 'DynaleeTest',
+    hash : 'hash',
+    range: 'range',
+  })
+  {
+    const user = User.of({
+      hash : 'a',
+      range: 'c',
+      list: []
+    })
+    await user.put()
+  }
+//  {
+//    console.log('-- update')
+//    const user = await User.updateItem('a', 'c',)
+//      .update(setter => {
+//        setter.add('li', new Set(['kx']))
+//      })
+//      .run()
+//    console.log('user', user)
+//  }
+//  {
+//    console.log('-- update')
+//    const user = await User.updateItem('a', 'c',)
+//      .update(setter => {
+//        setter.delete('li', new Set(['__holder__']))
+//      })
+//      .run()
+//    console.log('user', user)
+//  }
+}
+list()

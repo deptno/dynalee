@@ -1,6 +1,7 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import {Omit} from 'ramda'
 import {TScalar} from '../../engine'
+import {dynamodbValue} from '../../util/dynamodb-document'
 import {ELogs, getLogger} from '../../util/log'
 import {defaultModelOptions, DocumentOptions} from '../option'
 import {Runner} from './internal/printable'
@@ -51,7 +52,7 @@ export class UpdateItem<S, H extends TScalar> extends Write<S, H, DxPreUpdateInp
               [rUpdatedAtKey]: attributeName
             },
             ExpressionAttributeValues: {
-              [rUpdatedAtValue]: handler()
+              [rUpdatedAtValue]: dynamodbValue(handler())
             }
           })
         }

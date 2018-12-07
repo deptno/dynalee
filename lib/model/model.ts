@@ -23,13 +23,16 @@ export class Model<S, H extends TScalar, RK extends TScalar = never> extends Rea
     return this.createDocument(data)
   }
 
-//  async batchGet(params?) {
-//    console.warn('@todo implement batchGet')
-//  }
+  //  async batchGet(params?) {
+  //    console.warn('@todo implement batchGet')
+  //  }
 
   async batchWrite(items: DocumentClient.WriteRequest[]) {
     const documentOption = this.options.document
-    const requestToPut = item => documentOption!.onCreate.reduce(triggerReducer, item)
+    const requestToPut = item => [
+      ...documentOption!.onCreate,
+      ...documentOption!.onUpdate
+    ].reduce(triggerReducer, item)
     const transform = documentOption
       ? (item: DocumentClient.WriteRequest) => item.PutRequest
         ? {
@@ -40,28 +43,31 @@ export class Model<S, H extends TScalar, RK extends TScalar = never> extends Rea
         : R.identity(item)
       : R.identity
 
-    const params = {
-      RequestItems: {
-        [this.table]: items.map(transform)
-      }
-    }
-
-    try {
-      const response = await this.engine.batchWrite(params)
-      log('batchWrite response', response)
-      if (!response) {
-        return
-      }
-      if (response.UnprocessedItems) {
-        const unprocessedItems = Object.keys(response.UnprocessedItems)
-        if (unprocessedItems.length > 0) {
-          /**
-           * @todo
-           */
-          log('[CR] UnprocessedItems', response.UnprocessedItems)
+    const paramsList = R.splitEvery(25, items).map(items => {
+      return {
+        RequestItems: {
+          [this.table]: items.map(transform)
         }
       }
-      return response.$response.data
+    })
+
+    try {
+      const pResponses = Promise.all(paramsList.map(params => this.engine.batchWrite(params)))
+      const responses = await pResponses
+      const unprocessedItems = responses.reduce((unprocessedItems, response) => {
+        if (response) {
+          if (response.UnprocessedItems) {
+            const unprocessedItems = Object.keys(response.UnprocessedItems)
+            unprocessedItems.push(...unprocessedItems)
+          }
+        }
+        return unprocessedItems
+      }, [])
+      console.log('batchWrite responses', responses)
+      if (unprocessedItems.length > 0) {
+        console.error('[CR] unprocessedItems', unprocessedItems)
+      }
+      return
     } catch (e) {
       throw new Error(e.message)
     }

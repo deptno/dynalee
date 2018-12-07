@@ -1,3 +1,4 @@
+import {dynamodbValue} from '../../util/dynamodb-document'
 import {ELogs, getLogger} from '../../util/log'
 import {TScalar} from '../engine'
 import {TExpression} from '../expression/type'
@@ -26,7 +27,7 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
     this.expressions.push(`SET ${rKey} = ${rValue}`)
     this.done({
       ExpressionAttributeNames : {[rKey]: path},
-      ExpressionAttributeValues: {[rValue]: value}
+      ExpressionAttributeValues: {[rValue]: dynamodbValue(value)}
     })
     return this
   }
@@ -44,7 +45,7 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
       this.expressions.push(`SET ${rKey} = ${rKey} + ${rValueA}`)
       this.done({
         ExpressionAttributeNames : {[rKey]: path},
-        ExpressionAttributeValues: {[rValueA]: a}
+        ExpressionAttributeValues: {[rValueA]: dynamodbValue(a)}
       })
     } else if (typeof b === 'number') {
       // another path + value
@@ -56,7 +57,7 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
           [rKey] : path,
           [rKeyA]: a
         },
-        ExpressionAttributeValues: {[rValueA]: b}
+        ExpressionAttributeValues: {[rValueA]: dynamodbValue(b)}
       })
     } else {
       if (!b) {
@@ -91,7 +92,7 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
       this.expressions.push(`SET ${rKey} = ${rKey} - ${rValueA}`)
       this.done({
         ExpressionAttributeNames : {[rKey]: path},
-        ExpressionAttributeValues: {[rValueA]: a}
+        ExpressionAttributeValues: {[rValueA]: dynamodbValue(a)}
       })
     } else if (typeof b === 'number') {
       // another path - value
@@ -103,7 +104,7 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
           [rKey] : path,
           [rKeyA]: a
         },
-        ExpressionAttributeValues: {[rValueA]: b}
+        ExpressionAttributeValues: {[rValueA]: dynamodbValue(b)}
       })
     } else {
       // another path - another path
@@ -133,17 +134,17 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
       this.expressions.push(`SET ${rKey} = list_append(${rKey}, ${rValue})`)
       this.done({
         ExpressionAttributeNames : {[rKey]: path},
-        ExpressionAttributeValues: {[rValue]: set}
+        ExpressionAttributeValues: {[rValue]: dynamodbValue(set)}
       })
     } else {
       const rSourceKey = this.genKey()
       this.expressions.push(`SET ${rKey} = list_append(${rSourceKey}, ${rValue})`)
       this.done({
         ExpressionAttributeNames : {
-          [rKey]: path,
+          [rKey]      : path,
           [rSourceKey]: sourceProp
         },
-        ExpressionAttributeValues: {[rValue]: set}
+        ExpressionAttributeValues: {[rValue]: dynamodbValue(set)}
       })
     }
     return this
@@ -167,22 +168,26 @@ export class Updater<S, K extends string = keyof S, T = TScalar> implements Oper
   }
 
   add(path: K, value: T) {
-    if (value === undefined) {
-      log(`add {${path}: ${value}} is ignored`)
-      return this
-    }
-    // @todo
-    console.warn('add() is not implemented yet.')
+    const rKey = this.genKey()
+    const rValue = this.genValue()
+
+    this.expressions.push(`ADD ${rKey} ${rValue}`)
+    this.done({
+      ExpressionAttributeNames : {[rKey]: path},
+      ExpressionAttributeValues: {[rValue]: dynamodbValue(value)}
+    })
     return this
   }
 
   delete(path: K, value: T) {
-    if (value === undefined) {
-      log(`delete {${path}: ${value}} is ignored`)
-      return this
-    }
-    // @todo
-    console.warn('delete() is not implemented yet.')
+    const rKey = this.genKey()
+    const rValue = this.genValue()
+
+    this.expressions.push(`DELETE ${rKey} ${rValue}`)
+    this.done({
+      ExpressionAttributeNames : {[rKey]: path},
+      ExpressionAttributeValues: {[rValue]: dynamodbValue(value)}
+    })
     return this
   }
 }

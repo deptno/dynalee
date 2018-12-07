@@ -45,10 +45,14 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   }
 
   private handleError = (params, e) => {
-    log('error', this.ddbClient['service'].endpoint, e.message, params)
+    console.error('error')
+    console.error(this.ddbClient['service'].endpoint)
+    console.error(e.message)
+    console.error(params)
+    return null
   }
 
-  batchWrite(params: DocumentClient.BatchWriteItemInput) {
+  batchWrite(params: DocumentClient.BatchWriteItemInput): Promise<DocumentClient.BatchWriteItemOutput|null> {
     return this.ddbClient
       .batchWrite(params)
       .promise()
@@ -73,12 +77,12 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
    * @todo throw Error, if (this.rangeKeyName && !rangeKey)
    */
   get(hashKey: H, rangeKey?: R, params?) {
-    log('get args', hashKey, rangeKey, params)
     const param = {
       ...params,
       ...this.createGetParam(hashKey, rangeKey),
     }
-    log('get param', param)
+    log('get param')
+    log(params)
     return this.ddbClient
       .get(param)
       .promise()
@@ -94,7 +98,8 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       ...input,
       ...this.getTableParam(),
     }
-    log('put params', params)
+    log('put params')
+    log(params)
     return this.ddbClient
       .put(params)
       .promise()
@@ -106,7 +111,8 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       ...params,
       ...this.getTableParam(),
     }
-    log('query params', JSON.stringify(params, null, 2))
+    log('query params')
+    log(params)
     return this.ddbClient
       .query(params)
       .promise()
@@ -119,7 +125,8 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       ...params,
       ...this.getTableParam(),
     }
-    log('doscan', params)
+    log('scan')
+    log(params)
     return this.ddbClient
       .scan(params)
       .promise()
@@ -127,12 +134,12 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   }
 
   update(hashKey: H, rangeKey: R | undefined, input?: DocumentClient.UpdateItemInput) {
-    log('update()', hashKey, rangeKey, input)
     const params = {
       ...input,
       ...this.createGetParam(hashKey, rangeKey)
     }
-    log('update() param', params)
+    log('update() param')
+    log(params)
     return this.ddbClient
       .update(params)
       .promise()
