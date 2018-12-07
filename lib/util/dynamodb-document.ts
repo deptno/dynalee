@@ -59,15 +59,15 @@ export const dynamodbValue = (value, ifSet: SetTransformer = defaultSetTransform
   }
   return value
 }
-export const jsDoc = (obj) => {
+export const jsDoc = <T>(obj: T): T => {
   const omit: string[] = []
-  const clone = {}
+  const clone = {} as any
 
   for (const key in obj) {
     clone[key] = jsValue(obj[key])
   }
 
-  return R.omit(omit, clone) as typeof clone
+  return R.omit(omit, clone) as T
 }
 export const jsValue = (value) => {
   if (value.wrapperName === 'Set') {
