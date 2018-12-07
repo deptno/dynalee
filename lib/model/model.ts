@@ -138,7 +138,10 @@ export class Model<S, H extends TScalar, RK extends TScalar = never> extends Rea
     try {
       const response = await this.engine.update(hashKey, rangeKey, params)
       log('doUpdate response', response)
-      return response
+      if (!response) {
+        return null
+      }
+      return this.createDocument(response.Attributes, true)
     } catch (e) {
       log('doUpdate error', e.message, e.stack)
       throw new Error(e.message)

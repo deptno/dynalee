@@ -34,16 +34,7 @@ const isOmitValue = (value) => {
     }
   }
 }
-export const dynamodbValue = (value, ifSet: SetTransformer = defaultSetTransformer) => {
-  if (value instanceof Set) {
-    return ifSet(value)
-  } else if (Array.isArray(value)) {
 
-  } else if (typeof value === 'object') {
-    return dynamodbDoc(value, ifSet)
-  }
-  return value
-}
 export const dynamodbDoc = (obj, ifSet: SetTransformer = defaultSetTransformer) => {
   const omit: string[] = []
   const clone = {...obj}
@@ -56,10 +47,34 @@ export const dynamodbDoc = (obj, ifSet: SetTransformer = defaultSetTransformer) 
       clone[key] = dynamodbValue(value, ifSet)
     }
   }
+  return R.omit(omit, clone) as typeof clone
+}
+export const dynamodbValue = (value, ifSet: SetTransformer = defaultSetTransformer) => {
+  if (value instanceof Set) {
+    return ifSet(value)
+  } else if (Array.isArray(value)) {
+
+  } else if (typeof value === 'object') {
+    return dynamodbDoc(value, ifSet)
+  }
+  return value
+}
+export const jsDoc = (obj) => {
+  const omit: string[] = []
+  const clone = {}
+
+  for (const key in obj) {
+    clone[key] = jsValue(obj[key])
+  }
 
   return R.omit(omit, clone) as typeof clone
 }
-
+export const jsValue = (value) => {
+  if (value.wrapperName === 'Set') {
+    return value.values
+  }
+  return value
+}
 interface SetTransformer {
   (fx: Set<TScalar>): DocumentClient.DynamoDbSet | TScalar[]
 }

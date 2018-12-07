@@ -38,7 +38,7 @@ export abstract class Printable<S, H extends TScalar, I extends Input> {
     return R.omit(['Key'], this.params)
   }
 
-  run(): Promise<Omit<Output, 'Items'> & { Items: Document<S, H>[] }> {
+  run() {
     this.preRun()
     log('runner() params')
     log(this.params)
@@ -47,10 +47,11 @@ export abstract class Printable<S, H extends TScalar, I extends Input> {
 }
 const log = getLogger(ELogs.MODEL_METHOD_INTERNAL_PRINTABLE)
 
-export type Runner<S, H extends TScalar> = (params: Input) => Promise<Omit<Output, 'Items'> & { Items: Document<S, H>[] }>
+export type Runner<S, H extends TScalar> = (params: Input) => Promise<(Omit<Output, 'Items'> & { Items: Document<S, H>[] })|Document<S, H>>
 type ScanInput = Omit<DocumentClient.ScanInput, 'TableName' | 'Key'>
 type QueryInput = Omit<DocumentClient.QueryInput, 'TableName' | 'Key'>
-type Input = ScanInput | QueryInput
+type UpdateItemInput = Omit<DocumentClient.UpdateItemInput, 'TableName' | 'Key'>
+type Input = ScanInput | QueryInput | UpdateItemInput
 type Output = Omit<DocumentClient.ScanOutput | DocumentClient.QueryOutput, 'TableName'>
 interface RunOption {
   original: boolean

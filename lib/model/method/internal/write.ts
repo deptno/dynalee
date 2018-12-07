@@ -35,11 +35,10 @@ export abstract class Write<S, H extends TScalar, I extends Input> extends Print
       ADD   : ``,
       DELETE: ``,
     })
-    const result = Object
-      .entries(expressions)
+    const result = Object.entries(expressions)
       .filter(([_, exp]) => Boolean(exp))
       .map(([op, exp]) => `${op} ${exp}`)
-      .join(', ')
+      .join(' ')
       .trim()
     this.merge({[this.updater.expressionType]: result} as any, ',')
     log('< preRun()')

@@ -6,6 +6,7 @@ import {ELogs, getLogger} from '../../util/log'
 import {defaultModelOptions, DocumentOptions} from '../option'
 import {Runner} from './internal/printable'
 import {Write} from './internal/write'
+import {Document} from '../document'
 
 const log = getLogger(ELogs.MODEL_METHOD_UPDATE_ITEM)
 
@@ -28,6 +29,13 @@ export class UpdateItem<S, H extends TScalar> extends Write<S, H, DxPreUpdateInp
   protected preRun() {
     this.revise()
     super.preRun()
+  }
+
+  run() {
+    this.preRun()
+    log('runner() params')
+    log(this.params)
+    return this.runner(this.params) as unknown as Promise<Document<S, H>>
   }
 
   private revise() {

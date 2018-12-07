@@ -2,7 +2,7 @@ import {DocumentClient} from 'aws-sdk/clients/dynamodb'
 import {applyPatches, Draft, Patch, produce} from 'immer'
 import {Omit} from 'ramda'
 import {Engine, TScalar} from '../engine'
-import {dynamodbDoc} from '../util/dynamodb-document'
+import {dynamodbDoc, jsDoc} from '../util/dynamodb-document'
 import {ELogs, getLogger} from '../util/log'
 
 const log = getLogger(ELogs.MODEL_DOCUMENT)
@@ -34,7 +34,10 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
     return this
   }
 
-  head() {
+  head(javascriptObject = false) {
+    if (javascriptObject) {
+      return jsDoc(this.current)
+    }
     return this.current
   }
 
