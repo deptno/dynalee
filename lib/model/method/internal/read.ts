@@ -3,16 +3,26 @@ import {Omit} from 'ramda'
 import {TScalar} from '../../../engine'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../../engine/expression/helper'
 import {Filter} from '../../../engine/operator/filter'
-import {Printable} from './printable'
+import {ELogs, getLogger} from '../../../util/log'
+import {OutputProxy, Printable} from './printable'
 
 type ScanInput = Omit<DocumentClient.ScanInput, 'TableName' | 'Key'>
 type QueryInput = Omit<DocumentClient.QueryInput, 'TableName' | 'Key'>
-type Input = ScanInput|QueryInput
+type Input = ScanInput | QueryInput
 
-export abstract class Read<S, H extends TScalar> extends Printable<S ,H, Input> {
+const log = getLogger(ELogs.MODEL_METHOD_INTERNAL_READ)
+
+export abstract class Read<S, H extends TScalar> extends Printable<S, H, Input> {
   protected genKey = replacementKeyGenerator()
   protected genValue = replacementValueGenerator()
   protected params = {} as Input
+
+  run() {
+    this.preRun()
+    log('runner() params')
+    log(this.params)
+    return this.runner(this.params) as Promise<OutputProxy<S, H>>
+  }
 
   project(expression: DocumentClient.ProjectionExpression) {
     console.warn('@todo implement project, any idea?')
@@ -41,7 +51,6 @@ export abstract class Read<S, H extends TScalar> extends Printable<S ,H, Input> 
   }
 
   startAt(lastEvaluatedKey?: Partial<S>) {
-    // @todo LastEvaluatedKey
     if (!lastEvaluatedKey) {
       return this
     }

@@ -13,7 +13,6 @@ export abstract class Printable<S, H extends TScalar, I extends Input> {
   protected params = {} as Input
 
   protected constructor(protected runner: Runner<S, H>) {
-
   }
 
   protected merge(target: Partial<I>, connector: TConnector = 'AND'): this {
@@ -24,6 +23,7 @@ export abstract class Printable<S, H extends TScalar, I extends Input> {
   protected preRun(): void {
 
   }
+
   /**
    * @todo low priority. not implement yet.
    * @deprecated
@@ -37,17 +37,11 @@ export abstract class Printable<S, H extends TScalar, I extends Input> {
     this.preRun()
     return R.omit(['Key'], this.params)
   }
-
-  run() {
-    this.preRun()
-    log('runner() params')
-    log(this.params)
-    return this.runner(this.params)
-  }
 }
 const log = getLogger(ELogs.MODEL_METHOD_INTERNAL_PRINTABLE)
 
-export type Runner<S, H extends TScalar> = (params: Input) => Promise<(Omit<Output, 'Items'> & { Items: Document<S, H>[] })|Document<S, H>>
+export type Runner<S, H extends TScalar> = (params: Input) => Promise<OutputProxy<S, H> | Document<S, H>>
+export type OutputProxy<S, H> = Omit<Output, 'Items'> & { Items: Document<S, H>[] }
 type ScanInput = Omit<DocumentClient.ScanInput, 'TableName' | 'Key'>
 type QueryInput = Omit<DocumentClient.QueryInput, 'TableName' | 'Key'>
 type UpdateItemInput = Omit<DocumentClient.UpdateItemInput, 'TableName' | 'Key'>

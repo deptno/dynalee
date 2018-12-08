@@ -6,6 +6,7 @@ import {Filter} from '../../../engine/operator/filter'
 import {Updater} from '../../../engine/operator/updater'
 import {ELogs, getLogger} from '../../../util/log'
 import {Printable} from './printable'
+import {Document} from '../../document'
 
 type ScanInput = Omit<DocumentClient.ScanInput, 'TableName' | 'Key'>
 type QueryInput = Omit<DocumentClient.QueryInput, 'TableName' | 'Key'>
@@ -20,6 +21,21 @@ export abstract class Write<S, H extends TScalar, I extends Input> extends Print
   protected genValue = replacementValueGenerator()
   protected params = {} as Input
   protected updater = Updater.of(this.genKey, this.genValue, (params) => this.merge(params, ','))
+
+  update(setter: (and: Updater<S>) => void) {
+    setter(this.updater)
+    return this
+  }
+
+  condition(setter: (and: Filter<S>, or: Filter<S>, not: Filter<S>) => void) {
+    console.log('@todo condition')
+    setter(
+      Filter.of(this.genKey, this.genValue, (params) => this.merge(params)),
+      Filter.of(this.genKey, this.genValue, (params) => this.merge(params, 'OR')),
+      Filter.of(this.genKey, this.genValue, (params) => this.merge(params, 'NOT')),
+    )
+    return this
+  }
 
   protected preRun() {
     log('> preRun()')
@@ -43,23 +59,4 @@ export abstract class Write<S, H extends TScalar, I extends Input> extends Print
     this.merge({[this.updater.expressionType]: result} as any, ',')
     log('< preRun()')
   }
-
-  update(setter: (and: Updater<S>) => void) {
-    setter(this.updater)
-    return this
-  }
-
-  condition(setter: (and: Filter<S>, or: Filter<S>, not: Filter<S>) => void) {
-    setter(
-      Filter.of(this.genKey, this.genValue, (params) => this.merge(params)),
-      Filter.of(this.genKey, this.genValue, (params) => this.merge(params, 'OR')),
-      Filter.of(this.genKey, this.genValue, (params) => this.merge(params, 'NOT')),
-    )
-    return this
-  }
-
-  //  UpdateExpression
-  //  ConditionExpression
-  //  ExpressionAttributeNames
-  //  ExpressionAttributeValues
 }

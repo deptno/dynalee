@@ -19,6 +19,13 @@ export class UpdateItem<S, H extends TScalar> extends Write<S, H, DxPreUpdateInp
     super(runner)
   }
 
+  run() {
+    this.preRun()
+    log('runner() params')
+    log(this.params)
+    return this.runner(this.params) as Promise<Document<S, H>>
+  }
+
   returnValue(returnType: DocumentClient.ReturnValue) {
     this.merge({
       ReturnValues: returnType
@@ -29,13 +36,6 @@ export class UpdateItem<S, H extends TScalar> extends Write<S, H, DxPreUpdateInp
   protected preRun() {
     this.revise()
     super.preRun()
-  }
-
-  run() {
-    this.preRun()
-    log('runner() params')
-    log(this.params)
-    return this.runner(this.params) as unknown as Promise<Document<S, H>>
   }
 
   private revise() {
