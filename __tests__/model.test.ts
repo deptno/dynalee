@@ -222,4 +222,46 @@ async function list() {
 //    console.log('user', user)
 //  }
 }
+
+async function updateType() {
+  interface S {
+    ID: string,
+    n: number
+    s: string
+    ss: Set<string>
+    l: string[]
+    x: string
+  }
+
+  const Tag = Model.define<S, S['ID']>({
+    table: 'DynaleeTest',
+    hash: 'ID',
+  })
+  Tag.updateItem('id')
+    .update(item => {
+      item.plus('n', 2)
+      item.plus('n', '2')
+      item.plus('l', ['2'])
+      item.minus('n', 2)
+      item.minus('n', '2')
+      item.minus('s', '2')
+      item.minus('l', ['2'])
+      item.delete('n', '2')
+      item.delete('ss', new Set(['2']))
+      item.delete('ss', new Set([2]))
+      item.delete('ss', ['2'])
+      item.delete('s', '2')
+      item.delete('s', new Set(['2']))
+      item.append('s', new Set(['2']))
+      item.append('ss', new Set(['2']))
+      item.append('l', new Set(['2']))
+      item.append('l', '2')
+      item.append('l', ['2'])
+      item.append('x', '2')
+      item.add('x', '2')
+      item.add('ss', new Set(['2']))
+      item.add('s', ['2'])
+      item.add('l', ['2'])
+    })
+}
 list()
