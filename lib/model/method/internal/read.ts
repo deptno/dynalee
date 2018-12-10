@@ -12,7 +12,7 @@ type Input = ScanInput | QueryInput
 
 const log = getLogger(ELogs.MODEL_METHOD_INTERNAL_READ)
 
-export abstract class Read<S, H extends TScalar> extends Printable<S, H, Input> {
+export abstract class Read<S> extends Printable<S, Input> {
   protected genKey = replacementKeyGenerator()
   protected genValue = replacementValueGenerator()
   protected params = {} as Input
@@ -21,7 +21,7 @@ export abstract class Read<S, H extends TScalar> extends Printable<S, H, Input> 
     this.preRun()
     log('runner() params')
     log(this.params)
-    return this.runner(this.params) as Promise<OutputProxy<S, H>>
+    return this.runner(this.params) as Promise<OutputProxy<S>>
   }
 
   project(expression: DocumentClient.ProjectionExpression) {

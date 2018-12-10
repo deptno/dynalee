@@ -9,8 +9,8 @@ import {Read} from './internal/read'
 
 const log = getLogger(ELogs.MODEL_METHOD_QUERY)
 
-export class Query<S, H extends TScalar, RKey extends TScalar = never> extends Read<S, H> {
-  constructor(runner: Runner<S, H>, protected hashKeyName, protected hashKey: H) {
+export class Query<S, H extends TScalar, RKey extends TScalar = never> extends Read<S> {
+  constructor(runner: Runner<S>, protected hashKeyName: keyof S, protected hashKey: Extract<keyof S, TScalar>) {
     super(runner)
     this.params = {
       KeyConditionExpression   : `#HSK = :HSK`,

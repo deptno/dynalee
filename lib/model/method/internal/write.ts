@@ -1,12 +1,10 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import {Omit} from 'ramda'
-import {TScalar} from '../../../engine'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../../engine/expression/helper'
 import {Filter} from '../../../engine/operator/filter'
 import {Updater} from '../../../engine/operator/updater'
 import {ELogs, getLogger} from '../../../util/log'
 import {Printable} from './printable'
-import {Document} from '../../document'
 
 type ScanInput = Omit<DocumentClient.ScanInput, 'TableName' | 'Key'>
 type QueryInput = Omit<DocumentClient.QueryInput, 'TableName' | 'Key'>
@@ -16,7 +14,7 @@ type Output = Omit<DocumentClient.ScanOutput | DocumentClient.QueryOutput, 'Tabl
 
 const log = getLogger(ELogs.ENGINE_ENGINE)
 
-export abstract class Write<S, H extends TScalar, I extends Input> extends Printable<S, H, I> {
+export abstract class Write<S, I extends Input> extends Printable<S, I> {
   protected genKey = replacementKeyGenerator()
   protected genValue = replacementValueGenerator()
   protected params = {} as Input

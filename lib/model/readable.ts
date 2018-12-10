@@ -20,7 +20,7 @@ export abstract class Readable<S, H extends TScalar, R extends TScalar = never> 
   protected readonly hash: string
   protected readonly range?: string
   protected readonly options: ModelOptions
-  protected engine!: Engine<H, R>
+  protected engine!: Engine
 
   protected constructor(params: ReadableParams<S>) {
     const {table, hash, range, options = {} as ModelOptions} = params
@@ -41,7 +41,7 @@ export abstract class Readable<S, H extends TScalar, R extends TScalar = never> 
   }
 
   scan() {
-    return new Scan(this.doScan.bind(this))
+    return new Scan<S>(this.doScan.bind(this))
   }
 
   protected setEngine(params: ReadableParams<S>) {
@@ -53,7 +53,7 @@ export abstract class Readable<S, H extends TScalar, R extends TScalar = never> 
   }
 
   protected createDocument(item, exists = false) {
-    return new Document<S, H, R>(this.engine, this.table, this.hash, this.range, exists, item)
+    return new Document<S>(this.engine, this.table, this.hash, this.range, exists, item)
   }
 
   private async doQuery(params) {

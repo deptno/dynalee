@@ -1,18 +1,17 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import R, {Omit} from 'ramda'
-import {TScalar} from '../../../engine'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../../engine/expression/helper'
 import {TConnector} from '../../../engine/expression/type'
 import {mergeByTypes} from '../../../util'
 import {ELogs, getLogger} from '../../../util/log'
 import {Document} from '../../document'
 
-export abstract class Printable<S, H extends TScalar, I extends Input> {
+export abstract class Printable<S, I extends Input> {
   protected genKey = replacementKeyGenerator()
   protected genValue = replacementValueGenerator()
   protected params = {} as Input
 
-  protected constructor(protected runner: Runner<S, H>) {
+  protected constructor(protected runner: Runner<S>) {
   }
 
   protected merge(target: Partial<I>, connector: TConnector = 'AND'): this {
@@ -40,8 +39,8 @@ export abstract class Printable<S, H extends TScalar, I extends Input> {
 }
 const log = getLogger(ELogs.MODEL_METHOD_INTERNAL_PRINTABLE)
 
-export type Runner<S, H extends TScalar> = (params: Input) => Promise<OutputProxy<S, H> | Document<S, H>>
-export type OutputProxy<S, H> = Omit<Output, 'Items'> & { Items: Document<S, H>[] }
+export type Runner<S> = (params: Input) => Promise<OutputProxy<S> | Document<S>>
+export type OutputProxy<S> = Omit<Output, 'Items'> & { Items: Document<S>[] }
 type ScanInput = Omit<DocumentClient.ScanInput, 'TableName' | 'Key'>
 type QueryInput = Omit<DocumentClient.QueryInput, 'TableName' | 'Key'>
 type UpdateItemInput = Omit<DocumentClient.UpdateItemInput, 'TableName' | 'Key'>

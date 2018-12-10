@@ -14,7 +14,7 @@ interface EngineParams {
   range?: string
 }
 
-export class Engine<H extends TScalar, R extends TScalar = never> {
+export class Engine {
   private readonly ddbClient: DocumentClient
   protected readonly table: string
   protected readonly hash: string
@@ -32,7 +32,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
     this.options = options
   }
 
-  async batchGet(hashKey: H, rangeKey?: R, params?) {
+  batchGet(hashKey: TScalar, rangeKey?: TScalar, params?): Promise<DocumentClient.BatchGetItemOutput|null> {
     params = {
       RequestItems: {
         [this.table]: this.getKeyParam(hashKey, rangeKey),
@@ -42,14 +42,6 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       .batchGet(params)
       .promise()
       .catch(e => this.handleError(params, e))
-  }
-
-  private handleError = (params, e) => {
-    console.error('error')
-    console.error(this.ddbClient['service'].endpoint)
-    console.error(e.message)
-    console.error(params)
-    return null
   }
 
   batchWrite(params: DocumentClient.BatchWriteItemInput): Promise<DocumentClient.BatchWriteItemOutput|null> {
@@ -66,7 +58,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
 //  createSet(list, options) {
 //  }
 
-  delete(keys) {
+  delete(keys): Promise<DocumentClient.DeleteItemOutput|null> {
     return this.ddbClient
       .delete(this.getTableParam({Key: keys}))
       .promise()
@@ -76,7 +68,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
   /**
    * @todo throw Error, if (this.rangeKeyName && !rangeKey)
    */
-  get(hashKey: H, rangeKey?: R, params?) {
+  get(hashKey: TScalar, rangeKey?: TScalar, params?): Promise<DocumentClient.GetItemOutput|null> {
     const param = {
       ...params,
       ...this.createGetParam(hashKey, rangeKey),
@@ -93,7 +85,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
    * @param input
    * @returns {Promise<PromiseResult<DocumentClient.PutItemOutput, AWSError>>}
    */
-  put(input: Omit<DocumentClient.PutItemInput, 'TableName'>) {
+  put(input: Omit<DocumentClient.PutItemInput, 'TableName'>): Promise<DocumentClient.PutItemOutput|null> {
     const params: DocumentClient.PutItemInput = {
       ...input,
       ...this.getTableParam(),
@@ -106,7 +98,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       .catch(e => this.handleError(params, e))
   }
 
-  query(params) {
+  query(params): Promise<DocumentClient.QueryOutput|null> {
     params = {
       ...params,
       ...this.getTableParam(),
@@ -119,7 +111,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       .catch(e => this.handleError(params, e))
   }
 
-  scan(params?) {
+  scan(params?): Promise<DocumentClient.ScanOutput|null> {
     log('@todo return Scan instead')
     params = {
       ...params,
@@ -133,7 +125,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
       .catch(e => this.handleError(params, e))
   }
 
-  update(hashKey: H, rangeKey: R | undefined, input?: DocumentClient.UpdateItemInput) {
+  update(hashKey: TScalar, rangeKey: TScalar | undefined, input?: DocumentClient.UpdateItemInput): Promise<DocumentClient.UpdateItemOutput|null> {
     const params = {
       ...input,
       ...this.createGetParam(hashKey, rangeKey)
@@ -170,7 +162,7 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
    * @param rangeKey
    * @returns {{Key: {}}}
    */
-  private getKeyParam = (hashKey: H, rangeKey?: R): { Key: {}; } => {
+  private getKeyParam = (hashKey: TScalar, rangeKey?: TScalar): { Key: {} } => {
     if (!this.range) {
       if (rangeKey) {
         log(`ignore. range key(${rangeKey}), rangeKey is not defined`)
@@ -196,10 +188,18 @@ export class Engine<H extends TScalar, R extends TScalar = never> {
     }
   }
 
-  private createGetParam: (hashKey: H, rangeKey?: R) => NonNullable<any> = compose(
+  private createGetParam: (hashKey: TScalar, rangeKey?: TScalar) => NonNullable<any> = compose(
     this.getTableParam,
     this.getKeyParam,
   )
+
+  private handleError = (params, e) => {
+    console.error('error')
+    console.error(this.ddbClient['service'].endpoint)
+    console.error(e.message)
+    console.error(params)
+    return null
+  }
 }
 
 export type TScalar = string | number | DocumentClient.binaryType

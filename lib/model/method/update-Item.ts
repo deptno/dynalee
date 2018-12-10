@@ -1,21 +1,20 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import {Omit} from 'ramda'
-import {TScalar} from '../../engine'
 import {dynamodbValue} from '../../util/dynamodb-document'
 import {ELogs, getLogger} from '../../util/log'
+import {Document} from '../document'
 import {defaultModelOptions, DocumentOptions} from '../option'
 import {Runner} from './internal/printable'
 import {Write} from './internal/write'
-import {Document} from '../document'
 
 const log = getLogger(ELogs.MODEL_METHOD_UPDATE_ITEM)
 
-export class UpdateItem<S, H extends TScalar> extends Write<S, H, DxPreUpdateInput> {
+export class UpdateItem<S> extends Write<S, DxPreUpdateInput> {
   protected params = {
     ReturnValues: 'ALL_NEW'
   } as DxPreUpdateInput
 
-  constructor(runner: Runner<S, H>, private options: DocumentOptions = defaultModelOptions.document!) {
+  constructor(runner: Runner<S>, private options: DocumentOptions = defaultModelOptions.document!) {
     super(runner)
   }
 
@@ -23,7 +22,7 @@ export class UpdateItem<S, H extends TScalar> extends Write<S, H, DxPreUpdateInp
     this.preRun()
     log('runner() params')
     log(this.params)
-    return this.runner(this.params) as Promise<Document<S, H>>
+    return this.runner(this.params) as Promise<Document<S>>
   }
 
   returnValue(returnType: DocumentClient.ReturnValue) {

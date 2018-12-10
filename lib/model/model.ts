@@ -93,9 +93,8 @@ export class Model<S, H extends TScalar, RK extends TScalar = never> extends Rea
     )
   }
 
-
-  async get(hashKey: H, rangeKey?: RK, params?): Promise<Document<S, H, RK>>
-  async get(hashKey: H, params?): Promise<Document<S, H, RK>>
+  async get(hashKey: H, rangeKey?: RK, params?): Promise<Document<S>>
+  async get(hashKey: H, params?): Promise<Document<S>>
   async get(hashKey, rangeKey?, params?) {
     try {
       const response = await this.engine.get(hashKey, rangeKey, params)
@@ -111,20 +110,10 @@ export class Model<S, H extends TScalar, RK extends TScalar = never> extends Rea
   }
 
   updateItem(hashKey: H, rangeKey?: RK) {
-    return new UpdateItem<S, H>(this.doUpdate.bind(this, hashKey, rangeKey), this.options.document)
+    return new UpdateItem<S>(this.doUpdate.bind(this, hashKey, rangeKey), this.options.document)
   }
 
-  /**
-   * @deprecated not implement
-   * @param list
-   * @param options
-   * @returns {Promise<void>}
-   */
-  async createSet(/*list, options*/) {
-    console.warn('@todo implment createSet()')
-  }
-
-  async delete(keys: Partial<S>) {
+  async deleteItem(keys: Partial<S>) {
     try {
       const response = await this.engine.delete(keys)
       log('delete response', response)

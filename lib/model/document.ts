@@ -7,7 +7,7 @@ import {ELogs, getLogger} from '../util/log'
 
 const log = getLogger(ELogs.MODEL_DOCUMENT)
 
-export class Document<S, H extends TScalar, R extends TScalar = never> {
+export class Document<S> {
   /**
    * @todo: create History class
    */
@@ -16,7 +16,7 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
   private current: S
 
   constructor(
-    protected readonly engine: Engine<H, R>,
+    protected readonly engine: Engine,
     protected readonly tableName: string,
     protected readonly hashKeyName: string,
     protected readonly rangeKeyName: string | undefined,
@@ -34,7 +34,7 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
     return this
   }
 
-  head(javascriptObject = false) {
+  head(javascriptObject = false): S {
     if (javascriptObject) {
       return jsDoc(this.current)
     }
@@ -57,11 +57,11 @@ export class Document<S, H extends TScalar, R extends TScalar = never> {
     }
   }
 
-  private getHashKey(): H {
+  private getHashKey(): TScalar {
     return this.base()[this.hashKeyName]
   }
 
-  private getRangeKey(): R | undefined {
+  private getRangeKey(): TScalar | undefined {
     if (this.rangeKeyName) {
       return this.base()[this.rangeKeyName]
     }
