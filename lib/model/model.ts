@@ -1,6 +1,5 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import * as R from 'ramda'
-import {TScalar} from '../engine'
 import {triggerReducer} from '../options/trigger-reducer'
 import {dynamodbDoc} from '../util/dynamodb-document'
 import {ELogs, getLogger} from '../util/log'
@@ -10,24 +9,19 @@ import {Readable, ReadableParams} from './readable'
 
 const log = getLogger(ELogs.MODEL_MODEL)
 
-export class Model<S, H extends TScalar, RK extends TScalar = never> extends Readable<S, H, RK> {
-  constructor(params: ReadableParams<S>) {
-    super(params)
-  }
-
-  static define<S, H extends TScalar, RK extends TScalar = never>(params: ReadableParams<S>) {
-    return new Model<S, H, RK>(params)
-  }
-
+abstract class Model<S, H, RK = never> extends Readable<S, H, RK> {
   of(data: S) {
     return this.createDocument(data)
   }
 
-  //  async batchGet(params?) {
-  //    console.warn('@todo implement batchGet')
-  //  }
+  /**
+   * @deprecated @todo
+   */
+  async batchGet() {
+    console.warn('@todo implement batchGet')
+  }
 
-  async batchWrite(items: DocumentClient.WriteRequest[]) {
+  async batchWrite(items: WriteRequest<S>[]) {
     const documentOption = this.options.document
     const requestToPut = item => [
       ...documentOption!.onCreate,
@@ -73,7 +67,7 @@ export class Model<S, H extends TScalar, RK extends TScalar = never> extends Rea
     }
   }
 
-  async batchPut(items: S[]) {
+  batchPut(items: S[]) {
     return this.batchWrite(
       items.map(item => ({
         PutRequest: {
@@ -83,9 +77,9 @@ export class Model<S, H extends TScalar, RK extends TScalar = never> extends Rea
     )
   }
 
-  async batchDelete(keys: DocumentClient.Key[]) {
+  batchDelete(keyMap: Partial<S>[]) {
     return this.batchWrite(
-      keys.map(key => ({
+      keyMap.map(key => ({
         DeleteRequest: {
           Key: key
         }
@@ -93,37 +87,16 @@ export class Model<S, H extends TScalar, RK extends TScalar = never> extends Rea
     )
   }
 
-  async get(hashKey: H, rangeKey?: RK, params?): Promise<Document<S>>
-  async get(hashKey: H, params?): Promise<Document<S>>
-  async get(hashKey, rangeKey?, params?) {
-    try {
-      const response = await this.engine.get(hashKey, rangeKey, params)
-      if (!response || !response.Item) {
-        log('error response', response)
-        throw new Error(`Item not found, hash(${hashKey}, range(${rangeKey})`)
-      }
-      return this.createDocument(response.Item, true)
-    } catch (e) {
-      log({[this.hash]: hashKey, [this.range!]: rangeKey})
-      throw new Error(e.message)
-    }
+  get(_, __?) {
   }
 
-  updateItem(hashKey: H, rangeKey?: RK) {
-    return new UpdateItem<S>(this.doUpdate.bind(this, hashKey, rangeKey), this.options.document)
+  update(_, __?) {
   }
 
-  async deleteItem(keys: Partial<S>) {
-    try {
-      const response = await this.engine.delete(keys)
-      log('delete response', response)
-      return this
-    } catch (e) {
-      log(e)
-    }
+  delete(_, __?) {
   }
 
-  private async doUpdate(hashKey, rangeKey, params) {
+  protected async doUpdate(hashKey, rangeKey, params) {
     try {
       const response = await this.engine.update(hashKey, rangeKey, params)
       log('doUpdate response', response)
@@ -136,6 +109,86 @@ export class Model<S, H extends TScalar, RK extends TScalar = never> extends Rea
       throw new Error(e.message)
     }
   }
-
 }
 
+export class HashModel<S, H extends keyof S> extends Model<S, H> {
+  constructor(params: ReadableParams<S, H>) {
+    super(params)
+  }
+
+  async get(hashKey: S[H]): Promise<Document<S>> {
+    try {
+      const response = await this.engine.get(hashKey)
+      if (!response || !response.Item) {
+        log('error response', response)
+        throw new Error(`Item not found, hash(${hashKey})`)
+      }
+      return this.createDocument(response.Item, true)
+    } catch (e) {
+      log({[this.hash]: hashKey})
+      throw new Error(e.message)
+    }
+  }
+
+  update(hashKey: S[H]) {
+    return new UpdateItem<S>(this.doUpdate.bind(this, hashKey), this.options.document)
+  }
+
+  async delete(hashKey: S[H]) {
+    try {
+      const response = await this.engine.delete({
+        [this.hash]: hashKey,
+      })
+      log('delete response', response)
+      return this
+    } catch (e) {
+      log(e)
+    }
+  }
+}
+
+export class RangeModel<S, H extends keyof S, RK extends Exclude<keyof S, H>> extends Model<S, H, RK> {
+  constructor(params: ReadableParams<S, H, RK>) {
+    super(params)
+  }
+
+  async get(hashKey: S[H], rangeKey: S[RK]): Promise<Document<S>> {
+    try {
+      const response = await this.engine.get(hashKey, rangeKey)
+      if (!response || !response.Item) {
+        log('error response', response)
+        throw new Error(`Item not found, hash(${hashKey}, range(${rangeKey})`)
+      }
+      return this.createDocument(response.Item, true)
+    } catch (e) {
+      log({[this.hash]: hashKey, [this.range!]: rangeKey})
+      throw new Error(e.message)
+    }
+  }
+
+  update(hashKey: S[H], rangeKey: S[RK]) {
+    return new UpdateItem<S>(this.doUpdate.bind(this, hashKey, rangeKey), this.options.document)
+  }
+
+  async delete(hashKey: S[H], rangeKey: S[RK]) {
+    try {
+      const response = await this.engine.delete({
+        [this.hash]: hashKey,
+        [this.range]: rangeKey,
+      })
+      log('delete response', response)
+      return this
+    } catch (e) {
+      log(e)
+    }
+  }
+}
+
+interface WriteRequest<S> extends DocumentClient.WriteRequest {
+  PutRequest?: {
+    Item: S
+  }
+  DeleteRequest?: {
+    Key: Partial<S>
+  }
+}

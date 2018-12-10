@@ -68,15 +68,14 @@ export class Engine {
   /**
    * @todo throw Error, if (this.rangeKeyName && !rangeKey)
    */
-  get(hashKey: TScalar, rangeKey?: TScalar, params?): Promise<DocumentClient.GetItemOutput|null> {
-    const param = {
-      ...params,
+  get(hashKey: TScalar, rangeKey?: TScalar): Promise<DocumentClient.GetItemOutput|null> {
+    const params = {
       ...this.createGetParam(hashKey, rangeKey),
     }
     log('get param')
     log(params)
     return this.ddbClient
-      .get(param)
+      .get(params)
       .promise()
       .catch(e => this.handleError(params, e))
   }

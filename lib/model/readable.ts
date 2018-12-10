@@ -1,3 +1,4 @@
+import {Omit} from 'ramda'
 import {getDdbClient} from '../config/aws'
 import {Engine, TScalar} from '../engine'
 import {ELogs, getLogger} from '../util/log'
@@ -8,17 +9,17 @@ import {defaultModelOptions, ModelOptions} from './option'
 
 const log = getLogger(ELogs.MODEL_MODEL)
 
-export interface ReadableParams<S> {
+export interface ReadableParams<S, H extends keyof S, RK extends Exclude<keyof S, H> = never> {
   table: string
-  hash: keyof S
-  range?: keyof S
+  hash: S[H]
+  range?: S[RK]
   options?: ModelOptions
 }
 
-export abstract class Readable<S, H extends TScalar, R extends TScalar = never> {
+export abstract class Readable<S, H, R= never> {
   protected readonly table: string
-  protected readonly hash: string
-  protected readonly range?: string
+  protected readonly hash: keyof S
+  protected readonly range?: Exclude<keyof S, H>
   protected readonly options: ModelOptions
   protected engine!: Engine
 

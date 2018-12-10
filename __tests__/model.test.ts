@@ -1,5 +1,5 @@
 //import './__mocks__/document-client'
-import {Model} from '../lib'
+import {HashModel} from '../lib'
 import {ELogs, getLogger} from '../lib/util/log'
 
 const HASH_KEY = 'id'
@@ -20,21 +20,21 @@ interface SchemaEx {
 }
 
 const log = getLogger(ELogs.TEST)
-const User = Model.define<SchemaEx, SchemaEx[typeof HASH_KEY], typeof RANGE_KEY>({
+const User = HashModel.define<SchemaEx, SchemaEx[typeof HASH_KEY], typeof RANGE_KEY>({
   table: 'dynalee',
   hash : 'id',
   range: 'detail'
 })
-const aUser = Model.define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>({
+const aUser = HashModel.define<SchemaEx, SchemaEx['id'], SchemaEx['detail']>({
   table: 'dynalee',
   hash : 'id',
   range: 'detail'
 })
-const bUser = Model.define<SchemaEx, SchemaEx['id']>({
+const bUser = HashModel.define<SchemaEx, SchemaEx['id']>({
   table: 'dynalee',
   hash : 'id'
 })
-const cser = Model.define<SchemaEx, SchemaEx['id']>({
+const cser = HashModel.define<SchemaEx, SchemaEx['id']>({
   table: 'dynalee',
   hash : 'id'
 })
@@ -109,7 +109,7 @@ async function chain() {
 }
 
 async function streamTest() {
-  const Stream2 = Model.define({table: 'Stream2', hash: 'hid'})
+  const Stream2 = HashModel.define({table: 'Stream2', hash: 'hid'})
   const result = await Stream2
     .of({
       hid: 'dynalee test'
@@ -124,11 +124,11 @@ async function updateItem() {
     readonly range: string
     added: string
   }
-  const User = Model.define<S, string>({
+  const User = HashModel.define<S, string>({
     table: 'DynaleeTest',
     hash : 'hash',
   })
-  const result = await User.updateItem('63701340')
+  const result = await User.update('63701340')
     .update(setter => {
       setter.set('added', 3)
     })
@@ -142,7 +142,7 @@ async function trigger() {
     readonly range: string
     added?: string
   }
-  const User = Model.define<S, string, string>({
+  const User = HashModel.define<S, string, string>({
     table  : 'DynaleeTest',
     hash   : 'hash',
     range  : 'range',
@@ -190,7 +190,7 @@ async function list() {
     li?: Set<string>
     list?: string[]
   }
-  const User = Model.define<S, string, string>({
+  const User = HashModel.define<S, string, string>({
     table: 'DynaleeTest',
     hash : 'hash',
     range: 'range',
@@ -233,11 +233,11 @@ async function updateType() {
     x: string
   }
 
-  const Tag = Model.define<S, S['ID']>({
+  const Tag = HashModel.define<S, S['ID']>({
     table: 'DynaleeTest',
     hash: 'ID',
   })
-  Tag.updateItem('id')
+  Tag.update('id')
     .update(item => {
 //      item.plus('n', 2)
 //      item.plus('n', '2')

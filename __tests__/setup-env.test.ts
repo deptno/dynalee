@@ -1,6 +1,6 @@
 import {DynamoDB} from 'aws-sdk'
 import {date, name} from 'faker'
-import {Model} from '../lib'
+import {HashModel} from '../lib'
 import {ELogs, getLogger} from '../lib/util/log'
 
 const log = getLogger(ELogs.TEST)
@@ -22,12 +22,12 @@ interface User extends Key {
 interface Account extends Key {
 }
 
-const User = Model.define<User, string, string>({
+const User = HashModel.define<User, string, string>({
   table: 'DynaleeTest',
   hash : 'name',
   range: 'createdAt',
 })
-const Pet = Model.define<Account, string, string>({
+const Pet = HashModel.define<Account, string, string>({
   table: 'DynaleeTest',
   hash: 'name',
   range: 'createdAt',
