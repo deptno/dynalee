@@ -28,9 +28,9 @@ export abstract class Write<S, I extends Input> extends Printable<S, I> {
   condition(setter: (and: Filter<S>, or: Filter<S>, not: Filter<S>) => void) {
     console.log('@todo condition')
     setter(
-      Filter.of(this.genKey, this.genValue, (params) => this.merge(params)),
-      Filter.of(this.genKey, this.genValue, (params) => this.merge(params, 'OR')),
-      Filter.of(this.genKey, this.genValue, (params) => this.merge(params, 'NOT')),
+      new Filter<S>(this.genKey, this.genValue, (params) => this.merge(params)),
+      new Filter<S>(this.genKey, this.genValue, (params) => this.merge(params, 'OR')),
+      new Filter<S>(this.genKey, this.genValue, (params) => this.merge(params, 'NOT')),
     )
     return this
   }

@@ -32,8 +32,8 @@ export abstract class Read<S> extends Printable<S, Input> {
 
   filter(setter: (and: Filter<S>, or: Filter<S>) => void) {
     setter(
-      Filter.of(this.genKey, this.genValue, (params) => this.merge(params)),
-      Filter.of(this.genKey, this.genValue, (params) => this.merge(params, 'OR')),
+      new Filter(this.genKey, this.genValue, (params) => this.merge(params)),
+      new Filter(this.genKey, this.genValue, (params) => this.merge(params, 'OR')),
     )
     return this
   }

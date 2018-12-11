@@ -4,75 +4,71 @@ import {$attributeExists, $attributeNotExists, $attributeType, $beginsWith, $con
 import {DDBDataType, TExpression} from '../expression/type'
 
 const expression: TExpression = 'FilterExpression'
-export class Filter<S, K extends string = keyof S, T = TScalar> implements Operator<K, T> {
-  private constructor(private genKey, private genValue, private done) {
+export class Filter<S = any> {
+  constructor(private genKey, private genValue, private done) {
   }
 
-  static of<S, K extends string = keyof S, T = TScalar>(genKey, genValue, done) {
-    return new Filter<S, K, T>(genKey, genValue, done)
-  }
-
-  eq(path, value) {
+  eq<K extends keyof S, T = S[K]>(path: K, value: T) {
     this.done($eq(expression, this.genKey, this.genValue, path, value))
     return this
   }
 
-  ne(path, value) {
+  ne<K extends keyof S, T = S[K]>(path: K, value: T) {
     this.done($ne(expression, this.genKey, this.genValue, path, value))
     return this
   }
 
-  lt(path, value) {
+  lt<K extends keyof S, T = S[K]>(path: K, value: T) {
     this.done($lt(expression, this.genKey, this.genValue, path, value))
     return this
   }
 
-  le(path, value) {
+  le<K extends keyof S, T = S[K]>(path: K, value: T) {
     this.done($le(expression, this.genKey, this.genValue, path, value))
     return this
   }
 
-  gt(path, value) {
+  gt<K extends keyof S, T = S[K]>(path: K, value: T) {
     this.done($gt(expression, this.genKey, this.genValue, path, value))
     return this
   }
 
-  ge(path, value) {
+  ge<K extends keyof S, T = S[K]>(path: K, value: T) {
     this.done($ge(expression, this.genKey, this.genValue, path, value))
     return this
   }
 
-  in(path, ...values) {
+  in<K extends keyof S, T = S[K]>(path: K, ...values: T[]) {
     this.done($in(expression, this.genKey, this.genValue, path, ...values))
     return this
   }
 
-  between(path, a, b) {
+  between<K extends keyof S, T = S[K]>(path: K, a: T, b: T) {
     this.done($between(expression, this.genKey, this.genValue, path, a, b))
     return this
   }
 
-  attributeExists(path: string) {
+  attributeExists<K extends keyof S>(path: K) {
     this.done($attributeExists(expression, this.genKey, path))
     return this
   }
 
-  attributeNotExists(path: string) {
+  attributeNotExists<K extends keyof S>(path: K) {
     this.done($attributeNotExists(expression, this.genKey, path))
     return this
   }
 
-  attributeType(path: string, type: DDBDataType) {
+  attributeType<K extends keyof S>(path: K, type: DDBDataType) {
     this.done($attributeType(expression, this.genKey, this.genValue, path, type))
     return this
   }
 
-  beginsWith(path: string, sub: string) {
+  beginsWith<K extends keyof S>(path: K, sub: string) {
     this.done($beginsWith(expression, this.genKey, this.genValue, path, sub))
     return this
   }
 
-  contains(path: string, sub: string) {
+  contains<K extends keyof S>(path: K, sub: string) {
     this.done($contains(expression, this.genKey, this.genValue, path, sub))
     return this
   }
@@ -82,19 +78,3 @@ export class Filter<S, K extends string = keyof S, T = TScalar> implements Opera
   }
 }
 
-interface Operator<K, T> {
-  eq(path: K, value: T): this
-  ne(path: K, value: T): this
-  lt(path: K, value: T): this
-  le(path: K, value: T): this
-  gt(path: K, value: T): this
-  ge(path: K, value: T): this
-  between(path: K, a: T, b: T): this
-  in(path: K, ...values: T[]): this
-  attributeExists(path: K): this
-  attributeNotExists(path: K): this
-  attributeType(path: K, type: DDBDataType): this
-  beginsWith(path: K, value: string): this
-  contains(path: K, value: string): this
-  //  size
-}
