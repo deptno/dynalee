@@ -59,22 +59,24 @@ export const dynamodbValue = (value, ifSet: SetTransformer = defaultSetTransform
   }
   return value
 }
-export const jsDoc = <T>(obj: T): T => {
+const setTo = <T extends TScalar>(data: T[]): any => new Set<T>(data)
+export const jsDoc = <T>(obj: T, transform = setTo): T => {
   const omit: string[] = []
   const clone = {} as any
 
   for (const key in obj) {
-    clone[key] = jsValue(obj[key])
+    clone[key] = jsValue(obj[key], transform)
   }
 
   return R.omit(omit, clone) as T
 }
-export const jsValue = (value) => {
+export const jsValue = (value, transform) => {
   if (value.wrapperName === 'Set') {
-    return new Set(value.values)
+    return transform(value.values)
   }
   return value
 }
+
 interface SetTransformer {
   (fx: Set<TScalar>): DocumentClient.DynamoDbSet | TScalar[]
 }

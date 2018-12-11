@@ -13,9 +13,10 @@ export class Updater<S> {
   public readonly expressionType: string = operator
   public readonly expressions: string[] = []
 
-  of(schema: S) {
+  of(schema: S, ifNotExists?: boolean) {
+    //@todo: replace needs to support condition to prevent overwrite
     for (const [key, value] of Object.entries(schema)) {
-      this.set(key as keyof S, value)
+      this.set(key as keyof S, value, ifNotExists)
     }
     return this
   }

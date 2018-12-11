@@ -34,9 +34,9 @@ export class Document<S> {
     return this
   }
 
-  head(javascriptObject = false): S {
-    if (javascriptObject) {
-      return jsDoc(this.current)
+  head(pureJs = false, transformSetTo?: (arrayIndicatesSet: TScalar[]) => TScalar[] ): S {
+    if (pureJs) {
+      return jsDoc(this.current, transformSetTo)
     }
     return this.current
   }
