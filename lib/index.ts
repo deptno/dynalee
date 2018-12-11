@@ -1,2 +1,2 @@
-export {HashModel} from './model/model'
+export {HashModel, RangeModel} from './model/model'
 export {SecondaryIndex} from './model/secondary-index'

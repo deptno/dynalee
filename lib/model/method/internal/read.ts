@@ -1,6 +1,5 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import {Omit} from 'ramda'
-import {TScalar} from '../../../engine'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../../engine/expression/helper'
 import {Filter} from '../../../engine/operator/filter'
 import {ELogs, getLogger} from '../../../util/log'

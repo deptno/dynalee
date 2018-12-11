@@ -9,9 +9,9 @@ interface EngineParams {
   ddbClient: DocumentClient
   table: string
   options: DocumentOptions
-  hash: string
+  hashKey: string
   index?: string
-  range?: string
+  rangeKey?: string
 }
 
 export class Engine {
@@ -23,11 +23,11 @@ export class Engine {
   public readonly options: DocumentOptions
 
   constructor(params: EngineParams) {
-    const {ddbClient, table, hash, range, index, options} = params
+    const {ddbClient, table, hashKey, rangeKey, index, options} = params
     this.ddbClient = ddbClient
     this.table = table
-    this.hash = hash
-    this.range = range
+    this.hash = hashKey
+    this.range = rangeKey
     this.index = index
     this.options = options
   }
@@ -58,7 +58,7 @@ export class Engine {
 //  createSet(list, options) {
 //  }
 
-  delete(keys): Promise<DocumentClient.DeleteItemOutput|null> {
+  delete(keys: any): Promise<DocumentClient.DeleteItemOutput|null> {
     return this.ddbClient
       .delete(this.getTableParam({Key: keys}))
       .promise()

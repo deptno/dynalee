@@ -71,7 +71,7 @@ export const jsDoc = <T>(obj: T): T => {
 }
 export const jsValue = (value) => {
   if (value.wrapperName === 'Set') {
-    return value.values
+    return new Set(value.values)
   }
   return value
 }

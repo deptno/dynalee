@@ -1,5 +1,6 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
-import R, {Omit} from 'ramda'
+import {Omit} from 'ramda'
+import * as R from 'ramda'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../../engine/expression/helper'
 import {TConnector} from '../../../engine/expression/type'
 import {mergeByTypes} from '../../../util'

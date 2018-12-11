@@ -1,6 +1,5 @@
 import * as R from 'ramda'
 import {Omit} from 'ramda'
-import {TScalar} from '../../engine'
 import {$between, $eq, $ge, $gt, $le, $lt} from '../../engine/expression/comparator'
 import {$beginsWith} from '../../engine/expression/function'
 import {ELogs, getLogger} from '../../util/log'
@@ -9,16 +8,16 @@ import {Read} from './internal/read'
 
 const log = getLogger(ELogs.MODEL_METHOD_QUERY)
 
-export class Query<S, H extends TScalar, RKey extends TScalar = never> extends Read<S> {
-  constructor(runner: Runner<S>, protected hashKeyName: keyof S, protected hashKey: Extract<keyof S, TScalar>) {
+export class Query<S, HK extends keyof S> extends Read<S> {
+  constructor(runner: Runner<S>, protected hashKey: HK, protected hash: S[HK]) {
     super(runner)
     this.params = {
       KeyConditionExpression   : `#HSK = :HSK`,
       ExpressionAttributeNames : {
-        '#HSK': this.hashKeyName,
+        '#HSK': this.hashKey,
       },
       ExpressionAttributeValues: {
-        ':HSK': this.hashKey
+        ':HSK': this.hash
       }
     }
   }
@@ -27,24 +26,21 @@ export class Query<S, H extends TScalar, RKey extends TScalar = never> extends R
     return this.merge({ScanIndexForward: false})
   }
 
-  range(rangeKeyName: keyof S)
-    : RKey extends number
-    ? RangeKeyNumberConditionOperator<S, H, RKey>
-    : RangeKeyConditionOperator<S, H, RKey> {
+  range<RK extends keyof S, RKT = S[RK]>(rangeKey: RK): RangeKeyOperator<S, HK> {
     const genKey = R.always('#RGK')
     const genValue = R.always(':RGK')
-    const _$eq = $eq('KeyConditionExpression', genKey, genValue, rangeKeyName)
-    const _$lt = $lt('KeyConditionExpression', genKey, genValue, rangeKeyName)
-    const _$le = $le('KeyConditionExpression', genKey, genValue, rangeKeyName)
-    const _$gt = $gt('KeyConditionExpression', genKey, genValue, rangeKeyName)
-    const _$ge = $ge('KeyConditionExpression', genKey, genValue, rangeKeyName)
-    const _$between = $between('KeyConditionExpression', genKey, this.genValue, rangeKeyName)
-    const _$beginsWith = $beginsWith('KeyConditionExpression', genKey, genValue, rangeKeyName)
-    const withRangeKey = (rangeKey: RKey | null, params): Omit<Query<S, H, RKey>, 'range'> => {
+    const _$eq = $eq('KeyConditionExpression', genKey, genValue, rangeKey)
+    const _$lt = $lt('KeyConditionExpression', genKey, genValue, rangeKey)
+    const _$le = $le('KeyConditionExpression', genKey, genValue, rangeKey)
+    const _$gt = $gt('KeyConditionExpression', genKey, genValue, rangeKey)
+    const _$ge = $ge('KeyConditionExpression', genKey, genValue, rangeKey)
+    const _$between = $between('KeyConditionExpression', genKey, this.genValue, rangeKey)
+    const _$beginsWith = $beginsWith('KeyConditionExpression', genKey, genValue, rangeKey)
+    const withRangeKey = (range: RKT | null, params): Omit<Query<S, HK>, 'range'> => {
       this.merge(params)
-      this.merge({ExpressionAttributeNames: {'#RGK': rangeKeyName as string}})
-      if (rangeKey !== null) {
-        this.merge({ExpressionAttributeValues: {':RGK': rangeKey}})
+      this.merge({ExpressionAttributeNames: {'#RGK': rangeKey}})
+      if (range !== null) {
+        this.merge({ExpressionAttributeValues: {':RGK': range}})
       }
       return this
     }
@@ -55,22 +51,18 @@ export class Query<S, H extends TScalar, RKey extends TScalar = never> extends R
       le        : R.converge(withRangeKey, [R.identity, _$le]),
       gt        : R.converge(withRangeKey, [R.identity, _$gt]),
       ge        : R.converge(withRangeKey, [R.identity, _$ge]),
-      between   : (a: RKey, b: RKey) => withRangeKey(null, _$between(a, b)),
-      beginsWith: (value: string) => withRangeKey(null, _$beginsWith(value))
-    } as any
+      between   : (a, b) => withRangeKey(null, _$between(a, b)),
+      beginsWith: (value) => withRangeKey(null, _$beginsWith(value))
+    }
   }
 }
 
-interface RangeKeyCondition<S, H extends TScalar, R extends TScalar> {
-  (a: R): Query<S, H, R>,
+interface RangeKeyOperator<S, HK extends keyof S, HKT = S[HK], RangedQuery = Omit<Query<S, HK>, 'range'>> {
+  eq(a: HKT): RangedQuery
+  lt(a: HKT): RangedQuery
+  le(a: HKT): RangedQuery
+  gt(a: HKT): RangedQuery
+  ge(a: HKT): RangedQuery
+  between(a: HKT, b: HKT): RangedQuery
+  beginsWith(a: string): RangedQuery
 }
-interface RangeKeyConditionOperator<S, H extends TScalar, R extends TScalar> {
-  eq: RangeKeyCondition<S, H, R>
-  lt: RangeKeyCondition<S, H, R>
-  le: RangeKeyCondition<S, H, R>
-  gt: RangeKeyCondition<S, H, R>
-  ge: RangeKeyCondition<S, H, R>
-  between: (a: R, b: R) => Query<S, H, R>
-  beginsWith: RangeKeyCondition<S, H, R>
-}
-type RangeKeyNumberConditionOperator<S, H extends TScalar, R extends TScalar> = Omit<RangeKeyConditionOperator<S, H, R>, 'beginsWith'>

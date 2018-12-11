@@ -9,7 +9,7 @@ import {Readable, ReadableParams} from './readable'
 
 const log = getLogger(ELogs.MODEL_MODEL)
 
-abstract class Model<S, H, RK = never> extends Readable<S, H, RK> {
+abstract class Model<S, H extends keyof S, RK extends keyof S = never> extends Readable<S, H, RK> {
   of(data: S) {
     return this.createDocument(data)
   }
@@ -147,7 +147,7 @@ export class HashModel<S, H extends keyof S> extends Model<S, H> {
   }
 }
 
-export class RangeModel<S, H extends keyof S, RK extends Exclude<keyof S, H>> extends Model<S, H, RK> {
+export class RangeModel<S, H extends keyof S, RK extends keyof S> extends Model<S, H, RK> {
   constructor(params: ReadableParams<S, H, RK>) {
     super(params)
   }
@@ -174,7 +174,7 @@ export class RangeModel<S, H extends keyof S, RK extends Exclude<keyof S, H>> ex
     try {
       const response = await this.engine.delete({
         [this.hash]: hashKey,
-        [this.range]: rangeKey,
+        [this.range!]: rangeKey,
       })
       log('delete response', response)
       return this

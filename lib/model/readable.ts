@@ -1,6 +1,5 @@
-import {Omit} from 'ramda'
 import {getDdbClient} from '../config/aws'
-import {Engine, TScalar} from '../engine'
+import {Engine} from '../engine'
 import {ELogs, getLogger} from '../util/log'
 import {Document} from './document'
 import {Query} from './method/query'
@@ -9,26 +8,26 @@ import {defaultModelOptions, ModelOptions} from './option'
 
 const log = getLogger(ELogs.MODEL_MODEL)
 
-export interface ReadableParams<S, H extends keyof S, RK extends Exclude<keyof S, H> = never> {
+export interface ReadableParams<S, H extends keyof S, RK extends keyof S = never> {
   table: string
-  hash: S[H]
-  range?: S[RK]
+  hashKey: H
+  rangeKey?: RK
   options?: ModelOptions
 }
 
-export abstract class Readable<S, H, R= never> {
+export abstract class Readable<S, H extends keyof S, R extends keyof S> {
   protected readonly table: string
-  protected readonly hash: keyof S
-  protected readonly range?: Exclude<keyof S, H>
+  protected readonly hash: H
+  protected readonly range?: R
   protected readonly options: ModelOptions
   protected engine!: Engine
 
-  protected constructor(params: ReadableParams<S>) {
-    const {table, hash, range, options = {} as ModelOptions} = params
+  protected constructor(params: ReadableParams<S, H, R>) {
+    const {table, hashKey, rangeKey, options = {} as ModelOptions} = params
     this.options = options
     this.table = table
-    this.hash = hash
-    this.range = range
+    this.hash = hashKey
+    this.range = rangeKey
     this.options.document = {
       ...defaultModelOptions.document!,
       ...options.document
@@ -37,15 +36,15 @@ export abstract class Readable<S, H, R= never> {
     this.setEngine(params)
   }
 
-  query(hashKey: H) {
-    return new Query<S, H, R>(this.doQuery.bind(this), this.hash, hashKey)
+  query(hash: S[H]) {
+    return new Query<S, H>(this.doQuery.bind(this), this.hash, hash)
   }
 
   scan() {
     return new Scan<S>(this.doScan.bind(this))
   }
 
-  protected setEngine(params: ReadableParams<S>) {
+  protected setEngine(params: ReadableParams<S, H, R>) {
     this.engine = new Engine({
       ...params,
       ddbClient: getDdbClient(this.options.aws),

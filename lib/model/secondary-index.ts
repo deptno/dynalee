@@ -4,19 +4,16 @@ import {Readable, ReadableParams} from './readable'
 
 const log = getLogger(ELogs.MODEL_SECONDARY_INDEX)
 
-export interface SecondaryIndexParams<S> extends ReadableParams<S> {
+export interface SecondaryIndexParams<S, H extends keyof S, RK extends keyof S> extends ReadableParams<S, H, RK> {
   index: string
 }
 
-export class SecondaryIndex<S, H extends TScalar, R extends TScalar = never> extends Readable<S, H, R> {
+export class SecondaryIndex<S, H extends keyof S, RK extends keyof S = never> extends Readable<S, H, RK> {
   private readonly index: string
 
-  constructor(params: SecondaryIndexParams<S>) {
+  constructor(params: SecondaryIndexParams<S, H, RK>) {
     super(params)
     this.index = params.index
-  }
-  static define<S, H extends TScalar, R extends TScalar = never>(params: SecondaryIndexParams<S>) {
-    return new SecondaryIndex<S, H, R>(params)
   }
 }
 
