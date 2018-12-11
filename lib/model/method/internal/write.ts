@@ -18,7 +18,7 @@ export abstract class Write<S, I extends Input> extends Printable<S, I> {
   protected genKey = replacementKeyGenerator()
   protected genValue = replacementValueGenerator()
   protected params = {} as Input
-  protected updater = Updater.of(this.genKey, this.genValue, (params) => this.merge(params, ','))
+  protected updater = new Updater(this.genKey, this.genValue, (params) => this.merge(params, ','))
 
   update(setter: (and: Updater<S>) => void) {
     setter(this.updater)

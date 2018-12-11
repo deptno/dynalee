@@ -131,7 +131,7 @@ export class HashModel<S, H extends keyof S> extends Model<S, H> {
   }
 
   update(hashKey: S[H]) {
-    return new UpdateItem<S>(this.doUpdate.bind(this, hashKey), this.options.document)
+    return new UpdateItem<S>(this.doUpdate.bind(this, hashKey, undefined), this.options.document)
   }
 
   async delete(hashKey: S[H]) {

@@ -18,7 +18,14 @@ export const $$not: OperatorConnector = (...operators) => generator => mergeOp(g
 /**
  * @fixme if using rollup, ALPHABET_ASCII set undefined
  */
-export const replacementGenerator = (prefix) => (index = 0) => () => `${prefix}${nca(index++, ALPHABET_ASCII)}`
+export const replacementGenerator = (prefix) =>
+  (index = 0, cache = {}) =>
+    (key?) => {
+      if (key !== undefined) {
+        return cache[key] || (cache[key] = `${prefix}${nca(index++, ALPHABET_ASCII)}`)
+      }
+      return `${prefix}${nca(index++, ALPHABET_ASCII)}`
+    }
 export const replacementKeyGenerator = replacementGenerator('#')
 export const replacementValueGenerator = replacementGenerator(':')
 export const mergeOp = (generator: Generator, operations: (OperatorGenerator)[], connector: TConnector = 'AND'): Operated => {

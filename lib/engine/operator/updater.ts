@@ -7,25 +7,32 @@ import {TExpression} from '../expression/type'
 const log = getLogger(ELogs.ENGINE_OPERATOR_UPDATER)
 const operator: TExpression = 'UpdateExpression'
 export class Updater<S> {
-  private constructor(private genKey, private genValue, private done) {
-  }
-
-  static of<S>(genKey, genValue, done) {
-    return new Updater<S>(genKey, genValue, done)
+  constructor(private genKey, private genValue, private done) {
   }
 
   public readonly expressionType: string = operator
   public readonly expressions: string[] = []
 
-  set<K extends keyof S>(path: K, value: S[K]) {
+  of(schema: S) {
+    for (const [key, value] of Object.entries(schema)) {
+      this.set(key as keyof S, value)
+    }
+    return this
+  }
+
+  set<K extends keyof S>(path: K, value: S[K], ifNotExists?: boolean) {
     if (value === undefined) {
       log(`set {${path}: ${value}} is ignored`)
       return this
     }
-    const rKey = this.genKey()
+    const rKey = this.genKey(path)
     const rValue = this.genValue()
 
-    this.expressions.push(`SET ${rKey} = ${rValue}`)
+    this.expressions.push(`SET ${rKey} = ${
+      !ifNotExists
+        ? rValue
+        : `if_not_exists(${rKey}, ${rValue})`
+      }`)
     this.done({
       ExpressionAttributeNames : {[rKey]: path},
       ExpressionAttributeValues: {[rValue]: dynamodbValue(value)}
@@ -33,18 +40,18 @@ export class Updater<S> {
     return this
   }
 
-  setUnsafe(path: string, a: string|TScalar, b: TScalar) {
-    return (this.plus as any)(path, a, b)
+  setUnsafe(path: string, value: TScalar, ifNotExists?: Boolean) {
+    return (this.set as any)(path, value, ifNotExists)
   }
 
-  plus<K extends keyof S>(path: K, a: Extract<S[K], string|number>): this
-  plus<K extends keyof S>(path: K, a: K, b: Extract<S[K], string|number>): this
+  plus<K extends keyof S>(path: K, a: Extract<S[K], number>): this
+  plus<K extends keyof S>(path: K, a: K, b: Extract<S[K], number>): this
   plus(path, a, b?) {
     if (a === undefined) {
       log(`plus {${path}: ${a}} is ignored`)
       return this
     }
-    const rKey = this.genKey()
+    const rKey = this.genKey(path)
 
     if (typeof a === 'number') {
       // path + value
@@ -56,7 +63,7 @@ export class Updater<S> {
       })
     } else if (typeof b === 'number') {
       // another path + value
-      const rKeyA = this.genKey()
+      const rKeyA = this.genKey(a)
       const rValueA = this.genValue()
       this.expressions.push(`SET ${rKey} = ${rKeyA} + ${rValueA}`)
       this.done({
@@ -71,8 +78,8 @@ export class Updater<S> {
         throw new Error('.plus(string, string, string)')
       }
       // another path + another path
-      const rKeyA = this.genKey()
-      const rKeyB = this.genKey()
+      const rKeyA = this.genKey(a)
+      const rKeyB = this.genKey(b)
       this.expressions.push(`SET ${rKey} = ${rKeyA} + ${rKeyB}`)
       this.done({
         ExpressionAttributeNames: {
@@ -85,20 +92,20 @@ export class Updater<S> {
     return this
   }
 
-  plusUnsafe(path: string, a: string|TScalar, b: TScalar) {
+  plusUnsafe(path: string, a: string | TScalar, b: TScalar) {
     return (this.plus as any)(path, a, b)
   }
 
 
-  minus<K extends keyof S>(path: K, a: Extract<S[K], string|number>): this
-  minus<K extends keyof S>(path: K, a: K, b: Extract<S[K], string|number>): this
+  minus<K extends keyof S>(path: K, a: Extract<S[K], number>): this
+  minus<K extends keyof S>(path: K, a: K, b: Extract<S[K], number>): this
   minus(path, a, b?) {
     if (a === undefined) {
       log(`minus {${path}: ${a}} is ignored`)
       return this
     }
 
-    const rKey = this.genKey()
+    const rKey = this.genKey(path)
 
     if (typeof a === 'number') {
       // path - value
@@ -110,7 +117,7 @@ export class Updater<S> {
       })
     } else if (typeof b === 'number') {
       // another path - value
-      const rKeyA = this.genKey()
+      const rKeyA = this.genKey(a)
       const rValueA = this.genValue()
       this.expressions.push(`SET ${rKey} = ${rKeyA} - ${rValueA}`)
       this.done({
@@ -122,8 +129,8 @@ export class Updater<S> {
       })
     } else {
       // another path - another path
-      const rKeyA = this.genKey()
-      const rKeyB = this.genKey()
+      const rKeyA = this.genKey(a)
+      const rKeyB = this.genKey(b)
       this.expressions.push(`SET ${rKey} = ${rKeyA} - ${rKeyB}`)
       this.done({
         ExpressionAttributeNames: {
@@ -136,21 +143,19 @@ export class Updater<S> {
     return this
   }
 
-  minusUnsafe(path: string, a: string|TScalar, b: TScalar) {
+  minusUnsafe(path: string, a: string | TScalar, b: TScalar) {
     return (this.minus as any)(path, a, b)
   }
 
   // @todo support if_not_exists
   // ref: https://stackoverflow.com/questions/34951043/is-it-possible-to-combine-if-not-exists-and-list-append-in-update-item
   append<K extends keyof S, L extends Extract<S[K], any[]>>(path: K, array: L): this
-  append<
-    K extends keyof S,
+  append<K extends keyof S,
     K2 extends Omit<keyof S, K>,
-    L extends Extract<S[K], any[]>
-    >(path: K, sourceProp: K2, array: L): this
+    L extends Extract<S[K], any[]>>(path: K, sourceProp: K2, array: L): this
   append(path, sourceProp, array?) {
     console.warn('@todo')
-    const rKey = this.genKey()
+    const rKey = this.genKey(path)
     const rValue = this.genValue()
 
     if (array === undefined) {
@@ -161,7 +166,7 @@ export class Updater<S> {
         ExpressionAttributeValues: {[rValue]: dynamodbValue(array)}
       })
     } else {
-      const rSourceKey = this.genKey()
+      const rSourceKey = this.genKey(sourceProp)
       this.expressions.push(`SET ${rKey} = list_append(${rSourceKey}, ${rValue})`)
       this.done({
         ExpressionAttributeNames : {
@@ -174,7 +179,7 @@ export class Updater<S> {
     return this
   }
 
-  appendUnsafe(path: string, sourceProp: string|any[], array?: any[]) {
+  appendUnsafe(path: string, sourceProp: string | any[], array?: any[]) {
     return (this.append as any)(path, sourceProp, array)
   }
 
@@ -185,7 +190,7 @@ export class Updater<S> {
         log(`remove ${path} is ignored`)
         return this
       }
-      acc[this.genKey()] = path
+      acc[this.genKey(path)] = path
       return acc
     }, {})
     this.expressions.push(`REMOVE ${Object.keys(expressionAttributeNames).join(', ')}`)
@@ -195,12 +200,12 @@ export class Updater<S> {
     return this
   }
 
-  removeUnsafe(...paths: (keyof S|string)[]): this {
+  removeUnsafe(...paths: (keyof S | string)[]): this {
     return (this.remove as any)(...paths)
   }
 
-  add<K extends keyof S, SET extends Extract<S[K], Set<TScalar>>>(path: K, value: SET) {
-    const rKey = this.genKey()
+  add<K extends keyof S, SET extends Extract<S[K], Set<TScalar>>>(path: K, value: SET|Extract<S[K], number>) {
+    const rKey = this.genKey(path)
     const rValue = this.genValue()
 
     this.expressions.push(`ADD ${rKey} ${rValue}`)
@@ -211,12 +216,12 @@ export class Updater<S> {
     return this
   }
 
-  addUnsafe(path: string, value: Set<TScalar>) {
+  addUnsafe(path: string, value: Set<TScalar>|number) {
     return (this.add as any)(path, value)
   }
 
   delete<K extends keyof S, SET extends Extract<S[K], Set<TScalar>>>(path: K, value: SET) {
-    const rKey = this.genKey()
+    const rKey = this.genKey(path)
     const rValue = this.genValue()
 
     this.expressions.push(`DELETE ${rKey} ${rValue}`)

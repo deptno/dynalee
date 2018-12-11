@@ -163,7 +163,7 @@ export class Engine {
    */
   private getKeyParam = (hashKey: TScalar, rangeKey?: TScalar): { Key: {} } => {
     if (!this.range) {
-      if (rangeKey) {
+      if (rangeKey !== undefined) {
         log(`ignore. range key(${rangeKey}), rangeKey is not defined`)
       }
       return {
@@ -172,7 +172,7 @@ export class Engine {
         }
       }
     }
-    if (rangeKey) {
+    if (rangeKey !== undefined) {
       return {
         Key: {
           [this.hash] : hashKey,
