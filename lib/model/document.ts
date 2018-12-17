@@ -34,7 +34,7 @@ export class Document<S> {
     return this
   }
 
-  head(pureJs = false, transformSetTo?: (arrayIndicatesSet: TScalar[]) => TScalar[] ): S {
+  head(pureJs = false, transformSetTo?: (arrayIndicatesSet: TScalar[]) => TScalar[]): S {
     if (pureJs) {
       return jsDoc(this.current, transformSetTo)
     }
@@ -100,6 +100,7 @@ export class Document<S> {
     try {
       // Do not overwrite item when it exists on server
       if (!this.sureExistOnDb) {
+        // @todo need refactoring
         params.ConditionExpression = `attribute_not_exists(#HSK)`
         params.ExpressionAttributeNames = {
           '#HSK': this.hashKeyName

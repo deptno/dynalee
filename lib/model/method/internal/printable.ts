@@ -47,6 +47,3 @@ type QueryInput = Omit<DocumentClient.QueryInput, 'TableName' | 'Key'>
 type UpdateItemInput = Omit<DocumentClient.UpdateItemInput, 'TableName' | 'Key'>
 type Input = ScanInput | QueryInput | UpdateItemInput
 type Output = Omit<DocumentClient.ScanOutput | DocumentClient.QueryOutput, 'TableName'>
-interface RunOption {
-  original: boolean
-}

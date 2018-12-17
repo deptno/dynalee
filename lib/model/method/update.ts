@@ -9,7 +9,7 @@ import {Write} from './internal/write'
 
 const log = getLogger(ELogs.MODEL_METHOD_UPDATE_ITEM)
 
-export class UpdateItem<S> extends Write<S, DxPreUpdateInput> {
+export class Update<S> extends Write<S, DxPreUpdateInput> {
   protected params = {
     ReturnValues: 'ALL_NEW'
   } as DxPreUpdateInput

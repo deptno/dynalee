@@ -4,7 +4,7 @@ import {triggerReducer} from '../options/trigger-reducer'
 import {dynamodbDoc} from '../util/dynamodb-document'
 import {ELogs, getLogger} from '../util/log'
 import {Document} from './document'
-import {UpdateItem} from './method/update-item'
+import {Update} from './method/update'
 import {Readable, ReadableParams} from './readable'
 
 const log = getLogger(ELogs.MODEL_MODEL)
@@ -57,7 +57,7 @@ abstract class Model<S, H extends keyof S, RK extends keyof S = never> extends R
         }
         return unprocessedItems
       }, [])
-      console.log('batchWrite responses', responses)
+      log('batchWrite responses', responses)
       if (unprocessedItems.length > 0) {
         console.error('[CR] unprocessedItems', unprocessedItems)
       }
@@ -131,7 +131,7 @@ export class HashModel<S, H extends keyof S> extends Model<S, H> {
   }
 
   update(hashKey: S[H]) {
-    return new UpdateItem<S>(this.doUpdate.bind(this, hashKey, undefined), this.options.document)
+    return new Update<S>(this.doUpdate.bind(this, hashKey, undefined), this.options.document)
   }
 
   async delete(hashKey: S[H]) {
@@ -152,22 +152,21 @@ export class RangeModel<S, H extends keyof S, RK extends keyof S> extends Model<
     super(params)
   }
 
-  async get(hashKey: S[H], rangeKey: S[RK]): Promise<Document<S>> {
+  async get(hashKey: S[H], rangeKey: S[RK]): Promise<Document<S>|undefined> {
     try {
       const response = await this.engine.get(hashKey, rangeKey)
       if (!response || !response.Item) {
         log('error response', response)
-        throw new Error(`Item not found, hash(${hashKey}, range(${rangeKey})`)
+        throw new Error(`Item not found, hash(${hashKey}), range(${rangeKey})`)
       }
       return this.createDocument(response.Item, true)
     } catch (e) {
       log({[this.hash]: hashKey, [this.range!]: rangeKey})
-      throw new Error(e.message)
     }
   }
 
   update(hashKey: S[H], rangeKey: S[RK]) {
-    return new UpdateItem<S>(this.doUpdate.bind(this, hashKey, rangeKey), this.options.document)
+    return new Update<S>(this.doUpdate.bind(this, hashKey, rangeKey), this.options.document)
   }
 
   async delete(hashKey: S[H], rangeKey: S[RK]) {

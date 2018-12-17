@@ -22,7 +22,7 @@ export enum ELogs {
 }
 
 if (process.env.NODE_ENV === 'production') {
-  debug.log = console.log.bind(console)
+  debug['log'] = console.log.bind(console)
 }
 
-export const getLogger: (type: ELogs) => (...args: any[]) => void = type => debug(`dynalee:${type}`)
+export const getLogger = type => debug(`dynalee:${type}`)

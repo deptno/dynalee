@@ -111,7 +111,6 @@ export class Engine {
   }
 
   scan(params?): Promise<DocumentClient.ScanOutput|null> {
-    log('@todo return Scan instead')
     params = {
       ...params,
       ...this.getTableParam(),

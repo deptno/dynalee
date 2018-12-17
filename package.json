@@ -36,6 +36,7 @@
     "@babel/preset-env": "^7.1.0",
     "@babel/preset-typescript": "^7.1.0",
     "@types/aws-sdk": "^2.7.0",
+    "@types/debug": "0.0.31",
     "@types/faker": "^4.1.4",
     "@types/jest": "^23.3.7",
     "@types/node": "^10.12.0",
