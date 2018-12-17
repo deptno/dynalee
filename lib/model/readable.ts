@@ -3,6 +3,7 @@ import {Engine} from '../engine'
 import {ELogs, getLogger} from '../util/log'
 import {Document} from './document'
 import {Query} from './method/query'
+import {RangeQuery} from './method/range-query'
 import {Scan} from './method/scan'
 import {defaultModelOptions, ModelOptions} from './option'
 
@@ -38,6 +39,14 @@ export abstract class Readable<S, H extends keyof S, R extends keyof S> {
 
   query(hash: S[H]) {
     return new Query<S, H>(this.doQuery.bind(this), this.hash, hash)
+  }
+
+  // todo consider RangeReadable. RangeModel, SecondaryIndex use this
+  rangeQuery(hash: S[H]): RangeQuery<S, H, R> {
+    if (this.range === undefined) {
+      throw new Error('rangeKey name is not defined')
+    }
+    return new RangeQuery<S, H, R>(this.doQuery.bind(this), this.hash, hash, this.range)
   }
 
   scan() {
