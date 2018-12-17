@@ -22,6 +22,10 @@ export class Updater<S> {
   }
 
   set<K extends keyof S>(path: K, value: S[K], ifNotExists?: boolean) {
+    return this.setUnsafe(path, value, ifNotExists)
+  }
+
+  setUnsafe(path: string, value: TScalar, ifNotExists?: Boolean) {
     if (value === undefined) {
       log(`set {${path}: ${value}} is ignored`)
       return this
@@ -41,13 +45,13 @@ export class Updater<S> {
     return this
   }
 
-  setUnsafe(path: string, value: TScalar, ifNotExists?: Boolean) {
-    return (this.set as any)(path, value, ifNotExists)
-  }
-
   plus<K extends keyof S>(path: K, a: Extract<S[K], number>): this
   plus<K extends keyof S>(path: K, a: K, b: Extract<S[K], number>): this
   plus(path, a, b?) {
+    return this.plusUnsafe(path, a, b)
+  }
+
+  plusUnsafe(path: string, a: string | TScalar, b: TScalar) {
     if (a === undefined) {
       log(`plus {${path}: ${a}} is ignored`)
       return this
@@ -93,14 +97,14 @@ export class Updater<S> {
     return this
   }
 
-  plusUnsafe(path: string, a: string | TScalar, b: TScalar) {
-    return (this.plus as any)(path, a, b)
-  }
-
 
   minus<K extends keyof S>(path: K, a: Extract<S[K], number>): this
   minus<K extends keyof S>(path: K, a: K, b: Extract<S[K], number>): this
   minus(path, a, b?) {
+    return this.minusUnsafe(path, a, b)
+  }
+
+  minusUnsafe(path: string, a: string | TScalar, b: TScalar) {
     if (a === undefined) {
       log(`minus {${path}: ${a}} is ignored`)
       return this
@@ -144,17 +148,15 @@ export class Updater<S> {
     return this
   }
 
-  minusUnsafe(path: string, a: string | TScalar, b: TScalar) {
-    return (this.minus as any)(path, a, b)
-  }
-
   // @todo support if_not_exists
   // ref: https://stackoverflow.com/questions/34951043/is-it-possible-to-combine-if-not-exists-and-list-append-in-update-item
   append<K extends keyof S, L extends Extract<S[K], any[]>>(path: K, array: L): this
-  append<K extends keyof S,
-    K2 extends Omit<keyof S, K>,
-    L extends Extract<S[K], any[]>>(path: K, sourceProp: K2, array: L): this
+  append<K extends keyof S, K2 extends Omit<keyof S, K>, L extends Extract<S[K], any[]>>(path: K, sourceProp: K2, array: L): this
   append(path, sourceProp, array?) {
+    return this.appendUnsafe(path, sourceProp, array)
+  }
+
+  appendUnsafe(path: string, sourceProp: string | any[], array?: any) {
     console.warn('@todo')
     const rKey = this.genKey(path)
     const rValue = this.genValue()
@@ -180,11 +182,11 @@ export class Updater<S> {
     return this
   }
 
-  appendUnsafe(path: string, sourceProp: string | any[], array?: any[]) {
-    return (this.append as any)(path, sourceProp, array)
+  remove<K extends keyof S>(...paths: K[]): this {
+    return this.removeUnsafe(...paths)
   }
 
-  remove<K extends keyof S>(...paths: K[]): this {
+  removeUnsafe(...paths: (keyof S | string)[]): this {
     // @todo check to includes Index character
     const expressionAttributeNames = paths.reduce((acc, path) => {
       if (!path) {
@@ -201,11 +203,11 @@ export class Updater<S> {
     return this
   }
 
-  removeUnsafe(...paths: (keyof S | string)[]): this {
-    return (this.remove as any)(...paths)
+  add<K extends keyof S, SET extends Extract<S[K], Set<TScalar>>>(path: K, value: SET|Extract<S[K], number>) {
+    return this.add(path, value)
   }
 
-  add<K extends keyof S, SET extends Extract<S[K], Set<TScalar>>>(path: K, value: SET|Extract<S[K], number>) {
+  addUnsafe(path: string, value: Set<TScalar>|number) {
     const rKey = this.genKey(path)
     const rValue = this.genValue()
 
@@ -217,11 +219,11 @@ export class Updater<S> {
     return this
   }
 
-  addUnsafe(path: string, value: Set<TScalar>|number) {
-    return (this.add as any)(path, value)
+  delete<K extends keyof S, SET extends Extract<S[K], Set<TScalar>>>(path: K, value: SET) {
+    return this.delete(path, value)
   }
 
-  delete<K extends keyof S, SET extends Extract<S[K], Set<TScalar>>>(path: K, value: SET) {
+  deleteUnsafe(path: string, value: Set<TScalar>) {
     const rKey = this.genKey(path)
     const rValue = this.genValue()
 
@@ -231,9 +233,5 @@ export class Updater<S> {
       ExpressionAttributeValues: {[rValue]: dynamodbValue(value)}
     })
     return this
-  }
-
-  deleteUnsafe(path: string, value: Set<TScalar>) {
-    return (this.delete as any)(path, value)
   }
 }
