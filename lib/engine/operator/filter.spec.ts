@@ -78,12 +78,12 @@ describe('FilterOperator', () => {
     })
     it('.in', () => {
       const done = compare({
-        FilterExpression         : '#a IN (:a,:b,:c,:d)',
+        FilterExpression         : '#a IN (:a,:b)',
         ExpressionAttributeNames : {'#a': 'testIn'},
-        ExpressionAttributeValues: {':a': 'TT', ':b': 'TTT', ':c': 33, ':d': 333}
+        ExpressionAttributeValues: {':a': 'TT', ':b': 'TTT'}
       })
       new Filter(replacementKeyGenerator(), replacementValueGenerator(), done)
-        .in('testIn', ['TT', 'TTT', 33, 333])
+        .in('testIn', 'TT', 'TTT')
     })
     it('.attributeExists', () => {
       const done = compare({

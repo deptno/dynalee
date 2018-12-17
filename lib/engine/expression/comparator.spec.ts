@@ -1,4 +1,4 @@
-import {HashModel} from '../..'
+import {HashModel, RangeModel} from '../..'
 
 interface Schema {
   key: string
@@ -10,10 +10,10 @@ const RANGE_KEY = 'rangeKey'
 describe('ComparisonOperator', () => {
   //  const Fake = new Model<Schema, Schema['key']>('dynalee', 'key')
   //  const Fake = new Model<Schema, Schema['key']>('dynalee', 'key', {})
-  const Fake = new HashModel<Schema, Schema['key'], Schema['key']>({
+  const Fake = new RangeModel<Schema, 'key', 'rangeN'>({
     table: 'dynalee',
-    hash: 'key',
-    range: 'rangeN'
+    hashKey: 'key',
+    rangeKey: 'rangeN'
   })
   //  const Fake = new Model<Schema, Schema['key'], Schema['key']>('dynalee', 'key', 'rangeN', {})
   beforeEach(() => {
