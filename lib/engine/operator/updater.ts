@@ -204,7 +204,7 @@ export class Updater<S> {
   }
 
   add<K extends keyof S, SET extends Extract<S[K], Set<TScalar>>>(path: K, value: SET|Extract<S[K], number>) {
-    return this.add(path, value)
+    return this.addUnsafe(path, value)
   }
 
   addUnsafe(path: string, value: Set<TScalar>|number) {
@@ -220,7 +220,7 @@ export class Updater<S> {
   }
 
   delete<K extends keyof S, SET extends Extract<S[K], Set<TScalar>>>(path: K, value: SET) {
-    return this.delete(path, value)
+    return this.deleteUnsafe(path, value)
   }
 
   deleteUnsafe(path: string, value: Set<TScalar>) {
