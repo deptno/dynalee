@@ -1,8 +1,8 @@
 # dynalee
 
-`dyanlee` is **DML** only **DynamoDB ORM**
+**dyanlee** is **DML** only **DynamoDB ORM**
 
-Strongly typescripted.
+Strongly typed.
 
 Define model with way to follows DynamoDB philosophy.
 
