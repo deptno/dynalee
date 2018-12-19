@@ -26,9 +26,7 @@ export class Update<S> extends Write<S, DxPreUpdateInput> {
   }
 
   returnValue(returnType: DocumentClient.ReturnValue) {
-    this.merge({
-      ReturnValues: returnType
-    })
+    this.params.ReturnValues = returnType
     return this
   }
 
