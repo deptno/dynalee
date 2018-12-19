@@ -20,8 +20,6 @@ export class Update<S> extends Write<S, DxPreUpdateInput> {
 
   run() {
     this.preRun()
-    log('run() params')
-    log(this.params)
     return this.runner(this.params) as Promise<Document<S>>
   }
 

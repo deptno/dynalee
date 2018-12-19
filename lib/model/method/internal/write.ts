@@ -1,7 +1,7 @@
 import {DocumentClient} from 'aws-sdk/lib/dynamodb/document_client'
 import {Omit} from 'ramda'
 import {replacementKeyGenerator, replacementValueGenerator} from '../../../engine/expression/helper'
-import {Filter} from '../../../engine/operator/filter'
+import {Condition} from '../../../engine/operator/condition'
 import {Updater} from '../../../engine/operator/updater'
 import {ELogs, getLogger} from '../../../util/log'
 import {Printable} from './printable'
@@ -25,12 +25,11 @@ export abstract class Write<S, I extends Input> extends Printable<S, I> {
     return this
   }
 
-  condition(setter: (and: Filter<S>, or: Filter<S>, not: Filter<S>) => void) {
-    console.log('@todo condition')
+  condition(setter: (and: Condition<S>, or: Condition<S>, not: Condition<S>) => void) {
     setter(
-      new Filter<S>(this.genKey, this.genValue, (params) => this.merge(params)),
-      new Filter<S>(this.genKey, this.genValue, (params) => this.merge(params, 'OR')),
-      new Filter<S>(this.genKey, this.genValue, (params) => this.merge(params, 'NOT')),
+      new Condition<S>(this.genKey, this.genValue, (params) => this.merge(params)),
+      new Condition<S>(this.genKey, this.genValue, (params) => this.merge(params, 'OR')),
+      new Condition<S>(this.genKey, this.genValue, (params) => this.merge(params, 'NOT')),
     )
     return this
   }
