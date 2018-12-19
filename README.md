@@ -4,7 +4,7 @@
 
 Strongly typed.
 
-Define model with way to follows DynamoDB philosophy.
+Define model with way to follow DynamoDB philosophy.
 
 ## usage
 ### Model
