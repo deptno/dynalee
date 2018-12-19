@@ -23,6 +23,11 @@ export class Update<S> extends Write<S, DxPreUpdateInput> {
     return this.runner(this.params) as Promise<Document<S>>
   }
 
+  /**
+   * Set Return Value type
+   * @param {DocumentClient.ReturnValue} returnType
+   * @returns {this<S>}
+   */
   returnValue(returnType: DocumentClient.ReturnValue) {
     this.params.ReturnValues = returnType
     return this

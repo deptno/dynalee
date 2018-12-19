@@ -15,6 +15,13 @@ export abstract class Printable<S, I extends Input> {
   protected constructor(protected runner: Runner<S>) {
   }
 
+  /**
+   * Merge params object
+   * @param {Partial<I>} target
+   * @param {TConnector} connector
+   * @returns {this}
+   * @protected
+   */
   protected merge(target: Partial<I>, connector: TConnector = 'AND'): this {
     this.params = mergeByTypes(connector, this.params, target)
     return this
@@ -25,14 +32,9 @@ export abstract class Printable<S, I extends Input> {
   }
 
   /**
-   * @todo low priority. not implement yet.
-   * @deprecated
+   * Get operation text(without keys)
+   * @returns {R.Omit<Pick<DocumentClient.ScanInput, Exclude<keyof DocumentClient.ScanInput, "TableName" | "Key">> | Pick<DocumentClient.QueryInput, Exclude<keyof DocumentClient.QueryInput, "TableName" | "Key">> | Pick<DocumentClient.UpdateItemInput, Exclude<keyof DocumentClient.UpdateItemInput, "TableName" | "Key">>, string>}
    */
-  from(params: Partial<I>) {
-    this.params = R.omit(['Key'], params) as Omit<I, 'Key'>
-    return this
-  }
-
   out() {
     this.preRun()
     return R.omit(['Key'], this.params)

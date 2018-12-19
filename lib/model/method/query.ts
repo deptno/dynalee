@@ -18,6 +18,10 @@ export class Query<S, HK extends keyof S> extends Read<S> {
     }
   }
 
+  /**
+   * Set descend order
+   * @returns {this<S, HK>}
+   */
   desc() {
     return this.merge({ScanIndexForward: false})
   }

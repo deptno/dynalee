@@ -4,7 +4,7 @@ import {TScalar} from '../engine'
 import {ComparisonOperator, Generator, TExpression} from './type'
 
 const log = getLogger(ELogs.ENGINE_EXPRESSION_COMPARATOR)
-/**
+/*
  * https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Expressions.OperatorsAndFunctions.html
  */
 const createComparator = curry((

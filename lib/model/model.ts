@@ -10,17 +10,29 @@ import {Readable, ReadableParams} from './readable'
 const log = getLogger(ELogs.MODEL_MODEL)
 
 abstract class Model<S, H extends keyof S, RK extends keyof S = never> extends Readable<S, H, RK> {
+  /**
+   * Create and return Document
+   * @param {S} data
+   * @returns {Document<S>}
+   */
   of(data: S) {
     return this.createDocument(data)
   }
 
   /**
+   * Get items
    * @deprecated @todo
+   * @todo
    */
   async batchGet() {
     console.warn('@todo implement batchGet')
   }
 
+  /**
+   * BatchWrite items, It sends automatically split chunk every 25 items
+   * @param {WriteRequest<S>[]} items
+   * @returns {Promise<void>}
+   */
   async batchWrite(items: WriteRequest<S>[]) {
     const documentOption = this.options.document
     const requestToPut = item => [
@@ -67,6 +79,11 @@ abstract class Model<S, H extends keyof S, RK extends keyof S = never> extends R
     }
   }
 
+  /**
+   * Put items, `batchPut` call `batchWrite` internally,
+   * @param {S[]} items
+   * @returns {Promise<void>}
+   */
   batchPut(items: S[]) {
     return this.batchWrite(
       items.map(item => ({
@@ -77,6 +94,12 @@ abstract class Model<S, H extends keyof S, RK extends keyof S = never> extends R
     )
   }
 
+  /**
+   *
+   * Delete items, `batchDelete` call `batchWrite` internally,
+   * @param {Partial<S>[]} keyMap - Key object
+   * @returns {Promise<void>}
+   */
   batchDelete(keyMap: Partial<S>[]) {
     return this.batchWrite(
       keyMap.map(key => ({
@@ -96,6 +119,14 @@ abstract class Model<S, H extends keyof S, RK extends keyof S = never> extends R
   delete(_, __?) {
   }
 
+  /**
+   * Update item and return Document(data)
+   * @param hashKey
+   * @param rangeKey
+   * @param params
+   * @returns {Promise<any>}
+   * @protected
+   */
   protected async doUpdate(hashKey, rangeKey, params) {
     try {
       const response = await this.engine.update(hashKey, rangeKey, params)
@@ -112,10 +143,19 @@ abstract class Model<S, H extends keyof S, RK extends keyof S = never> extends R
 }
 
 export class HashModel<S, H extends keyof S> extends Model<S, H> {
+  /**
+   * API - define HashKey only data type
+   * @param {ReadableParams<S, H>} params
+   */
   constructor(params: ReadableParams<S, H>) {
     super(params)
   }
 
+  /**
+   * Get Document from server
+   * @param {S[H]} hashKey
+   * @returns {Promise<Document<S>>}
+   */
   async get(hashKey: S[H]): Promise<Document<S>> {
     try {
       const response = await this.engine.get(hashKey)
@@ -130,10 +170,20 @@ export class HashModel<S, H extends keyof S> extends Model<S, H> {
     }
   }
 
+  /**
+   * Get `Update`
+   * @param {S[H]} hashKey
+   * @returns {Update<S>}
+   */
   update(hashKey: S[H]) {
     return new Update<S>(this.doUpdate.bind(this, hashKey, undefined), this.options.document)
   }
 
+  /**
+   * Delete item
+   * @param {S[H]} hashKey
+   * @returns {Promise<this<S, H>>}
+   */
   async delete(hashKey: S[H]) {
     try {
       const response = await this.engine.delete({
@@ -148,10 +198,20 @@ export class HashModel<S, H extends keyof S> extends Model<S, H> {
 }
 
 export class RangeModel<S, H extends keyof S, RK extends keyof S> extends Model<S, H, RK> {
+  /**
+   * API - define HashKey and RangeKey data type
+   * @param {ReadableParams<S, H, RK>} params
+   */
   constructor(params: ReadableParams<S, H, RK>) {
     super(params)
   }
 
+  /**
+   * Get Document from server
+   * @param {S[H]} hashKey
+   * @param {S[RK]} rangeKey
+   * @returns {Promise<Document<S> | undefined>}
+   */
   async get(hashKey: S[H], rangeKey: S[RK]): Promise<Document<S>|undefined> {
     try {
       const response = await this.engine.get(hashKey, rangeKey)
@@ -165,10 +225,22 @@ export class RangeModel<S, H extends keyof S, RK extends keyof S> extends Model<
     }
   }
 
+  /**
+   * Get `Update`
+   * @param {S[H]} hashKey
+   * @param {S[RK]} rangeKey
+   * @returns {Update<S>}
+   */
   update(hashKey: S[H], rangeKey: S[RK]) {
     return new Update<S>(this.doUpdate.bind(this, hashKey, rangeKey), this.options.document)
   }
 
+  /**
+   * Delete item
+   * @param {S[H]} hashKey
+   * @param {S[RK]} rangeKey
+   * @returns {Promise<this<S, H, RK>>}
+   */
   async delete(hashKey: S[H], rangeKey: S[RK]) {
     try {
       const response = await this.engine.delete({

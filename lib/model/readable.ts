@@ -37,11 +37,21 @@ export abstract class Readable<S, H extends keyof S, R extends keyof S> {
     this.setEngine(params)
   }
 
+  /**
+   * Get `Query`(Hash)
+   * @param {S[H]} hash
+   * @returns {Query<S, H>}
+   */
   query(hash: S[H]) {
     return new Query<S, H>(this.doQuery.bind(this), this.hash, hash)
   }
 
-  // todo consider RangeReadable. RangeModel, SecondaryIndex use this
+  /**
+   * Get `RangeQuery`(Range)
+   * @todo consider RangeReadable. RangeModel, SecondaryIndex use this
+   * @param {S[H]} hash
+   * @returns {Query<S, H>}
+   */
   rangeQuery(hash: S[H]): RangeQuery<S, H, R> {
     if (this.range === undefined) {
       throw new Error('rangeKey name is not defined')
@@ -49,10 +59,19 @@ export abstract class Readable<S, H extends keyof S, R extends keyof S> {
     return new RangeQuery<S, H, R>(this.doQuery.bind(this), this.hash, hash, this.range)
   }
 
+  /**
+   * Get `Scan`
+   * @returns {Scan<S>}
+   */
   scan() {
     return new Scan<S>(this.doScan.bind(this))
   }
 
+  /**
+   * SetEngine
+   * @param {ReadableParams<S, H, R>} params
+   * @protected
+   */
   protected setEngine(params: ReadableParams<S, H, R>) {
     this.engine = new Engine({
       ...params,
@@ -61,10 +80,23 @@ export abstract class Readable<S, H extends keyof S, R extends keyof S> {
     })
   }
 
+  /**
+   * Create document
+   * @param {S} item
+   * @param {boolean} exists - Set true if you convinced, it exists on database
+   * @returns {Document<S>}
+   * @protected
+   */
   protected createDocument(item, exists = false) {
     return new Document<S>(this.engine, this.table, this.hash, this.range, exists, item)
   }
 
+  /**
+   * Operate query
+   * @param params
+   * @returns {Promise<DocumentClient.QueryOutput>}
+   * @private
+   */
   private async doQuery(params) {
     try {
       const response = await this.engine.query(params)
@@ -82,6 +114,11 @@ export abstract class Readable<S, H extends keyof S, R extends keyof S> {
     }
   }
 
+  /**
+   * Operate scan
+   * @param params
+   * @returns {Promise<DocumentClient.ScanOutput>}
+   */
   private async doScan(params) {
     try {
       const response = await this.engine.scan(params)

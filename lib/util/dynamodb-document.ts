@@ -35,6 +35,12 @@ const isOmitValue = (value) => {
   }
 }
 
+/**
+ * Omit unacceptable values and transform Set to DocumentClient.createSet
+ * @param obj
+ * @param {SetTransformer} ifSet
+ * @returns {any}
+ */
 export const dynamodbDoc = (obj, ifSet: SetTransformer = defaultSetTransformer) => {
   const omit: string[] = []
   const clone = {...obj}
@@ -49,6 +55,12 @@ export const dynamodbDoc = (obj, ifSet: SetTransformer = defaultSetTransformer) 
   }
   return R.omit(omit, clone) as typeof clone
 }
+/**
+ * Recover javascript data type from DynamoDB data type
+ * @param value
+ * @param {SetTransformer} ifSet
+ * @returns {any}
+ */
 export const dynamodbValue = (value, ifSet: SetTransformer = defaultSetTransformer) => {
   if (value instanceof Set) {
     return ifSet(value)

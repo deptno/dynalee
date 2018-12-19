@@ -5,6 +5,11 @@ const log = getLogger(ELogs.CONFIG_AWS)
 const regexpRegion = /\S+-\S+-.{1}/
 const cache = new Map()
 
+/**
+ * get cached AWS.DynamoDB.DocumentClient
+ * @param {DynamoDB.ClientConfiguration} options
+ * @returns {any}
+ */
 export const getDdbClient = (options = {} as DynamoDB.Types.ClientConfiguration) => {
   const {region = process.env.AWS_REGION, endpoint = 'http://localhost:8000'} = options
   const local = !regexpRegion.test(region!)

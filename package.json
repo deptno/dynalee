@@ -1,6 +1,6 @@
 {
   "name": "dynalee",
-  "version": "0.4.2",
+  "version": "0.4.1",
   "description": "Typescript DynamoDB ORM",
   "main": "dist/index.js",
   "module": "dist/index.js",

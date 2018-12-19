@@ -1,4 +1,3 @@
-import {TScalar} from '../engine'
 import {ELogs, getLogger} from '../util/log'
 import {Readable, ReadableParams} from './readable'
 
@@ -11,6 +10,10 @@ export interface SecondaryIndexParams<S, H extends keyof S, RK extends keyof S> 
 export class SecondaryIndex<S, H extends keyof S, RK extends keyof S = never> extends Readable<S, H, RK> {
   private readonly index: string
 
+  /**
+   * SecondaryIndex Constructor
+   * @param {SecondaryIndexParams<S, H, RK>} params
+   */
   constructor(params: SecondaryIndexParams<S, H, RK>) {
     super(params)
     this.index = params.index

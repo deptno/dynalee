@@ -16,6 +16,10 @@ export abstract class Read<S> extends Printable<S, Input> {
   protected genValue = replacementValueGenerator()
   protected params = {} as Input
 
+  /**
+   * Run runner
+   * @returns {Promise<OutputProxy<S>>}
+   */
   run() {
     this.preRun()
     log('runner() params')
@@ -23,6 +27,12 @@ export abstract class Read<S> extends Printable<S, Input> {
     return this.runner(this.params) as Promise<OutputProxy<S>>
   }
 
+  /**
+   * Set project expression
+   * @param {DocumentClient.ProjectionExpression} expression
+   * @returns {this<S>}
+   * @todo It is raw level now.
+   */
   project(expression: DocumentClient.ProjectionExpression) {
     console.warn('@todo implement project, any idea?')
     return this.merge({
@@ -30,6 +40,11 @@ export abstract class Read<S> extends Printable<S, Input> {
     })
   }
 
+  /**
+   * Set filter to filtering result
+   * @param {(and: Filter<S>, or: Filter<S>) => void} setter
+   * @returns {this<S>}
+   */
   filter(setter: (and: Filter<S>, or: Filter<S>) => void) {
     setter(
       new Filter(this.genKey, this.genValue, (params) => this.merge(params)),
@@ -38,6 +53,11 @@ export abstract class Read<S> extends Printable<S, Input> {
     return this
   }
 
+  /**
+   * Limit result count
+   * @param {number} limit
+   * @returns {this<S>}
+   */
   limit(limit: number) {
     if (typeof limit !== 'number') {
       return this.merge({Limit: 1})
@@ -45,10 +65,19 @@ export abstract class Read<S> extends Printable<S, Input> {
     return this.merge({Limit: limit})
   }
 
+  /**
+   * Set ConsistentRead
+   * @returns {this<S>}
+   */
   consistent() {
     return this.merge({ConsistentRead: true})
   }
 
+  /**
+   * Get items from
+   * @param {Partial<S>} lastEvaluatedKey
+   * @returns {this<S>}
+   */
   startAt(lastEvaluatedKey?: Partial<S>) {
     if (!lastEvaluatedKey) {
       return this

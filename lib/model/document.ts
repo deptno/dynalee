@@ -1,5 +1,5 @@
 import {DocumentClient} from 'aws-sdk/clients/dynamodb'
-import {applyPatches, Draft, Patch, produce} from 'immer'
+import {Draft, produce} from 'immer'
 import {Omit} from 'ramda'
 import {Engine, TScalar} from '../engine'
 import {dynamodbDoc, jsDoc} from '../util/dynamodb-document'
@@ -8,32 +8,37 @@ import {ELogs, getLogger} from '../util/log'
 const log = getLogger(ELogs.MODEL_DOCUMENT)
 
 export class Document<S> {
-  /**
-   * @todo: create History class
-   */
-  private undo: Patch[] = []
-  private redo: Patch[] = []
   private current: S
+  private readonly original: S
 
   constructor(
-    protected readonly engine: Engine,
-    protected readonly tableName: string,
-    protected readonly hashKeyName: string,
-    protected readonly rangeKeyName: string | undefined,
+    private readonly engine: Engine,
+    private readonly tableName: string,
+    private readonly hashKeyName: string,
+    private readonly rangeKeyName: string | undefined,
     private readonly sureExistOnDb: boolean,
     data: S,
   ) {
-    this.current = Object.freeze(dynamodbDoc(data))
+    this.current = dynamodbDoc(data)
+    this.original = Object.freeze(this.current)
   }
 
+  /**
+   * Set item values via setter
+   * @param {(draft: Draft<S>) => void} setter
+   * @returns {this<S>}
+   */
   set(setter: (draft: Draft<S>) => void) {
-    this.current = produce(this.current, setter, (redos, undos) => {
-      this.redo.push(...redos)
-      this.undo.push(...undos)
-    })
+    this.current = produce(this.current, setter)
     return this
   }
 
+  /**
+   * Return current data
+   * @param {boolean} pureJs - Transform DynamoDB oriented data type to javascript object
+   * @param {(arrayIndicatesSet: TScalar[]) => TScalar[]} transformSetTo - type `Set` transform function
+   * @returns {S}
+   */
   head(pureJs = false, transformSetTo?: (arrayIndicatesSet: TScalar[]) => TScalar[]): S {
     if (pureJs) {
       return jsDoc(this.current, transformSetTo)
@@ -41,10 +46,65 @@ export class Document<S> {
     return this.current
   }
 
-  private base() {
-    return applyPatches(this.head(), this.undo)
+  /**
+   * Delete item
+   * @returns {Promise<DocumentClient.DeleteItemOutput | null>}
+   */
+  async delete() {
+    const keys: DocumentClient.DeleteItemInput['Key'] = this.keys()
+    return this.engine.delete(keys)
   }
 
+  /**
+   * Put item
+   * @returns {Promise<this<S>>}
+   */
+  async put() {
+    log('put overwrite', this.sureExistOnDb)
+    const params = {} as Omit<DocumentClient.PutItemInput, 'TableName'>
+
+    try {
+      this.triggerIfUnsureExistsOnServer(params)
+      this.engine.options.onUpdate
+        .forEach(({attributeName, handler}) => this.set(setter => void (setter[attributeName] = handler())))
+
+      params.Item = this.head()
+
+      const response = await this.engine.put(params)
+
+      log('put response', response)
+      if (!response) {
+        return
+      }
+      return this
+    } catch (e) {
+      log('error put', e)
+    }
+  }
+
+  /*
+   * Do not overwrite item when it exists on server
+   * @param params
+   * @private
+   */
+  private triggerIfUnsureExistsOnServer(params) {
+    if (!this.sureExistOnDb) {
+      // @todo need refactoring
+      params.ConditionExpression = `attribute_not_exists(#HSK)`
+      params.ExpressionAttributeNames = {
+        '#HSK': this.hashKeyName
+      }
+      this.engine.options.onCreate.forEach(({attributeName, handler}) =>
+        this.set(setter => void (setter[attributeName] = handler()))
+      )
+    }
+  }
+
+  /*
+   * Return keys
+   * @returns {any}
+   * @private
+   */
   private keys() {
     if (this.rangeKeyName) {
       return {
@@ -57,84 +117,23 @@ export class Document<S> {
     }
   }
 
+  /*
+   * Return HashKey
+   * @returns {TScalar}
+   * @private
+   */
   private getHashKey(): TScalar {
-    return this.base()[this.hashKeyName]
+    return this.original[this.hashKeyName]
   }
 
+  /*
+   * Return RangeKey
+   * @returns {TScalar | undefined}
+   * @private
+   */
   private getRangeKey(): TScalar | undefined {
-    if (this.rangeKeyName) {
-      return this.base()[this.rangeKeyName]
-    }
+    return this.original[this.rangeKeyName!]
   }
 
-  /**
-   * @todo check, is created from DB
-   */
-  async delete() {
-    const keys: DocumentClient.DeleteItemInput['Key'] = {
-      [this.hashKeyName]: this.getHashKey()
-    }
-    if (this.rangeKeyName) {
-      keys.push({
-        [this.rangeKeyName]: this.getRangeKey()
-      })
-    }
-    return this.engine.delete(keys)
-  }
-
-  /**
-   * @todo is it need?
-   */
-  async undelete() {
-
-  }
-
-  /**
-   * @todo apply options
-   * @param params
-   * @returns {Request<DocumentClient.PutItemOutput, AWSError>}
-   */
-  async put() {
-    log('put overwrite', this.sureExistOnDb)
-    const params = {} as Omit<DocumentClient.PutItemInput, 'TableName'>
-    try {
-      // Do not overwrite item when it exists on server
-      if (!this.sureExistOnDb) {
-        // @todo need refactoring
-        params.ConditionExpression = `attribute_not_exists(#HSK)`
-        params.ExpressionAttributeNames = {
-          '#HSK': this.hashKeyName
-        }
-        this.engine.options.onCreate
-          .forEach(({attributeName, handler}) => this.set(setter => void (setter[attributeName] = handler())))
-      }
-
-      this.engine.options.onUpdate
-        .forEach(({attributeName, handler}) => this.set(setter => void (setter[attributeName] = handler())))
-
-      params.Item = this.head()
-      const response = await this.engine.put(params)
-      log('put response', response)
-      if (!response) {
-        return
-      }
-      return this
-    } catch (e) {
-      log('error put', e)
-    }
-  }
-
-  /**
-   * @deprecated It's not implemented
-   * @todo send diff only, use immer@>1.7.3 `isDraft`
-   * @todo check [immer limiation](https://github.com/mweststrate/immer#limitations)
-   */
-  async update(params?) {
-    params = {
-      ...params,
-      Item: this.head()
-    }
-    return this.engine.update(this.getHashKey(), this.getRangeKey(), params)
-  }
 }
 
