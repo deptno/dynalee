@@ -8,7 +8,7 @@ Define model with way to follows DynamoDB philosophy.
 
 ## usage
 ### Model
-> define hash model
+#### define hash model
 ```typescript
 import {HashModel} from 'dynalee'
 
@@ -40,7 +40,7 @@ console.log(docCat.head())
 */
 ```
 
-> define multiple model in one table
+#### define multiple model in one table
 ```typescript
 import {RangeModel} from 'dynalee'
 
@@ -67,7 +67,7 @@ const CatModel = model as RangeModel<Cat, 'name', 'birth'>
 const DogModel = model as RangeModel<Dog, 'name', 'birth'>
 ```
 
-> update 
+#### update 
 ```typescript
 CatModel
     .update('deptno cat', '1985')
@@ -85,7 +85,7 @@ CatModel
     .run()
 ```
 
-> update 2
+#### update 2
 ```typescript
 CatModel
     .update('deptno cat', '1985')
@@ -101,19 +101,19 @@ CatModel
     .run()
 ```
 
-> delete
+#### delete
 ```typescript
 CatModel.delete('deptno cat', '1985')
 ```
 
-> get item
+#### get item
 ```typescript
 CatModel.get('deptno cat', '1985')
 ```
 
 ### Document
 
-> create
+#### create
 ```typescript
 const document = await CatModel
     .of({
@@ -124,19 +124,19 @@ const document = await CatModel
     .put() // save
 ```
 
-> get raw data
+#### get raw data
 ```typescript
 const document = await CatModel.get('deptno cat', '1985')
 const rawdata = document.head()
 ```
 
-> delete
+#### delete
 ```typescript
 const document = await CatModel.get('deptno cat', '1985')
 document.delete()
 ```
 
-> put
+#### put
 ```typescript
 const document = await CatModel.get('deptno cat', '1985')
 await document
@@ -148,7 +148,7 @@ await document
 ```
 
 ### SecondaryIndex
-> define secondary index
+#### define secondary index
 ```typescript
 import {SecondaryIndex} from 'dynalee'
 
@@ -173,7 +173,7 @@ const CatModel = model as SecondaryIndex<Cat, 'name', 'birth'>
 const DogModel = model as SecondaryIndex<Dog, 'name', 'birth'>
 ```
 
-> query on secondary index
+#### query on secondary index
 ```typescript
 const documents = await CatModel
     .query('Turkish Angora')
@@ -181,7 +181,7 @@ const documents = await CatModel
 const items = documents.Items.map(item => item.head())
 ```
 
-> query on secondary index
+#### query on secondary index
 ```typescript
 const documents = await CatModel
     .rangeQuery('Turkish Angora')
@@ -190,7 +190,7 @@ const documents = await CatModel
 const items = documents.Items.map(item => item.head())
 ```
 
-> more query options
+#### more query options
 ```typescript
 const nextToken = null
 const documents = await CatModel
@@ -204,7 +204,7 @@ const documents = await CatModel
 const items = documents.Items.map(item => item.head())
 ```
 
-> scan on secondary index
+#### scan on secondary index
 ```typescript
 const documents = await CatModel
     .scan()
@@ -217,7 +217,7 @@ const items = documents.Items.map(item => item.head())
 
 ### advanced usage
 
-> Set
+#### Set
 ```typescript
 const cat = await CatModel
     .of({
@@ -241,7 +241,7 @@ console.log(jsDocument.doYouWantSet instanceof Set) // false
 console.log(Array.isArray(jsDocument.doYouWantSet)) // true
 ```
 
-> List
+#### List
 ```typescript
 const cat = await CatModel
     .of({
@@ -257,6 +257,64 @@ const cat = await CatModel
     })
     .put()
 ```
+
+#### Trigger
+
+likes CreatedAt, UpdatedAt
+
+```typescript
+import {HashModel, DocumentOptions} from 'dynalee'
+const document: DocumentOptions = {
+  onCreate: [
+    {
+      attributeName: 'CreatedAt',
+      handler(prevVal?) {
+        return new Date().toISOString()
+      }
+    },
+  ],
+  onUpdate: [
+    {
+      attributeName: 'UpdatedAt',
+      handler(prevVal?) {
+        return new Date().toISOString()
+      }
+    }
+  ],
+}
+interface Cat {
+  name: string
+}
+const CatModel = new HashModel<Cat, 'name'>({
+  table: 'TableName',
+  hashKey: 'name',
+  options: {
+    document
+  }
+})
+```
+
+#### use with [dynamon](https://github.com/deptno/dynamon)
+```typescript
+import {HashModel} from 'dynalee'
+interface Cat {
+  name: string
+}
+const CatModel = new HashModel<Cat, 'name'>({
+  table: 'TableName',
+  hashKey: 'name',
+  options: {
+    aws: {
+      region  : 'dynamon',
+      endpoint: 'http://localhost:8000'
+    },
+  }
+})
+```
+
+## link
+
+[#dynamon](https://github.com/deptno/dynamon)
 
 ## license
 
