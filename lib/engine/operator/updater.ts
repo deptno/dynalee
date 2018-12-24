@@ -16,7 +16,7 @@ export class Updater<S> {
   of(schema: Partial<S>, ifNotExists?: boolean) {
     //@todo: replace needs to support condition to prevent overwrite
     for (const [key, value] of Object.entries(schema)) {
-      this.set(key as keyof S, value, ifNotExists)
+      this.setUnsafe(key, value, ifNotExists)
     }
     return this
   }
@@ -30,6 +30,11 @@ export class Updater<S> {
       log(`set {${path}: ${value}} is ignored`)
       return this
     }
+
+    const ddbValue = dynamodbValue(value)
+    if (ddbValue === null) {
+      return this
+    }
     const rKey = this.genKey(path)
     const rValue = this.genValue()
 
@@ -40,7 +45,7 @@ export class Updater<S> {
       }`)
     this.done({
       ExpressionAttributeNames : {[rKey]: path},
-      ExpressionAttributeValues: {[rValue]: dynamodbValue(value)}
+      ExpressionAttributeValues: {[rValue]: ddbValue}
     })
     return this
   }
@@ -60,14 +65,22 @@ export class Updater<S> {
 
     if (typeof a === 'number') {
       // path + value
+      const ddbValue = dynamodbValue(a)
+      if (ddbValue === null) {
+        return this
+      }
       const rValueA = this.genValue()
       this.expressions.push(`SET ${rKey} = ${rKey} + ${rValueA}`)
       this.done({
         ExpressionAttributeNames : {[rKey]: path},
-        ExpressionAttributeValues: {[rValueA]: dynamodbValue(a)}
+        ExpressionAttributeValues: {[rValueA]: ddbValue}
       })
     } else if (typeof b === 'number') {
       // another path + value
+      const ddbValue = dynamodbValue(b)
+      if (ddbValue === null) {
+        return this
+      }
       const rKeyA = this.genKey(a)
       const rValueA = this.genValue()
       this.expressions.push(`SET ${rKey} = ${rKeyA} + ${rValueA}`)
@@ -76,7 +89,7 @@ export class Updater<S> {
           [rKey] : path,
           [rKeyA]: a
         },
-        ExpressionAttributeValues: {[rValueA]: dynamodbValue(b)}
+        ExpressionAttributeValues: {[rValueA]: ddbValue}
       })
     } else {
       if (!b) {
@@ -114,14 +127,22 @@ export class Updater<S> {
 
     if (typeof a === 'number') {
       // path - value
+      const ddbValue = dynamodbValue(a)
+      if (ddbValue === null) {
+        return this
+      }
       const rValueA = this.genValue()
       this.expressions.push(`SET ${rKey} = ${rKey} - ${rValueA}`)
       this.done({
         ExpressionAttributeNames : {[rKey]: path},
-        ExpressionAttributeValues: {[rValueA]: dynamodbValue(a)}
+        ExpressionAttributeValues: {[rValueA]: ddbValue}
       })
     } else if (typeof b === 'number') {
       // another path - value
+      const ddbValue = dynamodbValue(b)
+      if (ddbValue === null) {
+        return this
+      }
       const rKeyA = this.genKey(a)
       const rValueA = this.genValue()
       this.expressions.push(`SET ${rKey} = ${rKeyA} - ${rValueA}`)
@@ -163,12 +184,20 @@ export class Updater<S> {
 
     if (array === undefined) {
       array = sourceProp
+      const ddbValue = dynamodbValue(array)
+      if (ddbValue === null) {
+        return this
+      }
       this.expressions.push(`SET ${rKey} = list_append(${rKey}, ${rValue})`)
       this.done({
         ExpressionAttributeNames : {[rKey]: path},
-        ExpressionAttributeValues: {[rValue]: dynamodbValue(array)}
+        ExpressionAttributeValues: {[rValue]: ddbValue}
       })
     } else {
+      const ddbValue = dynamodbValue(array)
+      if (ddbValue === null) {
+        return this
+      }
       const rSourceKey = this.genKey(sourceProp)
       this.expressions.push(`SET ${rKey} = list_append(${rSourceKey}, ${rValue})`)
       this.done({
@@ -176,7 +205,7 @@ export class Updater<S> {
           [rKey]      : path,
           [rSourceKey]: sourceProp
         },
-        ExpressionAttributeValues: {[rValue]: dynamodbValue(array)}
+        ExpressionAttributeValues: {[rValue]: ddbValue}
       })
     }
     return this
@@ -208,13 +237,17 @@ export class Updater<S> {
   }
 
   addUnsafe(path: string, value: Set<TScalar>|number) {
+    const ddbValue = dynamodbValue(value)
+    if (ddbValue === null) {
+      return this
+    }
     const rKey = this.genKey(path)
     const rValue = this.genValue()
 
     this.expressions.push(`ADD ${rKey} ${rValue}`)
     this.done({
       ExpressionAttributeNames : {[rKey]: path},
-      ExpressionAttributeValues: {[rValue]: dynamodbValue(value)}
+      ExpressionAttributeValues: {[rValue]: ddbValue}
     })
     return this
   }
@@ -224,13 +257,17 @@ export class Updater<S> {
   }
 
   deleteUnsafe(path: string, value: Set<TScalar>) {
+    const ddbValue = dynamodbValue(value)
+    if (ddbValue === null) {
+      return this
+    }
     const rKey = this.genKey(path)
     const rValue = this.genValue()
 
     this.expressions.push(`DELETE ${rKey} ${rValue}`)
     this.done({
       ExpressionAttributeNames : {[rKey]: path},
-      ExpressionAttributeValues: {[rValue]: dynamodbValue(value)}
+      ExpressionAttributeValues: {[rValue]: ddbValue}
     })
     return this
   }

@@ -66,6 +66,8 @@ export const dynamodbValue = (value, ifSet: SetTransformer = defaultSetTransform
     return ifSet(value)
   } else if (Array.isArray(value)) {
 
+  } else if (value === null) {
+
   } else if (typeof value === 'object') {
     return dynamodbDoc(value, ifSet)
   }
