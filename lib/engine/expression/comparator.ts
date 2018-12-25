@@ -15,7 +15,7 @@ const createComparator = curry((
   keyName: string,
   a: TScalar
 ) => {
-  const key = genKey()
+  const key = genKey(keyName)
   const value = genValue()
   return {
     [expressionName]         : `${key} ${operator} ${value}`,
@@ -36,7 +36,7 @@ export const $between = curry(<T extends TScalar>(
   keyName: string,
   a: T,
   b: T) => {
-  const key = genKey()
+  const key = genKey(keyName)
   const valueA = genValue()
   const valueB = genValue()
   return {
@@ -61,7 +61,7 @@ export const $in = <T extends TScalar>(
   if (values.length > 100) {
     throw new Error(`dynamodb doesn't support \`A in (... more than 100)\` expression`)
   }
-  const key = genKey()
+  const key = genKey(keyName)
   const replacements = values.map(genValue)
   const attributeValues = replacements.reduce((ret, r, i) => ({
     ...ret,
