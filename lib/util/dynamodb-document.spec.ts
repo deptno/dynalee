@@ -47,4 +47,84 @@ describe('util', function () {
     }
     expect(dynamodbDoc(params)).toEqual({nested: {validValue: 0, validEmptyList: []}})
   })
+  it('resume', () => {
+    const resume = {
+      profile     :
+        {
+          name    : 'aaa',
+          job     : '',
+          picture : '',
+          email   : '',
+          phone   : '',
+          website : '',
+          summary : 'aa',
+          location:
+            {
+              address    : '',
+              address2   : '',
+              city       : '',
+              country    : '',
+              countryCode: '',
+              postalCode : ''
+            },
+          profiles: [{}, {}, {name: 'Github', url: 'https://a.com'}, {}]
+        },
+      experiences :
+        [{
+          startDate : '33',
+          endDate   : '33',
+          summary   : '3',
+          highlights:
+            [{tags: [], links: []},
+              {
+                startDate: 'bb',
+                highlight: '33',
+                tags     : ['', '11'],
+                links    : ['']
+              }]
+        }],
+      skills      :
+        [{skills: ['', '']},
+          {skills: []},
+          {category: '33', skills: []}],
+      education   : [],
+      awards      : [],
+      certificates: ['32'],
+      languages   : []
+    }
+    const expected = {
+      profile     :
+        {
+          name    : 'aaa',
+          summary : 'aa',
+          location:
+            {
+            },
+          profiles: [{}, {}, {name: 'Github', url: 'https://a.com'}, {}]
+        },
+      experiences :
+        [{
+          startDate : '33',
+          endDate   : '33',
+          summary   : '3',
+          highlights:
+            [{tags: [], links: []},
+              {
+                startDate: 'bb',
+                highlight: '33',
+                tags     : ['11'],
+                links    : []
+              }]
+        }],
+      skills      :
+        [{skills: []},
+          {skills: []},
+          {category: '33', skills: []}],
+      education   : [],
+      awards      : [],
+      certificates: ['32'],
+      languages   : []
+    }
+    expect(dynamodbDoc(resume)).toEqual(expected)
+  })
 })

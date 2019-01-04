@@ -24,10 +24,10 @@ const isOmitValue = (value) => {
         return true
       }
     }
-//  } else if (Array.isArray(value)) {
-//    if (value.length === 0) {
-//      return true
-//    }
+    //  } else if (Array.isArray(value)) {
+    //    if (value.length === 0) {
+    //      return true
+    //    }
   } else if (value instanceof Set) {
     if (value.size === 0) {
       return true
@@ -65,7 +65,9 @@ export const dynamodbValue = (value, ifSet: SetTransformer = defaultSetTransform
   if (value instanceof Set) {
     return ifSet(value)
   } else if (Array.isArray(value)) {
-
+    return value
+      .filter(x => !isOmitValue(x))
+      .map(value => dynamodbValue(value, ifSet))
   } else if (value === null) {
 
   } else if (typeof value === 'object') {

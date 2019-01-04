@@ -97,6 +97,8 @@ export class Document<S> {
       this.engine.options.onCreate.forEach(({attributeName, handler}) =>
         this.set(setter => void (setter[attributeName] = handler()))
       )
+    } else {
+
     }
   }
 
