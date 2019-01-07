@@ -25,11 +25,10 @@ export abstract class Write<S, I extends Input> extends Printable<S, I> {
     return this
   }
 
-  condition(setter: (and: Condition<S>, or: Condition<S>, not: Condition<S>) => void) {
+  condition(setter: (and: Condition<S>, or: Condition<S>) => void) {
     setter(
       new Condition<S>(this.genKey, this.genValue, (params) => this.merge(params)),
       new Condition<S>(this.genKey, this.genValue, (params) => this.merge(params, 'OR')),
-      new Condition<S>(this.genKey, this.genValue, (params) => this.merge(params, 'NOT')),
     )
     return this
   }
